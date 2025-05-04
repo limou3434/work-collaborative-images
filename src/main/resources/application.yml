@@ -1,0 +1,171 @@
+# 配置框架(使用 java -jar app.jar --spring.profiles.active=develop | release | production 来启动项目, 其中 release 有时间就拿来测试, 而 production 存储在 Github 上, 每次修改 Github 配置就需要刷新(这个有时间可以优化为无需重启))
+spring:
+  ## 配置环境
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:develop} # 默认启动开发环境
+  ## 配置名称
+  application:
+    name: work-collaborative-images
+  ## 配置数源
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/work_collaborative_images
+    username: wci
+    password: Qwe54188_
+    type: com.alibaba.druid.pool.DruidDataSource # 指定数据源类型
+    druid: # 配置连接池(在使用 Spring Boot 2.x 的情况下默认 HikariCP 连接池大小是 10, 当前请求量大起来之后, 如果数据库执行的不够快, 那么请求都会被阻塞等待获取连接池的连接上, 不过即便我们可以调优, 也无法在没有引入任何外部组件的情况下检测据库连接池, 更别说有依据得调优了, 所以这里引入了 Druid)
+      ########### 设置最基本的配置 ##########
+      initial-size: 10 # 配置初始化大小
+      minIdle: 10 # 配置初始化最小
+      max-active: 10 # 配置初始化最大
+      max-wait: 60000 # 配置获取连接等待超时的时间(单位: 毫秒)
+      time-between-eviction-runs-millis: 2000 # 配置间隔多久才进行一次检测, 检测需要关闭的空闲连接(单位: 毫秒)
+      min-evictable-idle-time-millis: 600000 # 配置一个连接在池中最小生存的时间(单位: 毫秒)
+      max-evictable-idle-time-millis: 900000 # 配置一个连接在池中最大生存的时间(单位: 毫秒)
+      validationQuery: select 1 # # 用来测试连接是否可用的 SQL 语句, 默认值每种数据库都不相同, 这是 mysql
+      testWhileIdle: true # 应用向连接池申请连接, 并且 testOnBorrow 为 false 时, 连接池将会判断连接是否处于空闲状态, 如果是, 则验证这条连接是否可用
+      testOnBorrow: false # 如果为 true, 默认 false, 应用向连接池申请连接时, 连接池会判断这条连接是否是可用的
+      testOnReturn: false # 如果为 true, 默认 false, 当应用使用完连接, 连接池回收连接的时候会判断该连接是否还可用
+      poolPreparedStatements: true # 是否缓存 preparedStatement, 也就是 PSCache, PSCache 对支持游标的数据库性能提升巨大, 比如说 Oracle
+      maxOpenPreparedStatements: 20 # # 要启用 PSCache, 必须配置大于 0, 当大于 0 时, poolPreparedStatements 自动触发修改为 true, 在 Druid 中，不会存在 Oracle 下 PSCache 占用内存过多的问题, 可以把这个数值配置大一些, 比如说 100
+      keepAlive: true # 连接池中的 minIdle 数量以内的连接, 空闲时间超过 minEvictableIdleTimeMillis, 则会执行 keepAlive 操作
+      aop-patterns: "com.springboot.template.dao.*" # Spring 监控, 利用 aop 对指定接口的执行时间, jdbc 数进行记录
+      ########### 启用内置过滤器(第一个 stat 必须, 否则监控不到 SQL), 自己配置监控统计拦截的 filter ##########
+      filters: stat,wall,log4j2
+      filter:
+        # 开启 druiddatasource 的状态监控
+        stat:
+          enabled: true
+          db-type: mysql
+          log-slow-sql: true # 开启慢 sql 监控, 超过 2s 就认为是慢 sql, 记录到日志中
+          slow-sql-millis: 2000
+        # 日志监控，使用slf4j 进行日志输出
+        slf4j:
+          enabled: true
+          statement-log-error-enabled: true
+          statement-create-after-log-enabled: false
+          statement-close-after-log-enabled: false
+          result-set-open-after-log-enabled: false
+          result-set-close-after-log-enabled: false
+      ########## 配置 WebStatFilter, 用于采集 web 关联监控的数据 ##########
+      web-stat-filter:
+        enabled: true # 启动 StatFilter
+        url-pattern: /* # 过滤所有url
+        exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*" # 排除一些不必要的 url
+        session-stat-enable: true # 开启 session 统计功能
+        session-stat-max-count: 1000 # session 的最大个数, 默认 100
+      ########## 配置 StatViewServlet(监控页面), 用于展示 Druid 的统计信息 ##########
+      stat-view-servlet:
+        enabled: true # 启用 StatViewServlet
+        url-pattern: /druid/* # 访问内置监控页面的路径, 内置监控页面的首页是 /druid/index.html
+        reset-enable: false # 不允许清空统计数据, 重新计算
+        login-username: druid # 配置监控页面访问密码
+        login-password: Qwe54188_
+        deny: # 拒绝访问的地址, deny 优先于 allow, 如果在 deny 列表中, 就算在 allow 列表中, 也会被拒绝
+        allow: 127.0.0.1 # 允许访问的地址, 如果 allow 没有配置或者为空, 则允许所有访问
+  ## 配置缓存
+  redis:
+    database: 2 # Redis 数据库索引(默认为 0, 通常为了方便开发会认为 0 号为生产环境、1 号为测试环境、2 号为开发环境)
+    host: 127.0.0.1 # Redis 服务器地址
+    port: 6379 # Redis 服务器连接端口
+    # password: Qwe54188_ # Redis 服务器连接密码(默认为空)
+    timeout: 10s # 连接超时时间
+    lettuce:
+      pool: # 链接池配置
+        max-active: 200 # 连接池最大连接数
+        max-wait: -1ms # 连接池最大阻塞等待时间(使用负值表示没有限制)
+        max-idle: 10 # 连接池中的最大空闲连接
+        min-idle: 0 # 连接池中的最小空闲连接
+  ## 配置微云
+  cloud:
+    ### 配置流量治理
+    sentinel:
+      transport:
+        port: 8721
+        dashboard: 127.0.0.1:8131 # 不过在容器模式下是无法访问宿主的, 因此开发模式下控制台失效, 但是不代表无法注册到控制台, 并且流量治理功能还是可用
+  # 配置引擎
+  elasticsearch:
+    uris: http://127.0.0.1:9200
+    username: elastic
+    password: Qwe54188_
+
+# 配置服务
+server:
+  ## 配置地址
+  address: 127.0.0.1
+  ## 配置端口
+  port: 8000
+  ## 配置路由
+  servlet:
+    context-path: /work_collaborative_images_api # 这样所有接口都会带上前缀
+
+# 配置日志
+logging:
+  level:
+    # root: DEBUG # 如果需要仔细调试可以打开这个选项
+    cn.com.edtechhub.workcollaborativeimages: DEBUG # 控制本项目包内的日志输出等级 TRACE | DEBUG | INFO | WARN | ERROR | FATAL
+
+# 配置文档
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: cn.com.edtechhub.workcollaborativeimages.controller
+knife4j: # knife4j 的增强配置(不需要增强可以不配)
+  basic:
+    enable: false
+    username: knife4j
+    password: Qwe54188_
+  enable: true
+  setting:
+    language: zh_cn
+
+# 配置 MyBatisPlus
+mybatis-plus:
+  ## 配置加密盐值
+  salt: edtechhub
+  ## 下划线转驼峰
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  ## 配置逻辑删除
+  global-config:
+    db-config:
+      logic-delete-field: deleted # 指定数据库全局逻辑删除字段名, 并且给实体类的对应字段加上 @TableLogic
+      logic-delete-value: 1 # 逻辑已删除值
+      logic-not-delete-value: 0 # 逻辑未删除值
+
+# 配置 Sa-Token
+sa-token: # 默认开启 Redis 配置将自动支持 Sa-token 使用 Redis 存储认证相关键值对, 想要关掉需要去除相关依赖
+  ## token 名称
+  token-name: work-collaborative-images # 同时也是 cookie 名称
+  ## token 有效期
+  timeout: 2592000 # 单位为秒, 默认 30 天, -1 代表永久有效
+  ## token 最低活跃频率
+  active-timeout: -1 # 单位:为秒, 如果 token 超过此时间没有访问系统就会被冻结, 默认 -1 代表不限制, 永不冻结
+  ## token 共享
+  is-share: false # 在多人登录同一账号时, 是否共用一个 token(为 true 时所有登录共用一个 token, 为 false 时每次登录新建一个 token)
+  ## 是否允许同一账号多地同时登录
+  is-concurrent: false # 为 true 时允许一起登录, 为 false 时新登录挤掉旧登录
+  ## token 风格
+  token-style: uuid # 默认可取值: uuid、simple-uuid、random-32、random-64、random-128、tik
+  ## 是否输出操作日志
+  is-log: true
+
+# 配置 Nacos
+nacos:
+  config:
+    username: nacos
+    password: Qwe54188_
+    server-addr: 127.0.0.1:8848 # nacos 地址
+    bootstrap:
+      enable: true  # 预加载
+    data-id: workcollaborativeimages # 控制台填写的 Data ID
+    group: DEFAULT_GROUP # 控制台填写的 group
+    type: yaml # 选择的文件格式
+    auto-refresh: true # 开启自动刷新
