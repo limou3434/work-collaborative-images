@@ -30,4 +30,9 @@ public class UserStatus {
      */
     String userId;
 
+    /**
+     * 登录权限
+     */
+    Integer userRole;
+
 }

@@ -29,4 +29,9 @@ public interface UserConstant {
      */
     Integer PASSWD_LENGTH = 6;
 
+    /**
+     * 用户是否登录会话标识
+     */
+    String USER_LOGIN_STATE = "longin_user";
+
 }

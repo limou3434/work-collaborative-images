@@ -38,7 +38,7 @@ public interface UserService extends IService<User> {
     List<User> userSearch(UserSearchRequest userSearchRequest);
 
     /**
-     * 用户封禁服务
+     * 用户封禁服务, 需要指定封禁时间
      */
     Boolean userDisable(Long userId, Long disableTime);
 
@@ -58,7 +58,7 @@ public interface UserService extends IService<User> {
     Boolean userLogout(String device);
 
     /**
-     * 用户状态服务
+     * 用户状态服务, 查询用户当前是否登录
      */
     UserStatus userStatus();
 

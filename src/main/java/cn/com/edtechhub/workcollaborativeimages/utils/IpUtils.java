@@ -51,7 +51,6 @@ public class IpUtils {
             return "127.0.0.1";
         }
 
-        log.debug("检测一次客户端的 IP 地址: {}", ip);
         return ip;
     }
 
