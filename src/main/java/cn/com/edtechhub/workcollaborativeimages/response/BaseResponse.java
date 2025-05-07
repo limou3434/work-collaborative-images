@@ -30,7 +30,7 @@ public class BaseResponse<T> implements Serializable {
     private T data;
 
     /**
-     * 外部构造方法, 快速封装 成功 响应体(重在数据)
+     * 构造方法, 快速封装 成功 响应体(重在数据)
      */
     public BaseResponse(CodeBindMessageEnums codeBindMessageEnums, T data) {
         this.code = codeBindMessageEnums.getCode();
@@ -39,7 +39,7 @@ public class BaseResponse<T> implements Serializable {
     }
 
     /**
-     * 外部构造方法, 快速封装 错误 响应体(重在含义)
+     * 构造方法, 快速封装 错误 响应体(重在含义)
      */
     public BaseResponse(CodeBindMessageEnums codeBindMessageEnums, String message) {
         this.code = codeBindMessageEnums.getCode();
@@ -48,9 +48,9 @@ public class BaseResponse<T> implements Serializable {
     }
 
     /**
-     * 内部构造方法, 快速封装 临时 响应体(仅供测试)
+     * 构造方法, 快速封装 临时 响应体(仅供测试)
      */
-    private BaseResponse(int code, String message, T data) {
+    public BaseResponse(int code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;

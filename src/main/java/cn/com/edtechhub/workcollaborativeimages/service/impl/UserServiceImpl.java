@@ -1,6 +1,5 @@
 package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
-import cn.com.edtechhub.workcollaborativeimages.config.MyBatisPlusConfig;
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,14 +33,12 @@ import java.util.List;
  * @description 针对表【user(用户信息表)】的数据库操作Service实现
  * @createDate 2025-05-04 19:38:16
  */
+@SuppressWarnings("deprecation")
 @Service
 @Transactional
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
-
-    @Resource
-    private MyBatisPlusConfig mybatisPlusConfig;
 
     @Override
     public User userAdd(UserAddRequest userAddRequest) {
@@ -73,7 +69,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         ThrowUtils.throwIf(userId <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "参数用户 id 应为正整数"));
 
         // 这里 MyBatisPlus 会自动转化为逻辑删除
-        Boolean result = this.removeById(userId);
+        boolean result = this.removeById(userId);
         ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "删除用户失败, 也许该用户不存在或者已经被删除"));
         return true;
     }
@@ -150,7 +146,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             userUpdateRequest.setRole(0);
         } else {
             StpUtil.kickout(userId); // 先踢下线
-            StpUtil.disable(userId, disableTime); // 然后再进行封禁 TODO: 可以做一些动态封禁, 比如先封禁 1 天、3 天、5 天、...
+            StpUtil.disable(userId, disableTime); // 然后再进行封禁
             userUpdateRequest.setRole(-1);
         }
 

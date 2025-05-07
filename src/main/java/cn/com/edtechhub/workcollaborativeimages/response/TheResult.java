@@ -12,24 +12,24 @@ import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 public class TheResult {
 
     /**
-     * 构造成功响应体
-     *
-     * @param data 数据
-     * @param <T> data 的类型
-     * @return 通用响应体对象
+     * 构造成功响应体(重在数据)
      */
     public static <T> BaseResponse<T> success(CodeBindMessageEnums codeBindMessageEnums, T data) {
         return new BaseResponse<>(codeBindMessageEnums, data);
     }
 
     /**
-     * 构造失败响应体
-     *
-     * @param codeBindMessageEnums 错误-含义 枚举体
-     * @return 通用响应体对象
+     * 构造失败响应体(重在消息)
      */
     public static <T> BaseResponse<T> error(CodeBindMessageEnums codeBindMessageEnums, String message) {
         return new BaseResponse<>(codeBindMessageEnums, message);
+    }
+
+    /**
+     * 构造等待开发响应体
+     */
+    public static <T> BaseResponse<T> notyet() {
+        return new BaseResponse<>(-1, "该接口尚在开发中...", null);
     }
 
 }
