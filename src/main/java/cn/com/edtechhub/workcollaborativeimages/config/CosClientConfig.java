@@ -1,0 +1,63 @@
+package cn.com.edtechhub.workcollaborativeimages.config;
+
+import com.qcloud.cos.COSClient;
+import com.qcloud.cos.ClientConfig;
+import com.qcloud.cos.auth.BasicCOSCredentials;
+import com.qcloud.cos.auth.COSCredentials;
+import com.qcloud.cos.http.HttpProtocol;
+import com.qcloud.cos.region.Region;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * 对象存储配置
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
+@Configuration
+@ConfigurationProperties(prefix = "cos.client")
+@Data
+@Slf4j
+public class CosClientConfig {
+
+    /**
+     * 访问域名
+     */
+    private String host;
+
+    /**
+     * 密钥标识
+     */
+    private String secretId;
+
+    /**
+     * 密钥的值
+     */
+    private String secretKey;
+
+    /**
+     * 低语简称
+     */
+    private String region;
+
+    /**
+     * 存储桶名
+     */
+    private String bucket;
+
+    /**
+     * 获取对象存储客户端
+     */
+    @Bean
+    public COSClient cosClient() {
+        log.debug("当前项目对象存储客户端使用存储桶 {}", bucket);
+        COSCredentials cred = new BasicCOSCredentials(secretId, secretKey); // 初始化用户身份信息(secretId, secretKey)
+        ClientConfig clientConfig = new ClientConfig(new Region(region)); // 设置 bucket 的地域, clientConfig 中包含了设置 region, https(默认 http), 超时, 代理等 set 方法
+        clientConfig.setHttpProtocol(HttpProtocol.https); // 从 5.6.54 版本开始，默认使用了 https
+        return new COSClient(cred, clientConfig); // 生成 cos 客户端
+    }
+
+}
