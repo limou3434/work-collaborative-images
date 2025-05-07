@@ -23,9 +23,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,6 +36,7 @@ import java.util.List;
  * @createDate 2025-05-04 19:38:16
  */
 @Service
+@Transactional
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
@@ -85,13 +88,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = new User();
         BeanUtils.copyProperties(userUpdateRequest, user);
         if (StringUtils.isNotBlank(user.getPasswd())) {
-            user.setPasswd(this.encryptedPasswd(user.getPasswd())); // 需要加密密码(这里有个雷, 如果用户的密码被查询出来, 就会导致再次加密, 暂时使用 if 解决)
-        } // 后续需要更新一个用户时, 如果密码为 null 则标识不更新密码
+            user.setPasswd(this.encryptedPasswd(user.getPasswd())); // 需要加密密码(这里有个雷, 如果用户的密码被查询出来, 就会导致再次加密, 需要使用 if 解决)
+        } // 后续需要更新一个用户时, 如果密码为 null 则我们认为不更新密码
         this.updateById(user);
+
+        // 更新用户后最好把用户的信息也返回, 这样方便前端做实时的数据更新
         Long userId = user.getId();
         User newUser = this.getById(userId);
-        StpUtil.getSessionByLoginId(userId).set(UserConstant.USER_LOGIN_STATE, newUser);
-        // StpUtil.kickout(userId); // 踢下线才能更新用户的所有信息, 可以考虑放开这个函数
+        StpUtil.getSessionByLoginId(userId).set(UserConstant.USER_LOGIN_STATE, newUser); // 并且还需要把用户的会话记录修改, 才能动态修改权限
+        StpUtil.kickout(userId); // 踢下线确保完全更新用户的所有信息, 这是一个保守做法
         return newUser;
     }
 
@@ -100,9 +105,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 检查参数
         ThrowUtils.throwIf(userSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户查询请求不能为空"));
 
-        // 查询用户分页后直接取得内部的列表进行返回
-        Page<User> page = new Page<>(userSearchRequest.getPageCurrent(), userSearchRequest.getPageSize()); // 创建分页对象, 指定页码和每页条数
+        // 如果用户传递了 id 选项, 则必然是查询一个用户, 为了提高效率直接查询一条数据
+        Long userId = userSearchRequest.getId();
+        if (userId != null) {
+            log.debug("本次查询只需要查询一个用户, 使用 id 字段来提高效率");
+            User user = this.getById(userId);
+            return new ArrayList<>() {{
+                add(user);
+            }};
+        }
+
+        // 获取查询对象
         LambdaQueryWrapper<User> queryWrapper = this.getQueryWrapper(userSearchRequest); // 构造查询条件
+
+        // 获取分页对象
+        Page<User> page = new Page<>(userSearchRequest.getPageCurrent(), userSearchRequest.getPageSize()); // 这里还指定了页码和条数
+
+        // 查询用户分页后直接取得内部的列表进行返回
         Page<User> userPage = this.page(page, queryWrapper); // 调用 MyBatis-Plus 的分页查询方法
         return userPage.getRecords(); // 返回分页结果
     }
@@ -237,12 +256,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         ThrowUtils.throwIf(userSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空"));
 
         // 取得需要查询的参数
-        Long id = userSearchRequest.getId();
         String account = userSearchRequest.getAccount();
         String tags = userSearchRequest.getTags();
         String nick = userSearchRequest.getNick();
         String name = userSearchRequest.getName();
-        String profile = userSearchRequest.getName();
+        String profile = userSearchRequest.getProfile();
         String address = userSearchRequest.getAddress();
         Integer role = userSearchRequest.getRole();
         Integer level = userSearchRequest.getLevel();
@@ -251,12 +269,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         // 获取包装器进行返回
         LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(id != null, User::getId, id);
         lambdaQueryWrapper.eq(StringUtils.isNotBlank(account), User::getAccount, account);
+        lambdaQueryWrapper.like(StringUtils.isNotBlank(tags), User::getTags, tags);
+        lambdaQueryWrapper.like(StringUtils.isNotBlank(nick), User::getNick, nick);
+        lambdaQueryWrapper.like(StringUtils.isNotBlank(name), User::getName, name);
+        lambdaQueryWrapper.like(StringUtils.isNotBlank(profile), User::getProfile, profile);
+        lambdaQueryWrapper.like(StringUtils.isNotBlank(address), User::getAddress, address);
         lambdaQueryWrapper.eq(role != null, User::getRole, role);
         lambdaQueryWrapper.eq(level != null, User::getLevel, level);
         lambdaQueryWrapper.orderBy(
-                StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "),
+                StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则
                 sortOrder.equals("ascend"), // 这里结果为 true 代表 ASC 升序, false 代表 DESC 降序
                 User::getAccount // 默认按照账户排序
         );
