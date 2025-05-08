@@ -107,11 +107,11 @@ public class UserVO implements Serializable {
      */
     private Integer gender;
 
+    /// 序列化字段 ///
+    private static final long serialVersionUID = 1L;
+
     /**
      * 脱敏方法
-     *
-     * @param user 用户信息
-     * @return 脱敏后的用户信息
      */
     static public UserVO removeSensitiveData(User user) {
         if (user == null) {

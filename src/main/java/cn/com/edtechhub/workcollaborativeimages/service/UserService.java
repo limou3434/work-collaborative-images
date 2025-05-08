@@ -2,10 +2,10 @@ package cn.com.edtechhub.workcollaborativeimages.service;
 
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserStatus;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
-import cn.com.edtechhub.workcollaborativeimages.model.request.UserAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.UserDeleteRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.UserSearchRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.UserUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserDeleteRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserUpdateRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;

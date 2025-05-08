@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.service.impl;
+package cn.com.edtechhub.workcollaborativeimages.manager;
 
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
@@ -14,14 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 权限认证服务层实现
- * 保证此类被 SpringBoot 扫描, 完成 Sa-Token 的自定义权限验证扩展
+ * Sa-token 管理器
+ * 需要保证此类被 SpringBoot 扫描, 完成 Sa-Token 的自定义权限验证扩展
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Component
 @Slf4j
-public class SaTokenStpInterfaceImpl implements StpInterface {
+public class SaTokenManager implements StpInterface {
 
     /**
      * 注入用户服务实例

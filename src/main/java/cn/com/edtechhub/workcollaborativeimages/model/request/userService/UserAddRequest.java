@@ -1,21 +1,16 @@
-package cn.com.edtechhub.workcollaborativeimages.model.request;
+package cn.com.edtechhub.workcollaborativeimages.model.request.userService;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 /**
- * 修改用户请求
+ * 添加用户请求
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Data
-public class UserUpdateRequest implements Serializable {
-
-    /**
-     * 本用户唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)
-     */
-    private Long id; // 这个 id 是用来寻找需要更新的用户的
+public class UserAddRequest implements Serializable {
 
     /**
      * 账户号(业务层需要决定某一种或多种登录方式, 因此这里不限死为非空)
@@ -61,6 +56,7 @@ public class UserUpdateRequest implements Serializable {
      * 用户标签(业务层需要 json 数组格式存储用户标签数组)
      */
     private String tags;
+
     /**
      * 用户昵称
      */

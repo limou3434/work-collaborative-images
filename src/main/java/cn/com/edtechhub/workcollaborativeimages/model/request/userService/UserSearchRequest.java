@@ -1,5 +1,6 @@
-package cn.com.edtechhub.workcollaborativeimages.model.request;
+package cn.com.edtechhub.workcollaborativeimages.model.request.userService;
 
+import cn.com.edtechhub.workcollaborativeimages.model.request.PageRequest;
 import lombok.Data;
 
 import java.io.Serializable;

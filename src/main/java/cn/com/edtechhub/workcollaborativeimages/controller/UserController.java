@@ -3,7 +3,7 @@ package cn.com.edtechhub.workcollaborativeimages.controller;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserStatus;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
-import cn.com.edtechhub.workcollaborativeimages.model.request.*;
+import cn.com.edtechhub.workcollaborativeimages.model.request.userService.*;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.UserVO;
 import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
