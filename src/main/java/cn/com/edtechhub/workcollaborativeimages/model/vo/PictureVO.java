@@ -71,11 +71,6 @@ public class PictureVO implements Serializable {
     private Long userId;
 
     /**
-     * 是否删除(0 为未删除, 1 为已删除)
-     */
-    private Integer deleted;
-
-    /**
      * 创建时间(受时区影响)
      */
     private Date createTime;

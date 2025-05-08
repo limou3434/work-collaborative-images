@@ -43,10 +43,9 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaCheckRole("admin")
     @PostMapping("/add")
 //    @SentinelResource(value = "userAdd")
-    public BaseResponse<UserVO> userAdd(@RequestBody UserAddRequest userAddRequest) {
+    public BaseResponse<User> userAdd(@RequestBody UserAddRequest userAddRequest) {
         User user = userService.userAdd(userAddRequest);
-        UserVO userVo = UserVO.removeSensitiveData(user);
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, userVo);
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, user);
     }
 
     /**
@@ -68,10 +67,8 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaCheckRole("admin")
     @PostMapping("/update")
 //    @SentinelResource(value = "userUpdate")
-    public BaseResponse<UserVO> userUpdate(@RequestBody UserUpdateRequest userUpdateRequest) {
-        User user = userService.userUpdate(userUpdateRequest);
-        UserVO userVo = UserVO.removeSensitiveData(user);
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, userVo);
+    public BaseResponse<User> userUpdate(@RequestBody UserUpdateRequest userUpdateRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userUpdate(userUpdateRequest));
     }
 
     /**
@@ -81,12 +78,8 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaCheckRole("admin")
     @PostMapping("/search")
 //    @SentinelResource(value = "userSearch")
-    public BaseResponse<List<UserVO>> userSearch(@RequestBody UserSearchRequest userSearchRequest) {
-        List<User> userList = userService.userSearch(userSearchRequest);
-        List<UserVO> userVoList = userList.stream()
-                .map(UserVO::removeSensitiveData)
-                .collect(Collectors.toList());
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, userVoList);
+    public BaseResponse<List<User>> userSearch(@RequestBody UserSearchRequest userSearchRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userSearch(userSearchRequest));
     }
 
     /**
@@ -116,12 +109,12 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
      * 用户登入网络接口
      */
     @SaIgnore
-    @PostMapping("/login")
+    @PostMapping("/login/vo")
 //    @SentinelResource(value = "userLogin")
-    public BaseResponse<UserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<UserVO> userLoginVo(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         User user = userService.userLogin(userLoginRequest.getAccount(), userLoginRequest.getPasswd(), DeviceUtils.getRequestDevice(request)); // 这里同时解析用户的设备, 以支持同端互斥
-        UserVO userVo = UserVO.removeSensitiveData(user);
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, userVo);
+        UserVO userVO = UserVO.removeSensitiveData(user);
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, userVO);
     }
 
     /**

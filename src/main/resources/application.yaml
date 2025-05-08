@@ -6,6 +6,14 @@ spring:
   ## 配置名称
   application:
     name: work-collaborative-images
+  ## 配置重载
+  devtools:
+    restart:
+      enabled: false
+  ## 资源限制
+  servlet:
+    multipart:
+      max-file-size: 10MB
   ## 配置数源
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/work_collaborative_images

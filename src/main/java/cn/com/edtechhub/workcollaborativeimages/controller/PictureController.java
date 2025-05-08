@@ -2,10 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.controller;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
 import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
@@ -16,9 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
 
 /**
  * 图片控制层
@@ -47,91 +41,24 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     private PictureService pictureService;
 
     /**
-     * 图片添加网络接口
+     * 图片上传网络接口
      */
     @SaCheckLogin
     @SaCheckRole("admin")
-    @PostMapping("/add")
-//    @SentinelResource(value = "pictureAdd")
-    public BaseResponse<Picture> pictureAdd(@RequestBody PictureAddRequest pictureAddRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureAdd(pictureAddRequest));
-    }
-
-    /**
-     * 图片删除网络接口
-     */
-    @SaCheckLogin
-    @SaCheckRole("admin")
-    @PostMapping("/delete")
-//    @SentinelResource(value = "pictureDelete")
-    public BaseResponse<Boolean> pictureDelete(@RequestBody PictureDeleteRequest pictureDeleteRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(pictureDeleteRequest));
-    }
-
-    /**
-     * 图片修改网络接口
-     */
-    @SaCheckLogin
-    @SaCheckRole("admin")
-    @PostMapping("/update")
-//    @SentinelResource(value = "pictureUpdate")
-    public BaseResponse<Picture> pictureUpdate(@RequestBody PictureUpdateRequest pictureUpdateRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpdate(pictureUpdateRequest));
-    }
-
-    /**
-     * 图片查询网络接口
-     */
-    @SaCheckLogin
-    @SaCheckRole("admin")
-    @PostMapping("/search")
-//    @SentinelResource(value = "pictureSearch")
-    public BaseResponse<List<Picture>> pictureSearch(@RequestBody PictureSearchRequest pictureSearchRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest));
-    }
-
-    /**
-     * 图片上传网络接口(简单测试)
-     */
-    @SaCheckLogin
-    @SaCheckRole("admin")
-    @PostMapping("/test/upload")
-//    @SentinelResource(value = "pictureTestUpload")
-    public BaseResponse<String> pictureTestUpload(@RequestPart("file") MultipartFile multipartFile) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureTestUpload("/test/", multipartFile));
-    }
-
-    /**
-     * 图片下载网络接口(简单测试)
-     */
-    @SaCheckLogin
-    @SaCheckRole("admin")
-    @GetMapping("/test/download")
-//    @SentinelResource(value = "pictureTestDownload")
-    public void pictureTestDownload(String cosFilepath, HttpServletResponse response) {
-        try {
-            pictureService.pictureTestDownload(cosFilepath, response);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * 图片上传网络接口(无需权限)
-     */
-    @SaCheckLogin
     @PostMapping("/upload")
-//    @SentinelResource(value = "pictureUpload")
-    public void pictureUpload() {
+//    @SentinelResource(value = "pictureAdd")
+    public BaseResponse<Picture> pictureUpload(@RequestParam(value = "pictureId", required = false) Long pictureId, @RequestPart(value = "file") MultipartFile multipartFile) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpload(pictureId, multipartFile));
     }
 
     /**
-     * 图片下载网络接口(无需权限)
+     * 图片上传网络接口
      */
     @SaCheckLogin
-    @GetMapping("/download")
-//    @SentinelResource(value = "pictureDownload")
-    public void pictureDownload() {
+    @PostMapping("/upload/vo")
+//    @SentinelResource(value = "pictureAdd")
+    public BaseResponse<PictureVO> pictureUploadVO(@RequestParam(value = "pictureId", required = false) Long pictureId, @RequestPart(value = "file") MultipartFile multipartFile) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, multipartFile)));
     }
 
 }

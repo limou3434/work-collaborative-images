@@ -40,6 +40,7 @@ import java.util.List;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
     public User userAdd(UserAddRequest userAddRequest) {
         // 检查参数
@@ -215,7 +216,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         userStatus.setTokenName(StpUtil.getTokenName());
         userStatus.setTokenTimeout(String.valueOf(StpUtil.getTokenTimeout()));
         userStatus.setUserId(String.valueOf(StpUtil.getLoginId()));
-        userStatus.setUserRole(((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole());
+        userStatus.setUserRole(((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole()); // 获取登陆用户会话中的权限
         return userStatus;
     }
 
