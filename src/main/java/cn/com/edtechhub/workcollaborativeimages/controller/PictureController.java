@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 图片控制层
@@ -47,18 +48,30 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @SaCheckRole("admin")
     @PostMapping("/upload")
 //    @SentinelResource(value = "pictureAdd")
-    public BaseResponse<Picture> pictureUpload(@RequestParam(value = "pictureId", required = false) Long pictureId, @RequestPart(value = "file") MultipartFile multipartFile) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpload(pictureId, multipartFile));
+    public BaseResponse<Picture> pictureUpload(
+            @RequestParam(value = "pictureId", required = false) Long pictureId,
+            @RequestParam(value = "pictureCategory", required = false) String pictureCategory,
+            @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction,
+            @RequestParam(value = "pictureTags", required = false) List<String> pictureTags,
+            @RequestPart(value = "file", required = false) MultipartFile multipartFile
+    ) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpload(pictureId, pictureCategory, pictureIntroduction, pictureTags, multipartFile));
     }
 
     /**
-     * 图片上传网络接口
+     * 图片上传网络接口(脱敏)
      */
     @SaCheckLogin
     @PostMapping("/upload/vo")
-//    @SentinelResource(value = "pictureAdd")
-    public BaseResponse<PictureVO> pictureUploadVO(@RequestParam(value = "pictureId", required = false) Long pictureId, @RequestPart(value = "file") MultipartFile multipartFile) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, multipartFile)));
+//    @SentinelResource(value = "pictureUploadVO")
+    public BaseResponse<PictureVO> pictureUploadVO(
+            @RequestParam(value = "pictureId", required = false) Long pictureId,
+            @RequestParam(value = "pictureCategory", required = false) String pictureCategory,
+            @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction,
+            @RequestParam(value = "pictureTags", required = false) List<String> pictureTags,
+            @RequestPart(value = "file", required = false) MultipartFile multipartFile
+    ) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, pictureCategory, pictureIntroduction, pictureTags, multipartFile)));
     }
 
 }

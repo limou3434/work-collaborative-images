@@ -180,9 +180,3 @@ VALUES ('aimou', 'wx_union_aimou', 'mp_open_aimou', 'aimou@example.com', '138001
         '5be35df1ff07a29e983bcbaef710626f', 'https://example.com/avatar_zimou29.jpg', '["tag"]', 'zimou', '张敏',
         '这是张敏的个人简介', '2015-12-29', '中国', '上海市浦东新区', 0, 2, 2, 0)
 ;
-
-INSERT INTO `picture` (url, name, introduction, category, tags, pic_size, pic_width, pic_height, pic_scale, pic_format,
-                       user_id)
-VALUES ('https://avatars.githubusercontent.com/u/113878415?s=400&u=9f10b63e033c9504615bc475581441478424e04b&v=4',
-        '测试图片', 'limou 的 github 头像', '测试图片', '["test", "测试"]', 0.0203, 400, 400, 1.0, 'jpg', 38)
-;

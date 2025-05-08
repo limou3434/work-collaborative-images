@@ -33,10 +33,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @Resource
     CosManager cosManager;
 
-    public Picture pictureUpload(Long pictureId, MultipartFile multipartFile) {
-        // 检查参数
-        ThrowUtils.throwIf(multipartFile == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "没有选择需要上传的图片"));
-
+    public Picture pictureUpload(Long pictureId, String pictureCategory, String pictureIntroduction, List<String> pictureTags, MultipartFile multipartFile) {
         // 如果是更新图片
         if (pictureId != null) {
             boolean exists = this
@@ -44,6 +41,19 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                     .eq(Picture::getId, pictureId)
                     .exists();
             ThrowUtils.throwIf(!exists, new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "指定 id 所对应的图片不存在所以无法更新"));
+
+            // 如果还没有携带新的图片但是数据库中图片存在, 那么就只更新图片的元数据
+            if (multipartFile == null) {
+                Picture picture = this.getById(pictureId);
+                picture.setCategory(pictureCategory);
+                picture.setIntroduction(pictureIntroduction);
+                picture.setTags(pictureTags == null ? null : pictureTags.toString());
+                boolean result = this.updateById(picture);
+                ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
+                Picture newPicture = this.getById(pictureId);
+                log.debug("检查更新入库后的图片 {}", newPicture);
+                return newPicture;
+            }
         }
 
         // 如果是新增图片
@@ -51,6 +61,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         String uploadPathPrefix = String.format("public/%s", userId); // 构造和用户相关的图片父目录
         UploadPictureResult uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, multipartFile);
         Picture picture = new Picture(); // 构造要入库的图片信息
+        picture.setCategory(pictureCategory);
+        picture.setIntroduction(pictureIntroduction);
+        picture.setTags(pictureTags == null ? null : pictureTags.toString());
         picture.setUrl(uploadPictureResult.getUrl());
         picture.setName(uploadPictureResult.getPicName());
         picture.setPicSize(uploadPictureResult.getPicSize());
@@ -61,12 +74,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         picture.setUserId(userId);
         if (pictureId != null) {
             picture.setId(pictureId);
-            // TODO: 这里因为数据库中少了一个更新字段...不然这里需要修改更新时间
+            // TODO: 这里需要修改更新时间
         }
         boolean result = this.saveOrUpdate(picture);
         ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
-        log.debug("检查入库后的图片 {}", picture);
-        return picture;
+        Picture newPicture = this.getById(picture.getId());
+        log.debug("检查新增入库后的图片 {}", newPicture);
+        return newPicture;
     }
 
     public Boolean pictureDownload() {

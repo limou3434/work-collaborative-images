@@ -1,9 +1,15 @@
 package cn.com.edtechhub.workcollaborativeimages.model.vo;
 
+import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
+import cn.com.edtechhub.workcollaborativeimages.service.UserService;
+import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
+import javax.annotation.Resource;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -91,6 +97,8 @@ public class PictureVO implements Serializable {
     /**
      * 脱敏方法
      */
+    @Resource
+    UserService userService;
     static public PictureVO removeSensitiveData(Picture picture) {
         if (picture == null) {
             return null;

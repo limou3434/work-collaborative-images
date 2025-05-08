@@ -83,13 +83,11 @@ public class Picture implements Serializable {
     /**
      * 创建时间(受时区影响)
      */
-    @TableField(fill = FieldFill.INSERT) // 插入时自动填充创建时间
     private Date createTime;
 
     /**
      * 更新时间(受时区影响)
      */
-    @TableField(fill = FieldFill.INSERT_UPDATE) // 插入时自动填充更新时间
     private Date updateTime;
 
     @TableField(exist = false)

@@ -139,4 +139,6 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userStatus);
     }
 
+    // TODO: 需要添加一个获取用户 VO 的接口, 原本的 userStatus 有些不够使用...
+
 }
