@@ -6,6 +6,7 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserAd
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserUpdateRequest;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public interface UserService extends IService<User> {
     /**
      * 用户查询服务
      */
-    List<User> userSearch(UserSearchRequest userSearchRequest);
+    Page<User> userSearch(UserSearchRequest userSearchRequest);
 
     /**
      * 用户封禁服务

@@ -13,6 +13,8 @@ import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,7 +38,6 @@ import java.util.stream.Collectors;
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
-@SuppressWarnings("ALL")
 @RestController // 返回值默认为 json 类型
 @RequestMapping("/picture")
 @Slf4j
@@ -54,9 +55,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @Resource
     private UserService userService;
 
-    /**
-     * 未脱敏的图片上传网络接口(管理)
-     */
+    @Operation(summary = "未脱敏的图片上传网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/upload")
@@ -71,9 +70,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpload(pictureId, pictureCategory, pictureIntroduction, pictureTags, multipartFile));
     }
 
-    /**
-     * 已脱敏的图片上传网络接口
-     */
+    @Operation(summary = "已脱敏的图片上传网络接口")
     @SaCheckLogin
     @PostMapping("/upload/vo")
 //    @SentinelResource(value = "pictureUploadVO")
@@ -89,9 +86,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);
     }
 
-    /**
-     * 未脱敏的图片查询网络接口(管理)
-     */
+    @Operation(summary = "未脱敏的图片查询网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/search")
@@ -100,16 +95,15 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest));
     }
 
-    /**
-     * 已脱敏的图片查询网络接口
-     */
+    @Operation(summary = "已脱敏的图片查询网络接口")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/search/vo")
 //    @SentinelResource(value = "pictureSearchVo")
     public BaseResponse<List<PictureVO>> pictureSearchVo(@RequestBody PictureSearchRequest pictureSearchRequest) {
         List<Picture> pictureList = pictureService.pictureSearch(pictureSearchRequest);
-        List<User> userList = userService.userSearch(new UserSearchRequest());
+        Page<User> userPage = userService.userSearch(new UserSearchRequest());
+        List<User> userList = userPage.getRecords();
         Map<Long, User> userMap = userList
                 .stream()
                 .collect(Collectors.toMap(
@@ -138,9 +132,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVOList);
     }
 
-    /**
-     * 已脱敏的图片查询网络接口
-     */
+    @Operation(summary = "获取当前后端支持的图片类别列表")
     @SaCheckLogin
     @GetMapping("/categorys")
 //    @SentinelResource(value = "pictureSearchVo")

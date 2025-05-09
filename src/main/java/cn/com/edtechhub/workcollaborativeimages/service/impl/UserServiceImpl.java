@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -98,7 +99,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public List<User> userSearch(UserSearchRequest userSearchRequest) {
+    public Page<User> userSearch(UserSearchRequest userSearchRequest) {
         // 检查参数
         ThrowUtils.throwIf(userSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户查询请求不能为空"));
 
@@ -107,9 +108,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (userId != null) {
             log.debug("本次查询只需要查询一条记录, 使用 id 字段来提高效率");
             User user = this.getById(userId);
-            return new ArrayList<>() {{
-                add(user);
-            }};
+            Page<User> resultPage = new Page<>();
+            if (user != null) {
+                resultPage.setRecords(Collections.singletonList(user));
+                resultPage.setTotal(1);
+                resultPage.setSize(1);
+                resultPage.setCurrent(1);
+            }
+            else {
+                resultPage.setRecords(Collections.emptyList());
+                resultPage.setTotal(0);
+                resultPage.setSize(1);
+                resultPage.setCurrent(1);
+            }
+            return resultPage;
         }
 
         // 获取查询对象
@@ -119,8 +131,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         Page<User> page = new Page<>(userSearchRequest.getPageCurrent(), userSearchRequest.getPageSize()); // 这里还指定了页码和条数
 
         // 查询用户分页后直接取得内部的列表进行返回
-        Page<User> userPage = this.page(page, queryWrapper); // 调用 MyBatis-Plus 的分页查询方法
-        return userPage.getRecords(); // 返回分页结果
+        return this.page(page, queryWrapper); // 返回分页结果
     }
 
     @Override
@@ -134,7 +145,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         userSearchRequest.setId(userId);
         userSearchRequest.setPageCurrent(1);
         userSearchRequest.setPageSize(1);
-        User user = this.userSearch(userSearchRequest).get(0);
+        User user = this.userSearch(userSearchRequest).getRecords().get(0);
         user.setPasswd(null); // 暂时这么做以避免密码被二次加密
 
         // 复制用户原本的信息到更新请求实例中

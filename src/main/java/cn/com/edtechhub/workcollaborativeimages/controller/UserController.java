@@ -12,12 +12,13 @@ import cn.com.edtechhub.workcollaborativeimages.utils.DeviceUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.annotation.SaIgnore;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 /**
  * 用户控制层
@@ -35,9 +36,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @Resource
     private UserService userService;
 
-    /**
-     * 添加用户网络接口
-     */
+    @Operation(summary = "添加用户网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/add")
@@ -47,9 +46,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, user);
     }
 
-    /**
-     * 删除用户网络接口
-     */
+    @Operation(summary = "删除用户网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/delete")
@@ -59,9 +56,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
 
-    /**
-     * 修改用户网络接口
-     */
+    @Operation(summary = "修改用户网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/update")
@@ -70,20 +65,16 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userUpdate(userUpdateRequest));
     }
 
-    /**
-     * 查询用户网络接口
-     */
+    @Operation(summary = "查询用户网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/search")
 //    @SentinelResource(value = "userSearch")
-    public BaseResponse<List<User>> userSearch(@RequestBody UserSearchRequest userSearchRequest) {
+    public BaseResponse<Page<User>> userSearch(@RequestBody UserSearchRequest userSearchRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userSearch(userSearchRequest));
     }
 
-    /**
-     * 封禁用户网络接口
-     */
+    @Operation(summary = "封禁用户网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/disable")
@@ -93,9 +84,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
 
-    /**
-     * 用户注册网络接口
-     */
+    @Operation(summary = "用户注册网络接口")
     @SaIgnore
     @PostMapping("/register")
 //    @SentinelResource(value = "userRegister")
@@ -104,9 +93,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
 
-    /**
-     * 用户登入网络接口
-     */
+    @Operation(summary = "用户登入网络接口, 已经脱敏")
     @SaIgnore
     @PostMapping("/login")
 //    @SentinelResource(value = "userLogin")
@@ -116,9 +103,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userVO);
     }
 
-    /**
-     * 用户登出网络接口
-     */
+    @Operation(summary = "用户登出网络接口")
     @SaCheckLogin
 //    @SentinelResource(value = "userLogout")
     @PostMapping("/logout")
@@ -127,9 +112,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
 
-    /**
-     * 获取状态网络接口
-     */
+    @Operation(summary = "获取登录状态网络接口")
     @SaIgnore
 //    @SentinelResource(value = "userStatus", blockHandler = "userStatusBlockHandler", blockHandlerClass = SentinelConfig.class)
     @GetMapping("/status")
@@ -138,9 +121,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userStatus);
     }
 
-    /**
-     * 获取信息网络接口
-     */
+    @Operation(summary = "获取登录信息网络接口")
     @SaIgnore
 //    @SentinelResource(value = "userInfo", blockHandler = "userStatusBlockHandler", blockHandlerClass = SentinelConfig.class)
     @GetMapping("/info")

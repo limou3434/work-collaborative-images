@@ -1,16 +1,17 @@
 package cn.com.edtechhub.workcollaborativeimages.model.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
-import lombok.Data;
+import java.time.LocalDateTime;
 
 /**
  * 用户信息表
+ *
  * @TableName user
  */
-@TableName(value ="user")
+@TableName(value = "user")
 @Data
 public class User implements Serializable {
     /**
@@ -118,14 +119,12 @@ public class User implements Serializable {
     /**
      * 创建时间(受时区影响)
      */
-    @TableField(fill = FieldFill.INSERT) // 插入时自动填充创建时间
-    private Date createTime;
+    private LocalDateTime createTime;
 
     /**
      * 更新时间(受时区影响)
      */
-    @TableField(fill = FieldFill.INSERT_UPDATE) // 插入时自动填充更新时间
-    private Date updateTime;
+    private LocalDateTime updateTime;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
@@ -143,27 +142,27 @@ public class User implements Serializable {
         }
         User other = (User) that;
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
-            && (this.getAccount() == null ? other.getAccount() == null : this.getAccount().equals(other.getAccount()))
-            && (this.getWxUnion() == null ? other.getWxUnion() == null : this.getWxUnion().equals(other.getWxUnion()))
-            && (this.getMpOpen() == null ? other.getMpOpen() == null : this.getMpOpen().equals(other.getMpOpen()))
-            && (this.getEmail() == null ? other.getEmail() == null : this.getEmail().equals(other.getEmail()))
-            && (this.getPhone() == null ? other.getPhone() == null : this.getPhone().equals(other.getPhone()))
-            && (this.getIdent() == null ? other.getIdent() == null : this.getIdent().equals(other.getIdent()))
-            && (this.getPasswd() == null ? other.getPasswd() == null : this.getPasswd().equals(other.getPasswd()))
-            && (this.getAvatar() == null ? other.getAvatar() == null : this.getAvatar().equals(other.getAvatar()))
-            && (this.getTags() == null ? other.getTags() == null : this.getTags().equals(other.getTags()))
-            && (this.getNick() == null ? other.getNick() == null : this.getNick().equals(other.getNick()))
-            && (this.getName() == null ? other.getName() == null : this.getName().equals(other.getName()))
-            && (this.getProfile() == null ? other.getProfile() == null : this.getProfile().equals(other.getProfile()))
-            && (this.getBirthday() == null ? other.getBirthday() == null : this.getBirthday().equals(other.getBirthday()))
-            && (this.getCountry() == null ? other.getCountry() == null : this.getCountry().equals(other.getCountry()))
-            && (this.getAddress() == null ? other.getAddress() == null : this.getAddress().equals(other.getAddress()))
-            && (this.getRole() == null ? other.getRole() == null : this.getRole().equals(other.getRole()))
-            && (this.getLevel() == null ? other.getLevel() == null : this.getLevel().equals(other.getLevel()))
-            && (this.getGender() == null ? other.getGender() == null : this.getGender().equals(other.getGender()))
-            && (this.getDeleted() == null ? other.getDeleted() == null : this.getDeleted().equals(other.getDeleted()))
-            && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
-            && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()));
+                && (this.getAccount() == null ? other.getAccount() == null : this.getAccount().equals(other.getAccount()))
+                && (this.getWxUnion() == null ? other.getWxUnion() == null : this.getWxUnion().equals(other.getWxUnion()))
+                && (this.getMpOpen() == null ? other.getMpOpen() == null : this.getMpOpen().equals(other.getMpOpen()))
+                && (this.getEmail() == null ? other.getEmail() == null : this.getEmail().equals(other.getEmail()))
+                && (this.getPhone() == null ? other.getPhone() == null : this.getPhone().equals(other.getPhone()))
+                && (this.getIdent() == null ? other.getIdent() == null : this.getIdent().equals(other.getIdent()))
+                && (this.getPasswd() == null ? other.getPasswd() == null : this.getPasswd().equals(other.getPasswd()))
+                && (this.getAvatar() == null ? other.getAvatar() == null : this.getAvatar().equals(other.getAvatar()))
+                && (this.getTags() == null ? other.getTags() == null : this.getTags().equals(other.getTags()))
+                && (this.getNick() == null ? other.getNick() == null : this.getNick().equals(other.getNick()))
+                && (this.getName() == null ? other.getName() == null : this.getName().equals(other.getName()))
+                && (this.getProfile() == null ? other.getProfile() == null : this.getProfile().equals(other.getProfile()))
+                && (this.getBirthday() == null ? other.getBirthday() == null : this.getBirthday().equals(other.getBirthday()))
+                && (this.getCountry() == null ? other.getCountry() == null : this.getCountry().equals(other.getCountry()))
+                && (this.getAddress() == null ? other.getAddress() == null : this.getAddress().equals(other.getAddress()))
+                && (this.getRole() == null ? other.getRole() == null : this.getRole().equals(other.getRole()))
+                && (this.getLevel() == null ? other.getLevel() == null : this.getLevel().equals(other.getLevel()))
+                && (this.getGender() == null ? other.getGender() == null : this.getGender().equals(other.getGender()))
+                && (this.getDeleted() == null ? other.getDeleted() == null : this.getDeleted().equals(other.getDeleted()))
+                && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
+                && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()));
     }
 
     @Override
@@ -197,34 +196,33 @@ public class User implements Serializable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", id=").append(id);
-        sb.append(", account=").append(account);
-        sb.append(", wxUnion=").append(wxUnion);
-        sb.append(", mpOpen=").append(mpOpen);
-        sb.append(", email=").append(email);
-        sb.append(", phone=").append(phone);
-        sb.append(", ident=").append(ident);
-        sb.append(", passwd=").append(passwd);
-        sb.append(", avatar=").append(avatar);
-        sb.append(", tags=").append(tags);
-        sb.append(", nick=").append(nick);
-        sb.append(", name=").append(name);
-        sb.append(", profile=").append(profile);
-        sb.append(", birthday=").append(birthday);
-        sb.append(", country=").append(country);
-        sb.append(", address=").append(address);
-        sb.append(", role=").append(role);
-        sb.append(", level=").append(level);
-        sb.append(", gender=").append(gender);
-        sb.append(", deleted=").append(deleted);
-        sb.append(", createTime=").append(createTime);
-        sb.append(", updateTime=").append(updateTime);
-        sb.append(", serialVersionUID=").append(serialVersionUID);
-        sb.append("]");
-        return sb.toString();
+        String sb = getClass().getSimpleName() +
+                " [" +
+                "Hash = " + hashCode() +
+                ", id=" + id +
+                ", account=" + account +
+                ", wxUnion=" + wxUnion +
+                ", mpOpen=" + mpOpen +
+                ", email=" + email +
+                ", phone=" + phone +
+                ", ident=" + ident +
+                ", passwd=" + passwd +
+                ", avatar=" + avatar +
+                ", tags=" + tags +
+                ", nick=" + nick +
+                ", name=" + name +
+                ", profile=" + profile +
+                ", birthday=" + birthday +
+                ", country=" + country +
+                ", address=" + address +
+                ", role=" + role +
+                ", level=" + level +
+                ", gender=" + gender +
+                ", deleted=" + deleted +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
+                ", serialVersionUID=" + serialVersionUID +
+                "]";
+        return sb;
     }
 }

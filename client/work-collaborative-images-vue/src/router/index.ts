@@ -1,21 +1,41 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import HomePage from '../views/HomePage.vue'
 
+/**
+ * 默认使用设置路由而不是约定路由
+ */
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView,
+      name: '主页',
+      component: HomePage,
     },
     {
       path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
+      name: '关于',
+      component: () => import('../views/AboutPage.vue'), // 懒加载页面
+    },
+    {
+      path: '/user/login',
+      name: '用户登录',
+      component: () => import('../views/user/UserLoginPage.vue'), // 懒加载页面
+    },
+    {
+      path: '/user/register',
+      name: '用户注册',
+      component: () => import('../views/user/UserRegisterPage.vue'), // 懒加载页面
+    },
+    {
+      path: '/admin/userManage',
+      name: '用户管理',
+      component: () => import('../views/admin/UserManagePage.vue'), // 懒加载页面
+    },
+    {
+      path: '/admin/pictureManage',
+      name: '图片管理',
+      component: () => import('../views/admin/PictureManagePage.vue'), // 懒加载页面
     },
   ],
 })
