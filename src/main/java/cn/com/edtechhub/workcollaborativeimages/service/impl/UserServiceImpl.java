@@ -220,6 +220,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return userStatus;
     }
 
+    @Override
+    public User userGetLoginInfo() {
+        User user = (User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE);
+        return user;
+    }
+
     /**
      * 检查账户和密码是否合规的方法
      */

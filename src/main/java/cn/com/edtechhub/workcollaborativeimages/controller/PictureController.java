@@ -3,9 +3,11 @@ package cn.com.edtechhub.workcollaborativeimages.controller;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
+import cn.com.edtechhub.workcollaborativeimages.model.vo.UserVO;
 import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
+import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import lombok.extern.slf4j.Slf4j;
@@ -36,10 +38,17 @@ import java.util.List;
 public class PictureController { // 通常控制层有服务层中的所有方法, 并且还有组合而成的方法, 如果组合的方法开始变得复杂就会封装到服务层内部
 
     /**
-     * 图片注入服务实例
+     * 注入图片服务依赖
      */
     @Resource
     private PictureService pictureService;
+
+    /**
+     * 注入用户服务依赖
+     */
+    @Resource
+    private UserService userService;
+
 
     /**
      * 图片上传网络接口
@@ -71,7 +80,9 @@ public class PictureController { // 通常控制层有服务层中的所有方�
             @RequestParam(value = "pictureTags", required = false) List<String> pictureTags,
             @RequestPart(value = "file", required = false) MultipartFile multipartFile
     ) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, pictureCategory, pictureIntroduction, pictureTags, multipartFile)));
+        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, pictureCategory, pictureIntroduction, pictureTags, multipartFile));
+        pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetLoginInfo()));
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);
     }
 
 }

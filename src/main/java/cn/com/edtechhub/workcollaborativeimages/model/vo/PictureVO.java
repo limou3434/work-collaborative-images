@@ -1,17 +1,11 @@
 package cn.com.edtechhub.workcollaborativeimages.model.vo;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
-import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
-import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
-import cn.com.edtechhub.workcollaborativeimages.service.UserService;
-import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
-import javax.annotation.Resource;
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 图片脱敏
@@ -40,6 +34,11 @@ public class PictureVO implements Serializable {
      * 简介
      */
     private String introduction;
+
+    /**
+     * 分类
+     */
+    private String category;
 
     /**
      * 标签(JSON 数组)
@@ -79,17 +78,17 @@ public class PictureVO implements Serializable {
     /**
      * 创建时间(受时区影响)
      */
-    private Date createTime;
+    private LocalDateTime createTime;
 
     /**
      * 更新时间(受时区影响)
      */
-    private Date updateTime;
+    private LocalDateTime updateTime;
 
     /**
      * 创建用户信息
      */
-    private UserVO user;
+    private UserVO userVO;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
@@ -97,8 +96,6 @@ public class PictureVO implements Serializable {
     /**
      * 脱敏方法
      */
-    @Resource
-    UserService userService;
     static public PictureVO removeSensitiveData(Picture picture) {
         if (picture == null) {
             return null;

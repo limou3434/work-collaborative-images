@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 用户控制层
@@ -133,12 +132,21 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
      */
     @SaIgnore
 //    @SentinelResource(value = "userStatus", blockHandler = "userStatusBlockHandler", blockHandlerClass = SentinelConfig.class)
-    @GetMapping("/status")
-    public BaseResponse<UserStatus> userStatus() {
+    @GetMapping("/get/login/status/dto")
+    public BaseResponse<UserStatus> userGetLoginStatusDto() {
         UserStatus userStatus = userService.userStatus();
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userStatus);
     }
 
-    // TODO: 需要添加一个获取用户 VO 的接口, 原本的 userStatus 有些不够使用...
+    /**
+     * 获取信息网络接口
+     */
+    @SaIgnore
+//    @SentinelResource(value = "userStatus", blockHandler = "userStatusBlockHandler", blockHandlerClass = SentinelConfig.class)
+    @GetMapping("/get/login/info/vo")
+    public BaseResponse<UserVO> userGetLoginInfoVo() {
+        User user = userService.userGetLoginInfo();
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, UserVO.removeSensitiveData(user));
+    }
 
 }

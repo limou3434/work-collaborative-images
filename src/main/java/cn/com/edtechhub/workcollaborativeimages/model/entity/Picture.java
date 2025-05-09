@@ -3,6 +3,7 @@ package cn.com.edtechhub.workcollaborativeimages.model.entity;
 import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 import lombok.Data;
 
@@ -83,12 +84,12 @@ public class Picture implements Serializable {
     /**
      * 创建时间(受时区影响)
      */
-    private Date createTime;
+    private LocalDateTime createTime; // 更换为更加安全的时间类型
 
     /**
      * 更新时间(受时区影响)
      */
-    private Date updateTime;
+    private LocalDateTime updateTime; // 更换为更加安全的时间类型
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
