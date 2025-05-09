@@ -272,19 +272,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         // 获取包装器进行返回
         LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(StringUtils.isNotBlank(account), User::getAccount, account);
-        lambdaQueryWrapper.like(StringUtils.isNotBlank(tags), User::getTags, tags);
-        lambdaQueryWrapper.like(StringUtils.isNotBlank(nick), User::getNick, nick);
-        lambdaQueryWrapper.like(StringUtils.isNotBlank(name), User::getName, name);
-        lambdaQueryWrapper.like(StringUtils.isNotBlank(profile), User::getProfile, profile);
-        lambdaQueryWrapper.like(StringUtils.isNotBlank(address), User::getAddress, address);
-        lambdaQueryWrapper.eq(role != null, User::getRole, role);
-        lambdaQueryWrapper.eq(level != null, User::getLevel, level);
-        lambdaQueryWrapper.orderBy(
-                StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则
-                sortOrder.equals("ascend"), // 这里结果为 true 代表 ASC 升序, false 代表 DESC 降序
-                User::getAccount // 默认按照账户排序
-        );
+        lambdaQueryWrapper
+                .eq(StringUtils.isNotBlank(account), User::getAccount, account)
+                .like(StringUtils.isNotBlank(tags), User::getTags, tags)
+                .like(StringUtils.isNotBlank(nick), User::getNick, nick)
+                .like(StringUtils.isNotBlank(name), User::getName, name)
+                .like(StringUtils.isNotBlank(profile), User::getProfile, profile)
+                .like(StringUtils.isNotBlank(address), User::getAddress, address)
+                .eq(role != null, User::getRole, role)
+                .eq(level != null, User::getLevel, level)
+                .orderBy(
+                        StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则
+                        sortOrder.equals("ascend"), // 这里结果为 true 代表 ASC 升序, false 代表 DESC 降序
+                        User::getId // 默认按照标识排序
+                );
         return lambdaQueryWrapper;
     }
 

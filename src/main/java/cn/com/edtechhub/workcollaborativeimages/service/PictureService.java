@@ -5,6 +5,7 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.Pic
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -23,5 +24,10 @@ public interface PictureService extends IService<Picture> {
      * 图片查询服务
      */
     List<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest);
+
+    /**
+     * 获取图片种类服务
+     */
+    List<String> pictureGetCategorys();
 
 }

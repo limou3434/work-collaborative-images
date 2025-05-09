@@ -14,12 +14,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -115,6 +117,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return picturePage.getRecords(); // 返回分页结果
     }
 
+    public List<String> pictureGetCategorys() {
+        return Arrays.asList("动漫", "艺术", "表情", "素材", "海报");
+    }
+
     /**
      * 获取查询封装器的方法
      */
@@ -122,35 +128,40 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         // 查询请求不能为空
         ThrowUtils.throwIf(pictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空"));
 
-//        // 取得需要查询的参数
-//        String account = userSearchRequest.getAccount();
-//        String tags = userSearchRequest.getTags();
-//        String nick = userSearchRequest.getNick();
-//        String name = userSearchRequest.getName();
-//        String profile = userSearchRequest.getProfile();
-//        String address = userSearchRequest.getAddress();
-//        Integer role = userSearchRequest.getRole();
-//        Integer level = userSearchRequest.getLevel();
-//        String sortOrder = userSearchRequest.getSortOrder();
-//        String sortField = userSearchRequest.getSortField();
-//
-//        // 获取包装器进行返回
-//        LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-//        lambdaQueryWrapper.eq(StringUtils.isNotBlank(account), User::getAccount, account);
-//        lambdaQueryWrapper.like(StringUtils.isNotBlank(tags), User::getTags, tags);
-//        lambdaQueryWrapper.like(StringUtils.isNotBlank(nick), User::getNick, nick);
-//        lambdaQueryWrapper.like(StringUtils.isNotBlank(name), User::getName, name);
-//        lambdaQueryWrapper.like(StringUtils.isNotBlank(profile), User::getProfile, profile);
-//        lambdaQueryWrapper.like(StringUtils.isNotBlank(address), User::getAddress, address);
-//        lambdaQueryWrapper.eq(role != null, User::getRole, role);
-//        lambdaQueryWrapper.eq(level != null, User::getLevel, level);
-//        lambdaQueryWrapper.orderBy(
-//                StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则
-//                sortOrder.equals("ascend"), // 这里结果为 true 代表 ASC 升序, false 代表 DESC 降序
-//                User::getAccount // 默认按照账户排序
-//        );
-//        return lambdaQueryWrapper;
-        return null;
+        // 取得需要查询的参数
+        String name = pictureSearchRequest.getName();
+        String introduction = pictureSearchRequest.getIntroduction();
+        String category = pictureSearchRequest.getCategory();
+        String tags = pictureSearchRequest.getTags();
+        Long picSize = pictureSearchRequest.getPicSize();
+        Integer picWidth = pictureSearchRequest.getPicWidth();
+        Integer picHeight = pictureSearchRequest.getPicHeight();
+        Double picScale = pictureSearchRequest.getPicScale();
+        String picFormat = pictureSearchRequest.getPicFormat();
+        Long userId = pictureSearchRequest.getUserId();
+        String sortField = pictureSearchRequest.getSortField();
+        String sortOrder = pictureSearchRequest.getSortOrder();
+
+        // 获取包装器进行返回
+        LambdaQueryWrapper<Picture> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper
+                .like(StringUtils.isNotBlank(name), Picture::getName, name)
+                .like(StringUtils.isNotBlank(introduction), Picture::getIntroduction, introduction)
+                .like(StringUtils.isNotBlank(category), Picture::getCategory, category)
+                .like(StringUtils.isNotBlank(tags), Picture::getTags, tags)
+                .eq(picSize != null, Picture::getPicSize, picSize)
+                .eq(picWidth != null, Picture::getPicWidth, picWidth)
+                .eq(picHeight != null, Picture::getPicHeight, picHeight)
+                .eq(picScale != null, Picture::getPicScale, picScale)
+                .eq(picFormat != null, Picture::getPicFormat, picFormat)
+                .eq(userId != null, Picture::getPicSize, userId)
+                .orderBy(
+                        StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则
+                        sortOrder.equals("ascend"), // 这里结果为 true 代表 ASC 升序, false 代表 DESC 降序
+                        Picture::getId // 默认按照标识排序
+                )
+        ;
+        return lambdaQueryWrapper;
     }
 
 }

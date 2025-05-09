@@ -2,7 +2,9 @@ package cn.com.edtechhub.workcollaborativeimages.controller;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.UserVO;
 import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
@@ -17,6 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 图片控制层
@@ -86,7 +90,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     }
 
     /**
-     * 图片查询网络接口(管理)
+     * 未脱敏的图片查询网络接口(管理)
      */
     @SaCheckLogin
     @SaCheckRole("admin")
@@ -94,6 +98,54 @@ public class PictureController { // 通常控制层有服务层中的所有方�
 //    @SentinelResource(value = "pictureSearch")
     public BaseResponse<List<Picture>> pictureSearch(@RequestBody PictureSearchRequest pictureSearchRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest));
+    }
+
+    /**
+     * 已脱敏的图片查询网络接口
+     */
+    @SaCheckLogin
+    @SaCheckRole("admin")
+    @PostMapping("/search/vo")
+//    @SentinelResource(value = "pictureSearchVo")
+    public BaseResponse<List<PictureVO>> pictureSearchVo(@RequestBody PictureSearchRequest pictureSearchRequest) {
+        List<Picture> pictureList = pictureService.pictureSearch(pictureSearchRequest);
+        List<User> userList = userService.userSearch(new UserSearchRequest());
+        Map<Long, User> userMap = userList
+                .stream()
+                .collect(Collectors.toMap(
+                        user -> {
+                            return user.getId();
+                        },
+                        user -> {
+                            return user;
+                        },
+                        (user1, user2) -> {
+                            return user1;
+                        }
+                )); // 构建 userId 到 User 的映射避免 N+1 查询
+        log.debug("避免多次查询所构建的临时 userMap 的值未 {}", userMap);
+        List<PictureVO> pictureVOList = pictureList
+                .stream()
+                .map(picture -> {
+                    PictureVO pictureVO = PictureVO.removeSensitiveData(picture); // 需要脱敏
+                    User user = userMap.get(picture.getUserId()); // 需要把用户信息都映射进去, 同时避免重复查询
+                    if (user != null) {
+                        pictureVO.setUserVO(UserVO.removeSensitiveData(user));
+                    }
+                    return pictureVO;
+                })
+                .collect(Collectors.toList());
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVOList);
+    }
+
+    /**
+     * 已脱敏的图片查询网络接口
+     */
+    @SaCheckLogin
+    @GetMapping("/categorys")
+//    @SentinelResource(value = "pictureSearchVo")
+    public BaseResponse<List<String>> pictureCategorys() {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetCategorys());
     }
 
 }

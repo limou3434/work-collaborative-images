@@ -14,6 +14,7 @@ import lombok.Data;
 @TableName(value ="picture")
 @Data
 public class Picture implements Serializable {
+
     /**
      * id
      */
