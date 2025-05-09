@@ -10,6 +10,8 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.Pic
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.stp.StpUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -87,11 +90,66 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         }
     }
 
-    public Boolean pictureDownload() {
-        return null;
+    public List<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest) {
+        // 检查参数
+        ThrowUtils.throwIf(pictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片查询请求不能为空"));
+
+        // 如果用户传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
+        Long pictureId = pictureSearchRequest.getId();
+        if (pictureId != null) {
+            log.debug("本次查询只需要查询一条记录, 使用 id 字段来提高效率");
+            Picture picture = this.getById(pictureId);
+            return new ArrayList<>() {{
+                add(picture);
+            }};
+        }
+
+        // 获取查询对象
+        LambdaQueryWrapper<Picture> queryWrapper = this.getQueryWrapper(pictureSearchRequest); // 构造查询条件
+
+        // 获取分页对象
+        Page<Picture> page = new Page<>(pictureSearchRequest.getPageCurrent(), pictureSearchRequest.getPageSize()); // 这里还指定了页码和条数
+
+        // 查询用户分页后直接取得内部的列表进行返回
+        Page<Picture> picturePage = this.page(page, queryWrapper); // 调用 MyBatis-Plus 的分页查询方法
+        return picturePage.getRecords(); // 返回分页结果
     }
 
-    public List<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest) {
+    /**
+     * 获取查询封装器的方法
+     */
+    private LambdaQueryWrapper<Picture> getQueryWrapper(PictureSearchRequest pictureSearchRequest) {
+        // 查询请求不能为空
+        ThrowUtils.throwIf(pictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空"));
+
+//        // 取得需要查询的参数
+//        String account = userSearchRequest.getAccount();
+//        String tags = userSearchRequest.getTags();
+//        String nick = userSearchRequest.getNick();
+//        String name = userSearchRequest.getName();
+//        String profile = userSearchRequest.getProfile();
+//        String address = userSearchRequest.getAddress();
+//        Integer role = userSearchRequest.getRole();
+//        Integer level = userSearchRequest.getLevel();
+//        String sortOrder = userSearchRequest.getSortOrder();
+//        String sortField = userSearchRequest.getSortField();
+//
+//        // 获取包装器进行返回
+//        LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+//        lambdaQueryWrapper.eq(StringUtils.isNotBlank(account), User::getAccount, account);
+//        lambdaQueryWrapper.like(StringUtils.isNotBlank(tags), User::getTags, tags);
+//        lambdaQueryWrapper.like(StringUtils.isNotBlank(nick), User::getNick, nick);
+//        lambdaQueryWrapper.like(StringUtils.isNotBlank(name), User::getName, name);
+//        lambdaQueryWrapper.like(StringUtils.isNotBlank(profile), User::getProfile, profile);
+//        lambdaQueryWrapper.like(StringUtils.isNotBlank(address), User::getAddress, address);
+//        lambdaQueryWrapper.eq(role != null, User::getRole, role);
+//        lambdaQueryWrapper.eq(level != null, User::getLevel, level);
+//        lambdaQueryWrapper.orderBy(
+//                StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则
+//                sortOrder.equals("ascend"), // 这里结果为 true 代表 ASC 升序, false 代表 DESC 降序
+//                User::getAccount // 默认按照账户排序
+//        );
+//        return lambdaQueryWrapper;
         return null;
     }
 

@@ -1,6 +1,5 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
-import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -16,14 +15,9 @@ import java.util.List;
 public interface PictureService extends IService<Picture> {
 
     /**
-     * 图片上传服务
+     * 图片转链服务
      */
     Picture pictureUpload(Long pictureId, String pictureCategory, String pictureIntroduction, List<String> pictureTags, MultipartFile multipartFile);
-
-    /**
-     * 图片下载服务
-     */
-    Boolean pictureDownload();
 
     /**
      * 图片查询服务

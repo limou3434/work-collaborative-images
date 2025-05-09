@@ -102,10 +102,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 检查参数
         ThrowUtils.throwIf(userSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户查询请求不能为空"));
 
-        // 如果用户传递了 id 选项, 则必然是查询一个用户, 为了提高效率直接查询一条数据
+        // 如果用户传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
         Long userId = userSearchRequest.getId();
         if (userId != null) {
-            log.debug("本次查询只需要查询一个用户, 使用 id 字段来提高效率");
+            log.debug("本次查询只需要查询一条记录, 使用 id 字段来提高效率");
             User user = this.getById(userId);
             return new ArrayList<>() {{
                 add(user);
@@ -207,7 +207,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public UserStatus userStatus() {
+    public UserStatus userGetLoginStatus() {
         UserStatus userStatus = new UserStatus();
         userStatus.setIsLogin(StpUtil.isLogin());
         if (!userStatus.getIsLogin()) {

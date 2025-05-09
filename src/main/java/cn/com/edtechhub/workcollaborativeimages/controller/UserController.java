@@ -108,9 +108,9 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
      * 用户登入网络接口
      */
     @SaIgnore
-    @PostMapping("/login/vo")
+    @PostMapping("/login")
 //    @SentinelResource(value = "userLogin")
-    public BaseResponse<UserVO> userLoginVo(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<UserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         User user = userService.userLogin(userLoginRequest.getAccount(), userLoginRequest.getPasswd(), DeviceUtils.getRequestDevice(request)); // 这里同时解析用户的设备, 以支持同端互斥
         UserVO userVO = UserVO.removeSensitiveData(user);
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userVO);
@@ -132,9 +132,9 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
      */
     @SaIgnore
 //    @SentinelResource(value = "userStatus", blockHandler = "userStatusBlockHandler", blockHandlerClass = SentinelConfig.class)
-    @GetMapping("/get/login/status/dto")
-    public BaseResponse<UserStatus> userGetLoginStatusDto() {
-        UserStatus userStatus = userService.userStatus();
+    @GetMapping("/status")
+    public BaseResponse<UserStatus> userStatus() {
+        UserStatus userStatus = userService.userGetLoginStatus();
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userStatus);
     }
 
@@ -142,9 +142,9 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
      * 获取信息网络接口
      */
     @SaIgnore
-//    @SentinelResource(value = "userStatus", blockHandler = "userStatusBlockHandler", blockHandlerClass = SentinelConfig.class)
-    @GetMapping("/get/login/info/vo")
-    public BaseResponse<UserVO> userGetLoginInfoVo() {
+//    @SentinelResource(value = "userInfo", blockHandler = "userStatusBlockHandler", blockHandlerClass = SentinelConfig.class)
+    @GetMapping("/info")
+    public BaseResponse<UserVO> userInfo() {
         User user = userService.userGetLoginInfo();
         return TheResult.success(CodeBindMessageEnums.SUCCESS, UserVO.removeSensitiveData(user));
     }

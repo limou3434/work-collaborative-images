@@ -60,7 +60,7 @@ public interface UserService extends IService<User> {
     /**
      * 用户状态服务
      */
-    UserStatus userStatus();
+    UserStatus userGetLoginStatus();
 
     /**
      * 用户信息服务

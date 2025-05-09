@@ -2,6 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.controller;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.UserVO;
 import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
@@ -49,9 +50,8 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @Resource
     private UserService userService;
 
-
     /**
-     * 图片上传网络接口
+     * 未脱敏的图片上传网络接口(管理)
      */
     @SaCheckLogin
     @SaCheckRole("admin")
@@ -68,7 +68,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     }
 
     /**
-     * 图片上传网络接口(脱敏)
+     * 已脱敏的图片上传网络接口
      */
     @SaCheckLogin
     @PostMapping("/upload/vo")
@@ -83,6 +83,17 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, pictureCategory, pictureIntroduction, pictureTags, multipartFile));
         pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetLoginInfo()));
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);
+    }
+
+    /**
+     * 图片查询网络接口(管理)
+     */
+    @SaCheckLogin
+    @SaCheckRole("admin")
+    @PostMapping("/search")
+//    @SentinelResource(value = "pictureSearch")
+    public BaseResponse<List<Picture>> pictureSearch(@RequestBody PictureSearchRequest pictureSearchRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest));
     }
 
 }
