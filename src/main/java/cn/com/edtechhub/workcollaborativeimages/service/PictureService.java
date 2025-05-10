@@ -18,7 +18,7 @@ public interface PictureService extends IService<Picture> {
     /**
      * 图片转链服务
      */
-    Picture pictureUpload(Long pictureId, String pictureCategory, String pictureIntroduction, List<String> pictureTags, MultipartFile multipartFile);
+    Picture pictureUpload(Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, MultipartFile multipartFile);
 
     /**
      * 图片查询服务

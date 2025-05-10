@@ -271,6 +271,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         // 取得需要查询的参数
         String account = userSearchRequest.getAccount();
+        String email = userSearchRequest.getEmail();
+        String phone = userSearchRequest.getPhone();
         String tags = userSearchRequest.getTags();
         String nick = userSearchRequest.getNick();
         String name = userSearchRequest.getName();
@@ -284,7 +286,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 获取包装器进行返回
         LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper
-                .eq(StringUtils.isNotBlank(account), User::getAccount, account)
+                .like(StringUtils.isNotBlank(account), User::getAccount, account)
+                .like(StringUtils.isNotBlank(email), User::getEmail, email)
+                .like(StringUtils.isNotBlank(phone), User::getPhone, phone)
                 .like(StringUtils.isNotBlank(tags), User::getTags, tags)
                 .like(StringUtils.isNotBlank(nick), User::getNick, nick)
                 .like(StringUtils.isNotBlank(name), User::getName, name)

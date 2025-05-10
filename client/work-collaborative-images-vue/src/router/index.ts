@@ -28,6 +28,17 @@ const router = createRouter({
       component: () => import('../views/user/UserRegisterPage.vue'), // 懒加载页面
     },
     {
+      path: '/picture/add',
+      name: '提交图片',
+      component: () => import('../views/picture/AddPicturePage.vue'), // 懒加载页面
+    },
+    {
+      path: '/picture/:id',
+      name: '图片详情',
+      component: () => import('../views/picture/PictureDetailPage.vue'), // 懒加载页面
+      props: true,
+    },
+    {
       path: '/admin/userManage',
       name: '用户管理',
       component: () => import('../views/admin/UserManagePage.vue'), // 懒加载页面

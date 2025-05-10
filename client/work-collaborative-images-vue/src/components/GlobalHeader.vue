@@ -1,13 +1,20 @@
 <script lang="ts" setup>
-import { h, ref } from 'vue'
-import { HomeOutlined, QuestionCircleOutlined, SnippetsOutlined } from '@ant-design/icons-vue'
+import { computed, h, ref } from 'vue'
+import {
+  CrownOutlined,
+  HomeOutlined,
+  LogoutOutlined,
+  PictureOutlined,
+  QuestionCircleOutlined,
+  SnippetsOutlined,
+} from '@ant-design/icons-vue'
 import { type MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
 import { userLogout } from '@/api/work-collaborative-images/userController.ts'
 
-// 设置页面菜单
-const items = ref<MenuProps['items']>([
+// 设置页面菜单并且做页面权限校验
+const originItems = [
   {
     key: '/',
     title: '主页',
@@ -15,9 +22,23 @@ const items = ref<MenuProps['items']>([
     icon: () => h(HomeOutlined),
   },
   {
+    key: '/picture',
+    title: '图片',
+    label: '图片',
+    icon: () => h(PictureOutlined),
+    children: [
+      {
+        key: '/picture/add',
+        title: '添加图片',
+        label: '添加图片',
+      },
+    ],
+  },
+  {
     key: '/admin',
     title: '管理',
     label: '管理',
+    icon: () => h(CrownOutlined),
     children: [
       {
         key: '/admin/userManage',
@@ -50,7 +71,19 @@ const items = ref<MenuProps['items']>([
     ),
     icon: () => h(SnippetsOutlined),
   },
-])
+] // 在不考虑权限的情况下设置跳转菜单选项
+const filterMenus = (menus = [] as MenuProps['items']) => {
+  return menus?.filter((menu) => {
+    if (typeof menu?.key === 'string' && menu?.key.startsWith('/admin')) {
+      const loginUser = loginUserStore.loginUser
+      if (!loginUser || loginUser.role !== 1) {
+        return false
+      }
+    }
+    return true
+  })
+} // 根据权限来过滤菜单项
+const items = computed<MenuProps['items']>(() => filterMenus(originItems)) // 展示在菜单的路由数组
 
 // 点击菜单后对应跳转事件
 const doMenuClick = ({ key }: { key: string }) => {

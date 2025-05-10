@@ -63,11 +63,12 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     public BaseResponse<Picture> pictureUpload(
             @RequestParam(value = "pictureId", required = false) Long pictureId,
             @RequestParam(value = "pictureCategory", required = false) String pictureCategory,
+            @RequestParam(value = "pictureName", required = false) String pictureName,
             @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction,
-            @RequestParam(value = "pictureTags", required = false) List<String> pictureTags,
-            @RequestPart(value = "file", required = false) MultipartFile multipartFile
+            @RequestParam(value = "pictureTags", required = false) String pictureTags,
+            @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile
     ) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpload(pictureId, pictureCategory, pictureIntroduction, pictureTags, multipartFile));
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpload(pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, multipartFile));
     }
 
     @Operation(summary = "已脱敏的图片上传网络接口")
@@ -77,11 +78,12 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     public BaseResponse<PictureVO> pictureUploadVO(
             @RequestParam(value = "pictureId", required = false) Long pictureId,
             @RequestParam(value = "pictureCategory", required = false) String pictureCategory,
+            @RequestParam(value = "pictureName", required = false) String pictureName,
             @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction,
-            @RequestParam(value = "pictureTags", required = false) List<String> pictureTags,
-            @RequestPart(value = "file", required = false) MultipartFile multipartFile
+            @RequestParam(value = "pictureTags", required = false) String pictureTags,
+            @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile
     ) {
-        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, pictureCategory, pictureIntroduction, pictureTags, multipartFile));
+        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, multipartFile));
         pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetLoginInfo()));
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);
     }

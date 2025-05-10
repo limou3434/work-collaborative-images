@@ -24,6 +24,16 @@ public class UserSearchRequest extends PageRequest implements Serializable {
     private String account;
 
     /**
+     * 邮箱号
+     */
+    private String email;
+
+    /**
+     * 电话号
+     */
+    private String phone;
+
+    /**
      * 用户标签(业务层需要 json 数组格式存储用户标签数组)
      */
     private String tags;

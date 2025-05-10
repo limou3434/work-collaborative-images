@@ -117,15 +117,17 @@ declare namespace WorkCollaborativeImagesAPI {
   type pictureUploadParams = {
     pictureId?: number
     pictureCategory?: string
+    pictureName?: string
     pictureIntroduction?: string
-    pictureTags?: string[]
+    pictureTags?: string
   }
 
   type pictureUploadVOParams = {
     pictureId?: number
     pictureCategory?: string
+    pictureName?: string
     pictureIntroduction?: string
-    pictureTags?: string[]
+    pictureTags?: string
   }
 
   type PictureVO = {
@@ -219,6 +221,8 @@ declare namespace WorkCollaborativeImagesAPI {
     sortOrder?: string
     id?: number
     account?: string
+    email?: string
+    phone?: string
     tags?: string
     nick?: string
     name?: string

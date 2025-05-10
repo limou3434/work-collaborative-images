@@ -39,7 +39,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @Resource
     CosManager cosManager;
 
-    public Picture pictureUpload(Long pictureId, String pictureCategory, String pictureIntroduction, List<String> pictureTags, MultipartFile multipartFile) {
+    public Picture pictureUpload(Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, MultipartFile multipartFile) {
         // 如果是更新图片(没有携带 id)
         if (pictureId != null) {
             boolean exists = this
@@ -51,9 +51,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             // 如果还没有携带新的图片但是数据库中图片存在, 那么就只更新图片的元数据
             if (multipartFile == null) {
                 Picture picture = this.getById(pictureId);
-                picture.setCategory(pictureCategory);
-                picture.setIntroduction(pictureIntroduction);
-                picture.setTags(pictureTags == null ? null : pictureTags.toString());
+                picture.setCategory(StringUtils.isNotBlank(pictureCategory) ? pictureCategory : null);
+                picture.setName(StringUtils.isNotBlank(pictureName) ? pictureName : null);
+                picture.setIntroduction(StringUtils.isNotBlank(pictureIntroduction) ? pictureIntroduction : null);
+                picture.setTags(StringUtils.isNotBlank(pictureTags) ? pictureTags : null);
                 picture.setUpdateTime(LocalDateTime.now()); // 更新修改时间
                 boolean result = this.updateById(picture);
                 ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
@@ -72,10 +73,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
             Picture picture = new Picture(); // 构造要入库的图片信息
             picture.setCategory(pictureCategory);
+            picture.setName(StringUtils.isNotBlank(pictureName) ? pictureName : uploadPictureResult.getPicName());
+            picture.setTags(StringUtils.isNotBlank(pictureTags) ? pictureTags : null);
             picture.setIntroduction(pictureIntroduction);
-            picture.setTags(pictureTags == null ? null : pictureTags.toString());
             picture.setUrl(uploadPictureResult.getUrl());
-            picture.setName(uploadPictureResult.getPicName());
             picture.setPicSize(uploadPictureResult.getPicSize());
             picture.setPicWidth(uploadPictureResult.getPicWidth());
             picture.setPicHeight(uploadPictureResult.getPicHeight());
