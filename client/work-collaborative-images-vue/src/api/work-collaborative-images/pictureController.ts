@@ -15,7 +15,7 @@ export async function pictureSearch(
   body: WorkCollaborativeImagesAPI.PictureSearchRequest,
   options?: { [key: string]: any }
 ) {
-  return request<WorkCollaborativeImagesAPI.BaseResponseListPicture>('/picture/search', {
+  return request<WorkCollaborativeImagesAPI.BaseResponsePagePicture>('/picture/search', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ export async function pictureSearchVo(
   body: WorkCollaborativeImagesAPI.PictureSearchRequest,
   options?: { [key: string]: any }
 ) {
-  return request<WorkCollaborativeImagesAPI.BaseResponseListPictureVO>('/picture/search/vo', {
+  return request<WorkCollaborativeImagesAPI.BaseResponsePagePictureVO>('/picture/search/vo', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -93,4 +93,3 @@ export async function pictureUploadVo(
     ...(options || {}),
   })
 }
-

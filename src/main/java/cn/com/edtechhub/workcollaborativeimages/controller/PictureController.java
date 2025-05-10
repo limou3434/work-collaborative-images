@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
+@SuppressWarnings("ALL")
 @RestController // 返回值默认为 json 类型
 @RequestMapping("/picture")
 @Slf4j
@@ -93,7 +94,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @SaCheckRole("admin")
     @PostMapping("/search")
 //    @SentinelResource(value = "pictureSearch")
-    public BaseResponse<List<Picture>> pictureSearch(@RequestBody PictureSearchRequest pictureSearchRequest) {
+    public BaseResponse<Page<Picture>> pictureSearch(@RequestBody PictureSearchRequest pictureSearchRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest));
     }
 
@@ -102,10 +103,18 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @SaCheckRole("admin")
     @PostMapping("/search/vo")
 //    @SentinelResource(value = "pictureSearchVo")
-    public BaseResponse<List<PictureVO>> pictureSearchVo(@RequestBody PictureSearchRequest pictureSearchRequest) {
-        List<Picture> pictureList = pictureService.pictureSearch(pictureSearchRequest);
+    public BaseResponse<Page<PictureVO>> pictureSearchVo(@RequestBody PictureSearchRequest pictureSearchRequest) {
+        // 先查出所有用户分页和图片分页
+        Page<Picture> picturePage = pictureService.pictureSearch(pictureSearchRequest);
         Page<User> userPage = userService.userSearch(new UserSearchRequest());
+
+        // 利用映射机制来减少多次单 SQL 后顺便做脱敏
+        List<Picture> pictureList = picturePage.getRecords();
+        log.debug("对应查询要求的图片列表 {}", pictureList);
         List<User> userList = userPage.getRecords();
+        log.debug("库中的所有用户 {}", userList);
+
+        // 开始映射 TODO: 这里的映射在用户过量时还是有一些问题的
         Map<Long, User> userMap = userList
                 .stream()
                 .collect(Collectors.toMap(
@@ -131,7 +140,15 @@ public class PictureController { // 通常控制层有服务层中的所有方�
                     return pictureVO;
                 })
                 .collect(Collectors.toList());
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVOList);
+
+        log.debug("查询到的图片列表脱敏后为 {}", pictureVOList);
+        // 重新构造一个分页对象
+        Page<PictureVO> pictureVOPage = new Page<>();
+        pictureVOPage.setCurrent(picturePage.getCurrent());
+        pictureVOPage.setSize(picturePage.getSize());
+        pictureVOPage.setTotal(picturePage.getTotal());
+        pictureVOPage.setRecords(pictureVOList);
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVOPage);
     }
 
     @Operation(summary = "获取当前后端支持的图片类别列表")

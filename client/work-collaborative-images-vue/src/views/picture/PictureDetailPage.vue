@@ -25,8 +25,8 @@ const picture = ref<WorkCollaborativeImagesAPI.PictureVO>({})
 const fetchPictureDetail = async () => {
   try {
     const res = await pictureSearchVo(searchParams)
-    if (res.data.code === 20000 && res.data.data) {
-      picture.value = res.data.data[0]
+    if (res.data.code === 20000 && res.data.data && res.data.data.records) {
+      picture.value = res.data.data.records[0]
     } else {
       message.error(res.data.message)
     }
@@ -46,13 +46,19 @@ const doDownload = () => {
 
 // 分享图片
 const shareModalRef = ref()
-const shareLink = ref<string>()
+const shareLink = ref<string>('')
 const doShare = () => {
   shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.value.id}`
   if (shareModalRef.value) {
     shareModalRef.value.openModal()
   }
-  message.success('快去粘贴链接进行分享吧~')
+
+  try {
+    navigator.clipboard.writeText(shareLink.value)
+    message.success('链接已复制到剪切板, 快去粘贴分享吧~')
+  } catch (e: any) {
+    message.warning('当前环境无法复制链接, 请手动复制', e)
+  }
 }
 
 // 编辑图片
@@ -121,7 +127,9 @@ const doDelete = () => {
           <a-descriptions-item label="标签">
             <template v-if="JSON.parse(picture.tags ?? '[]').length > 3">
               <!-- 显示前三个标签 -->
-              <a-tag v-for="(tag) in JSON.parse(picture.tags ?? '[]').slice(0, 3)" :key="tag">{{ tag }}</a-tag>
+              <a-tag v-for="tag in JSON.parse(picture.tags ?? '[]').slice(0, 3)" :key="tag"
+                >{{ tag }}
+              </a-tag>
               <!-- 如果超过三个标签，显示 "..." -->
               <a-tooltip :title="JSON.parse(picture.tags ?? '[]').join(', ')">
                 <a-tag>...</a-tag>
@@ -166,7 +174,7 @@ const doDelete = () => {
       </a-card>
     </a-col>
   </a-row>
-  <ShareModal ref="shareModalRef" :link="shareLink" />
+  <ShareModal ref="shareModalRef" :link="shareLink" title="分享图片" />
 </template>
 
 <style scoped></style>

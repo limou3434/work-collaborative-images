@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "openapi2ts": "openapi2ts",
+    "openapi2ts": "openapi2ts && echo 部分接口有些许问题需要您自己复制到对应文件中",
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",

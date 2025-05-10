@@ -5,22 +5,22 @@ declare namespace WorkCollaborativeImagesAPI {
     data?: boolean
   }
 
-  type BaseResponseListPicture = {
-    code?: number
-    message?: string
-    data?: Picture[]
-  }
-
-  type BaseResponseListPictureVO = {
-    code?: number
-    message?: string
-    data?: PictureVO[]
-  }
-
   type BaseResponseListString = {
     code?: number
     message?: string
     data?: string[]
+  }
+
+  type BaseResponsePagePicture = {
+    code?: number
+    message?: string
+    data?: PagePicture
+  }
+
+  type BaseResponsePagePictureVO = {
+    code?: number
+    message?: string
+    data?: PagePictureVO
   }
 
   type BaseResponsePageUser = {
@@ -62,6 +62,34 @@ declare namespace WorkCollaborativeImagesAPI {
   type OrderItem = {
     column?: string
     asc?: boolean
+  }
+
+  type PagePicture = {
+    records?: Picture[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PagePicture
+    searchCount?: PagePicture
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
+  }
+
+  type PagePictureVO = {
+    records?: PictureVO[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PagePictureVO
+    searchCount?: PagePictureVO
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
   }
 
   type PageUser = {

@@ -35,7 +35,7 @@ const handleSubmit = async () => {
     message.error('请先上传图片')
     return
   }
-  pictureForm.pictureTags = JSON.stringify(pictureForm.pictureTags)
+  pictureForm.pictureTags = JSON.stringify(pictureForm.pictureTags) // 序列化
   const res = await pictureUploadVo(pictureForm)
   if (res.data.code === 20000 && res.data.data) {
     message.success('上传成功')
@@ -58,14 +58,14 @@ const getOldPicture = async () => {
   if (id) {
     searchParams.id = Number(id)
     const res = await pictureSearchVo(searchParams)
-    if (res.data.code === 20000 && res.data.data) {
-      const data = res.data.data[0]
+    if (res.data.code === 20000 && res.data.data && res.data.data.records) {
+      const data = res.data.data.records[0]
       picture.value = data
       pictureForm.pictureId = data.id
       pictureForm.pictureName = data.name
       pictureForm.pictureIntroduction = data.introduction
       pictureForm.pictureCategory = data.category
-      pictureForm.pictureTags = JSON.parse(data.tags || "")
+      pictureForm.pictureTags = JSON.parse(data.tags || "") // 反序列化
     }
   }
 } // 获取老数据

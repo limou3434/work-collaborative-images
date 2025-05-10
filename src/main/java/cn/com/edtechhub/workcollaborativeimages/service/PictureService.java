@@ -1,11 +1,14 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import cn.com.edtechhub.workcollaborativeimages.model.request.PictureAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.PictureUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -16,17 +19,32 @@ import java.util.List;
 public interface PictureService extends IService<Picture> {
 
     /**
+     * 图片添加服务
+     */
+    Boolean pictureAdd(PictureAddRequest pictureAddRequest);
+
+    /**
+     * 图片删除服务
+     */
+    Boolean pictureDelete(PictureDeleteRequest pictureDeleteRequest);
+
+    /**
+     * 图片更新服务
+     */
+    Boolean pictureUpdate(PictureUpdateRequest pictureUpdateRequest);
+
+    /**
+     * 图片查询服务
+     */
+    Page<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest);
+
+    /**
      * 图片转链服务
      */
     Picture pictureUpload(Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, MultipartFile multipartFile);
 
     /**
-     * 图片查询服务
-     */
-    List<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest);
-
-    /**
-     * 获取图片种类服务
+     * 图片获取种类服务
      */
     List<String> pictureGetCategorys();
 

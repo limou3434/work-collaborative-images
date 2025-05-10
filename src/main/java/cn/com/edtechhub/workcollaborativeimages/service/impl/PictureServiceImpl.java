@@ -6,6 +6,9 @@ import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import cn.com.edtechhub.workcollaborativeimages.model.request.PictureAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.PictureUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
@@ -20,8 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,6 +41,63 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
      */
     @Resource
     CosManager cosManager;
+
+    public Boolean pictureAdd(PictureAddRequest pictureAddRequest) {
+        return null;
+    }
+
+    public Boolean pictureDelete(PictureDeleteRequest pictureDeleteRequest) {
+        ThrowUtils.throwIf(pictureDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片删除请求不能为空"));
+        ThrowUtils.throwIf(pictureDeleteRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法"));
+
+        // 先检查图片是否存在
+        long id = pictureDeleteRequest.getId();
+        Picture oldPicture = this.getById(id);
+        ThrowUtils.throwIf(oldPicture == null, new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "没有找到对应 id 的图片"));
+        // 操作数据库
+        boolean result = this.removeById(id);
+        ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "系统删除出现问题"));
+        return true;
+    }
+
+    public Boolean pictureUpdate(PictureUpdateRequest pictureUpdateRequest) {
+        return null;
+    }
+
+    public Page<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest) {
+        // 检查参数
+        ThrowUtils.throwIf(pictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片查询请求不能为空"));
+
+        // 如果用户传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
+        Long pictureId = pictureSearchRequest.getId();
+        if (pictureId != null) {
+            log.debug("本次查询只需要查询一条记录, 使用 id 字段来提高效率");
+            Picture picture = this.getById(pictureId);
+            log.debug("单条查询的图片记录为 {}", picture);
+            Page<Picture> resultPage = new Page<>();
+            if (picture != null) {
+                resultPage.setRecords(Collections.singletonList(picture));
+                resultPage.setTotal(1);
+                resultPage.setSize(1);
+                resultPage.setCurrent(1);
+            } else {
+                resultPage.setRecords(Collections.emptyList());
+                resultPage.setTotal(0);
+                resultPage.setSize(1);
+                resultPage.setCurrent(1);
+            }
+            return resultPage;
+        }
+
+        // 获取查询对象
+        LambdaQueryWrapper<Picture> queryWrapper = this.getQueryWrapper(pictureSearchRequest); // 构造查询条件
+
+        // 获取分页对象
+        Page<Picture> page = new Page<>(pictureSearchRequest.getPageCurrent(), pictureSearchRequest.getPageSize()); // 这里还指定了页码和条数
+
+        // 查询用户分页后直接取得内部的列表进行返回
+        return this.page(page, queryWrapper); // 调用 MyBatis-Plus 的分页查询方法
+    }
 
     public Picture pictureUpload(Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, MultipartFile multipartFile) {
         // 如果是更新图片(没有携带 id)
@@ -91,31 +151,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             log.debug("检查新增入库后的图片 {}", newPicture);
             return newPicture;
         }
-    }
-
-    public List<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest) {
-        // 检查参数
-        ThrowUtils.throwIf(pictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片查询请求不能为空"));
-
-        // 如果用户传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
-        Long pictureId = pictureSearchRequest.getId();
-        if (pictureId != null) {
-            log.debug("本次查询只需要查询一条记录, 使用 id 字段来提高效率");
-            Picture picture = this.getById(pictureId);
-            return new ArrayList<>() {{
-                add(picture);
-            }};
-        }
-
-        // 获取查询对象
-        LambdaQueryWrapper<Picture> queryWrapper = this.getQueryWrapper(pictureSearchRequest); // 构造查询条件
-
-        // 获取分页对象
-        Page<Picture> page = new Page<>(pictureSearchRequest.getPageCurrent(), pictureSearchRequest.getPageSize()); // 这里还指定了页码和条数
-
-        // 查询用户分页后直接取得内部的列表进行返回
-        Page<Picture> picturePage = this.page(page, queryWrapper); // 调用 MyBatis-Plus 的分页查询方法
-        return picturePage.getRecords(); // 返回分页结果
     }
 
     public List<String> pictureGetCategorys() {
