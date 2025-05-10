@@ -10,12 +10,12 @@ export async function pictureCategorys(options?: { [key: string]: any }) {
   })
 }
 
-/** 未脱敏的图片查询网络接口(管理) POST /picture/search */
-export async function pictureSearch(
-  body: WorkCollaborativeImagesAPI.PictureSearchRequest,
+/** 图片删除网络接口 POST /picture/delete */
+export async function pictureDelete(
+  body: WorkCollaborativeImagesAPI.PictureDeleteRequest,
   options?: { [key: string]: any }
 ) {
-  return request<WorkCollaborativeImagesAPI.BaseResponsePagePicture>('/picture/search', {
+  return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/picture/delete', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ export async function pictureSearch(
   })
 }
 
-/** 已脱敏的图片查询网络接口 POST /picture/search/vo */
+/** 图片查询网络接口 POST /picture/search/vo */
 export async function pictureSearchVo(
   body: WorkCollaborativeImagesAPI.PictureSearchRequest,
   options?: { [key: string]: any }
@@ -34,26 +34,6 @@ export async function pictureSearchVo(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  })
-}
-
-/** 未脱敏的图片上传网络接口(管理) POST /picture/upload */
-export async function pictureUpload(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: WorkCollaborativeImagesAPI.pictureUploadParams,
-  body: {},
-  options?: { [key: string]: any }
-) {
-  return request<WorkCollaborativeImagesAPI.BaseResponsePicture>('/picture/upload', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    params: {
-      ...params,
     },
     data: body,
     ...(options || {}),
@@ -93,3 +73,4 @@ export async function pictureUploadVo(
     ...(options || {}),
   })
 }
+

@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
-import { onMounted, reactive, ref } from 'vue'
-import { pictureSearchVo } from '@/api/work-collaborative-images/pictureController.ts'
+import { computed, onMounted, reactive, ref } from 'vue'
+import {
+  pictureDelete,
+  pictureSearchVo,
+} from '@/api/work-collaborative-images/pictureController.ts'
 import ShareModal from '@/components/ShareModal.vue'
 import { formatSize } from '@/utils'
 import {
@@ -11,6 +14,7 @@ import {
   ShareAltOutlined,
 } from '@ant-design/icons-vue'
 import router from '@/router'
+import { useLoginUserStore } from '@/stores/loginUser.ts'
 
 // 获取从路径上得到的图片 id 参数
 const props = defineProps<{
@@ -26,6 +30,10 @@ const fetchPictureDetail = async () => {
   try {
     const res = await pictureSearchVo(searchParams)
     if (res.data.code === 20000 && res.data.data && res.data.data.records) {
+      if(res.data.data.records.length === 0) {
+        message.error('图片不存在')
+        return
+      }
       picture.value = res.data.data.records[0]
     } else {
       message.error(res.data.message)
@@ -38,8 +46,20 @@ onMounted(() => {
   fetchPictureDetail()
 }) // 在页面加载时加载图片
 
+// 编辑权限
+const loginUserStore = useLoginUserStore()
+const canEdit = computed(() => {
+  const loginUser = loginUserStore.loginUser;
+  // 未登录不可编辑
+  if (!loginUser.id) {
+    return false
+  }
+  // 仅本人或管理员可编辑
+  const userVO = picture.value.userVO || {}
+  return loginUser.id === userVO.id || loginUser.role === 1
+})
+
 // 下载图片
-const canEdit = ref(true) // 或者根据权限判断设为 true/false
 const doDownload = () => {
   message.info('下载功能待实现')
 }
@@ -67,8 +87,21 @@ const doEdit = () => {
 }
 
 // 删除图片
-const doDelete = () => {
-  message.warning('删除功能待实现')
+const doDelete = async () => {
+  const id = picture.value.id
+  if (!id) {
+    return
+  }
+  const deletePicture: WorkCollaborativeImagesAPI.PictureDeleteRequest = {
+    id: -1,
+  }
+  deletePicture.id = id
+  const res = await pictureDelete(deletePicture)
+  if (res.data.code === 20000) {
+    message.success('删除成功')
+  } else {
+    message.error(res.data.message)
+  }
 }
 </script>
 
@@ -146,7 +179,7 @@ const doDelete = () => {
         </a-descriptions>
         <!-- 图片操作 -->
         <a-space direction="vertical">
-          <a-button v-if="doShare" ghost type="primary" @click="doShare">
+          <a-button ghost type="primary" @click="doShare">
             分享
             <template #icon>
               <ShareAltOutlined />
@@ -164,7 +197,7 @@ const doDelete = () => {
               <DeleteOutlined />
             </template>
           </a-button>
-          <a-button v-if="doDownload" type="primary" @click="doDownload">
+          <a-button type="primary" @click="doDownload">
             下载
             <template #icon>
               <DownloadOutlined />

@@ -7,10 +7,9 @@ interface Props {
   link: string
 }
 
-const { title, link } = withDefaults(defineProps<Props>(), {
-  title: '分享链接',
-  link: 'https://limou3434.github.io/work-blog-website/',
-}) // 属性的默认值
+// 属性的默认值
+const { title = '分享链接', link = 'https://limou3434.github.io/work-blog-website/' } =
+  defineProps<Props>()
 
 // 弹窗开闭逻辑
 const visible = ref(false)

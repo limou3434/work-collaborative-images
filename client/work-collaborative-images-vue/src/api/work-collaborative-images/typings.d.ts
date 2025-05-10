@@ -11,12 +11,6 @@ declare namespace WorkCollaborativeImagesAPI {
     data?: string[]
   }
 
-  type BaseResponsePagePicture = {
-    code?: number
-    message?: string
-    data?: PagePicture
-  }
-
   type BaseResponsePagePictureVO = {
     code?: number
     message?: string
@@ -27,12 +21,6 @@ declare namespace WorkCollaborativeImagesAPI {
     code?: number
     message?: string
     data?: PageUser
-  }
-
-  type BaseResponsePicture = {
-    code?: number
-    message?: string
-    data?: Picture
   }
 
   type BaseResponsePictureVO = {
@@ -64,20 +52,6 @@ declare namespace WorkCollaborativeImagesAPI {
     asc?: boolean
   }
 
-  type PagePicture = {
-    records?: Picture[]
-    total?: number
-    size?: number
-    current?: number
-    orders?: OrderItem[]
-    optimizeCountSql?: PagePicture
-    searchCount?: PagePicture
-    optimizeJoinOfCountSql?: boolean
-    maxLimit?: number
-    countId?: string
-    pages?: number
-  }
-
   type PagePictureVO = {
     records?: PictureVO[]
     total?: number
@@ -106,22 +80,8 @@ declare namespace WorkCollaborativeImagesAPI {
     pages?: number
   }
 
-  type Picture = {
+  type PictureDeleteRequest = {
     id?: number
-    url?: string
-    name?: string
-    introduction?: string
-    category?: string
-    tags?: string
-    picSize?: number
-    picWidth?: number
-    picHeight?: number
-    picScale?: number
-    picFormat?: string
-    userId?: number
-    deleted?: number
-    createTime?: string
-    updateTime?: string
   }
 
   type PictureSearchRequest = {
@@ -140,14 +100,6 @@ declare namespace WorkCollaborativeImagesAPI {
     picScale?: number
     picFormat?: string
     userId?: number
-  }
-
-  type pictureUploadParams = {
-    pictureId?: number
-    pictureCategory?: string
-    pictureName?: string
-    pictureIntroduction?: string
-    pictureTags?: string
   }
 
   type pictureUploadVOParams = {
