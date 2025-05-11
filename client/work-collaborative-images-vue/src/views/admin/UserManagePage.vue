@@ -170,6 +170,11 @@ const doDelete = async (id: string) => {
 
 <template>
   <div id="userManagePage">
+    <!-- 管理标题 -->
+    <a-flex justify="space-between">
+      <h2>用户管理</h2>
+      <a-button href="/user/register" target="_blank" type="primary">+ 创建用户</a-button>
+    </a-flex>
     <!-- 搜索表单 -->
     <a-form :model="searchParams" layout="vertical" @finish="doSearch">
       <!-- 快速可用部分 -->

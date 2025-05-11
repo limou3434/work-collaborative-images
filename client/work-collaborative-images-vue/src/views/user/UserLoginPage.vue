@@ -6,7 +6,7 @@ import { userLogin } from '@/api/work-collaborative-images/userController.ts'
 import { message } from 'ant-design-vue'
 
 // 用于存储用户输入的表单
-const formState = reactive<API.UserLoginRequest>({
+const formState = reactive<WorkCollaborativeImagesAPI.UserLoginRequest>({
   account: '',
   passwd: '',
 })
@@ -14,7 +14,7 @@ const formState = reactive<API.UserLoginRequest>({
 // 用于响应提交表单的行为
 const router = useRouter()
 const loginUserStore = useLoginUserStore()
-const handleSubmit = async (values: API.UserLoginRequest) => {
+const handleSubmit = async (values: WorkCollaborativeImagesAPI.UserLoginRequest) => {
   const res = await userLogin(values)
   if (res.data.code === 20000 && res.data.data) {
     await loginUserStore.setLoginUser(res.data.data)

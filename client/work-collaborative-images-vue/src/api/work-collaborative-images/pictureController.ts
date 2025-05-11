@@ -55,6 +55,21 @@ export async function pictureDestroy(
   })
 }
 
+/** 图片审核网络接口(管理) POST /picture/review */
+export async function pictureReview(
+  body: WorkCollaborativeImagesAPI.PictureReviewRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/picture/review', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
 /** 图片查询网络接口(管理) POST /picture/search */
 export async function pictureSearch(
   body: WorkCollaborativeImagesAPI.PictureSearchRequest,
@@ -100,37 +115,22 @@ export async function pictureUpdate(
   })
 }
 
-/** 已脱敏的图片上传网络接口 POST /picture/upload/ */
+/** 用户上传图片网络接口 POST /picture/upload */
 export async function pictureUpload(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: WorkCollaborativeImagesAPI.pictureUploadParams,
-  body?: {file: File},
+  body: {},
   options?: { [key: string]: any }
 ) {
-  const formData = new FormData();
-
-  // 将参数添加到 FormData
-  if (params != null) {
-    for (const key in params) {
-      if (params.hasOwnProperty(key)) {
-        formData.append(key, (params as { [key: string]: any })[key]); // 类型断言
-      }
-    }
-  }
-
-  // 将文件添加到 FormData
-  if (body != null) {
-    formData.append('pictureFile', body.file);
-  }
-
-  return request<WorkCollaborativeImagesAPI.BaseResponsePictureVO>('/picture/upload/vo', {
+  return request<WorkCollaborativeImagesAPI.BaseResponsePictureVO>('/picture/upload', {
     method: 'POST',
     headers: {
-      // 不需要手动设置 Content-Type 为 multipart/form-data
-      // 浏览器会自动为我们处理 boundary。
+      'Content-Type': 'application/json',
     },
-    data: formData, // 使用 FormData 作为请求体
+    params: {
+      ...params,
+    },
+    data: body,
     ...(options || {}),
   })
 }
-

@@ -1,12 +1,13 @@
 package cn.com.edtechhub.workcollaborativeimages.controller;
 
+import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
+import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.UserRole;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.*;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.UserVO;
@@ -16,6 +17,7 @@ import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
@@ -96,6 +98,15 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息
     }
 
+    @Operation(summary = "图片审核网络接口(管理)")
+    @SaCheckLogin
+    @SaCheckRole("admin")
+    @PostMapping("/review")
+//    @SentinelResource(value = "pictureReview")
+    public BaseResponse<Boolean> pictureReview(@RequestBody PictureReviewRequest pictureReviewRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureReview(pictureReviewRequest.getId(), pictureReviewRequest.getReviewStatus(), pictureReviewRequest.getReviewMessage())); // 这个接口只是获取用户 id 不用获取详细的用户信息
+    }
+
     /// 普通接口 ///
     @Operation(summary = "获取当前后支持图片类别网络接口")
     @SaCheckLogin
@@ -133,8 +144,13 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @Operation(summary = "脱敏后的图片查询网络接口")
     @SaCheckLogin
     @PostMapping("/search/vo")
-//    @SentinelResource(value = "pictureSearchVo")
-    public BaseResponse<Page<PictureVO>> pictureSearchVo(@RequestBody PictureSearchRequest pictureSearchRequest) {
+//    @SentinelResource(value = "pictureSearchVO")
+    public BaseResponse<Page<PictureVO>> pictureSearchVO(@RequestBody PictureSearchRequest pictureSearchRequest) {
+        // 强制普通用户只能看到审核通过的图片
+        if (((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole() != UserRoleEnums.ADMIN_ROLE.getCode()) {
+            pictureSearchRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        }
+
         // 先查出所有用户分页和图片分页
         Page<Picture> picturePage = pictureService.pictureSearch(pictureSearchRequest);
         Page<User> userPage = userService.userSearch(new UserSearchRequest());

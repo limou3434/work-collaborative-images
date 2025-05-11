@@ -39,12 +39,12 @@ const router = createRouter({
       props: true,
     },
     {
-      path: '/admin/userManage',
+      path: '/admin/user',
       name: '用户管理',
       component: () => import('../views/admin/UserManagePage.vue'), // 懒加载页面
     },
     {
-      path: '/admin/pictureManage',
+      path: '/admin/picture',
       name: '图片管理',
       component: () => import('../views/admin/PictureManagePage.vue'), // 懒加载页面
     },

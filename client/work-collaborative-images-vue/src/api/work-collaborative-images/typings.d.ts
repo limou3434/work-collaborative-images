@@ -119,6 +119,10 @@ declare namespace WorkCollaborativeImagesAPI {
     picScale?: number
     picFormat?: string
     userId?: number
+    reviewStatus?: number
+    reviewMessage?: string
+    reviewTime?: string
+    reviewerId?: number
     deleted?: number
     createTime?: string
     updateTime?: string
@@ -142,6 +146,12 @@ declare namespace WorkCollaborativeImagesAPI {
     id?: number
   }
 
+  type PictureReviewRequest = {
+    id?: number
+    reviewStatus?: number
+    reviewMessage?: string
+  }
+
   type PictureSearchRequest = {
     pageCurrent?: number
     pageSize?: number
@@ -158,6 +168,9 @@ declare namespace WorkCollaborativeImagesAPI {
     picScale?: number
     picFormat?: string
     userId?: number
+    reviewStatus?: number
+    reviewMessage?: string
+    reviewerId?: number
   }
 
   type PictureUpdateRequest = {
@@ -199,6 +212,9 @@ declare namespace WorkCollaborativeImagesAPI {
     createTime?: string
     updateTime?: string
     userVO?: UserVO
+    reviewStatus?: number
+    reviewMessage?: string
+    reviewerId?: number
   }
 
   type User = {

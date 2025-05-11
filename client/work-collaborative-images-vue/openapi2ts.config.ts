@@ -34,7 +34,7 @@ export default [
 //     formData.append('pictureFile', body.file);
 //   }
 //
-//   return request<WorkCollaborativeImagesAPI.BaseResponsePictureVO>('/picture/upload/vo', {
+//   return request<WorkCollaborativeImagesAPI.BaseResponsePictureVO>('/picture/upload', {
 //     method: 'POST',
 //     headers: {
 //       // 不需要手动设置 Content-Type 为 multipart/form-data

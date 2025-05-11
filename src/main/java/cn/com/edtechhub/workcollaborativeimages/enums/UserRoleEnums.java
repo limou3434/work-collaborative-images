@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.enums;
 
+import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
 /**
@@ -37,9 +38,6 @@ public enum UserRoleEnums { // 由于效率问题, 这里手动缓存了数据�
 
     /**
      * 内部角色构造方法
-     *
-     * @param code
-     * @param description
      */
     UserRoleEnums(int code, String description) {
         this.code = code;
@@ -47,12 +45,12 @@ public enum UserRoleEnums { // 由于效率问题, 这里手动缓存了数据�
     }
 
     /**
-     * 根据角色码值获取橘色描述
-     *
-     * @param code
-     * @return
+     * 根据角色码值获取角色描述
      */
     public static String getUserDescription(int code) {
+        if (ObjUtil.isEmpty(code)) {
+            return null;
+        }
         for (UserRoleEnums role : UserRoleEnums.values()) {
             if (role.getCode() == code) {
                 return role.getDescription();

@@ -41,12 +41,12 @@ const originItems = [
     icon: () => h(CrownOutlined),
     children: [
       {
-        key: '/admin/userManage',
+        key: '/admin/user',
         title: '用户管理',
         label: '用户管理',
       },
       {
-        key: '/admin/pictureManage',
+        key: '/admin/picture',
         title: '图片管理',
         label: '图片管理',
       },

@@ -5,7 +5,7 @@ import { message } from 'ant-design-vue'
 import { userRegister } from '@/api/work-collaborative-images/userController.ts'
 
 // 用于存储用户输入的表单
-const formState = reactive<API.UserRegisterRequest>({
+const formState = reactive<WorkCollaborativeImagesAPI.UserRegisterRequest>({
   account: '',
   passwd: '',
   checkPasswd: '',
@@ -13,7 +13,7 @@ const formState = reactive<API.UserRegisterRequest>({
 
 // 用于响应提交表单的行为
 const router = useRouter()
-const handleSubmit = async (values: API.UserRegisterRequest) => {
+const handleSubmit = async (values: WorkCollaborativeImagesAPI.UserRegisterRequest) => {
   // 判断两次输入的密码是否一致
   if (formState.passwd !== formState.checkPasswd) {
     message.error('两次输入的密码不一致')

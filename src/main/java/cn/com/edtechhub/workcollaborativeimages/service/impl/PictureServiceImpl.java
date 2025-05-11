@@ -1,6 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
@@ -34,6 +35,7 @@ import java.util.List;
  * @description 针对表【picture(图片表)】的数据库操作Service实现
  * @createDate 2025-05-04 22:19:43
  */
+@SuppressWarnings("ALL")
 @Service
 @Slf4j
 public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> implements PictureService {
@@ -84,8 +86,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
         // 更新用户后最好把用户的信息也返回, 这样方便前端做实时的数据更新
         Long id = picture.getId();
-        Picture newEntity = this.getById(id);
-        return newEntity;
+        return this.getById(id);
     }
 
     public Page<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest) {
@@ -99,7 +100,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             Picture picture = this.getById(pictureId);
             log.debug("单条查询的图片记录为 {}", picture);
             Page<Picture> resultPage = new Page<>();
-            if (picture != null) {
+            if (picture != null && picture.getReviewStatus() == PictureReviewStatusEnum.PASS.getValue()) {
                 resultPage.setRecords(Collections.singletonList(picture));
                 resultPage.setTotal(1);
                 resultPage.setSize(1);
@@ -123,6 +124,33 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return this.page(page, queryWrapper); // 调用 MyBatis-Plus 的分页查询方法
     }
 
+    public Boolean pictureReview(Long id, Integer reviewStatus, String reviewMessage) {
+        // TODO: 简单使用 AI 接口来进行文本审核和图片审核
+
+        // 检查参数
+        PictureReviewStatusEnum reviewStatusEnum = PictureReviewStatusEnum.getEnumByValue(reviewStatus);
+        ThrowUtils.throwIf(id == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 不能为空"));
+        ThrowUtils.throwIf(reviewStatusEnum == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "需要指定最终的有效审核状态"));
+
+        // 判断图片是否存在
+        Picture oldPicture = this.getById(id);
+        ThrowUtils.throwIf(oldPicture == null, new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "id 所对应的图片不存在"));
+
+        // 已是该状态
+        ThrowUtils.throwIf(oldPicture.getReviewStatus().equals(reviewStatus), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "该图片已经处于本次请求的指定状态, 请勿重复审核"));
+
+        // 更新审核状态(注意数据库默认设置为待审状态)
+        Picture updatePicture = new Picture();
+        updatePicture.setId(id);
+        updatePicture.setReviewStatus(reviewStatus);
+        updatePicture.setReviewMessage(reviewMessage);
+        updatePicture.setReviewerId(Long.valueOf(StpUtil.getLoginId().toString()));
+        updatePicture.setReviewTime(LocalDateTime.now());
+        boolean result = this.updateById(updatePicture);
+        ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.SYSTEM_ERROR, "审核失败, 无法更新"));
+        return true;
+    }
+
     public Picture pictureUpload(Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, MultipartFile multipartFile) {
         // 如果是更新图片(没有携带 id)
         if (pictureId != null) {
@@ -140,6 +168,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                 picture.setIntroduction(StringUtils.isNotBlank(pictureIntroduction) ? pictureIntroduction : null);
                 picture.setTags(StringUtils.isNotBlank(pictureTags) ? pictureTags : null);
                 picture.setUpdateTime(LocalDateTime.now()); // 更新修改时间
+                picture.setReviewStatus(0); // 重新设置为待审核状态 TODO: 如果当前用户为管理员状态则无需审核
                 boolean result = this.updateById(picture);
                 ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
                 Picture newPicture = this.getById(pictureId);
@@ -167,6 +196,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             picture.setPicScale(uploadPictureResult.getPicScale());
             picture.setPicFormat(uploadPictureResult.getPicFormat());
             picture.setUserId(userId);
+            picture.setReviewStatus(0); // 重新设置为待审核状态 TODO: 如果当前用户为管理员状态则无需审核
 
             boolean result = this.saveOrUpdate(picture);
             ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
@@ -199,8 +229,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         Double picScale = pictureSearchRequest.getPicScale();
         String picFormat = pictureSearchRequest.getPicFormat();
         Long userId = pictureSearchRequest.getUserId();
+        Integer reviewStatus = pictureSearchRequest.getReviewStatus();
         String sortField = pictureSearchRequest.getSortField();
         String sortOrder = pictureSearchRequest.getSortOrder();
+
+        log.debug("用户需要查询的审核状态 {}", reviewStatus);
 
         // 获取包装器进行返回
         LambdaQueryWrapper<Picture> lambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -214,7 +247,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                 .eq(picHeight != null, Picture::getPicHeight, picHeight)
                 .eq(picScale != null, Picture::getPicScale, picScale)
                 .eq(picFormat != null, Picture::getPicFormat, picFormat)
-                .eq(userId != null, Picture::getPicSize, userId)
+                .eq(userId != null, Picture::getUserId, userId)
+                .eq(reviewStatus != null, Picture::getReviewStatus, reviewStatus)
                 .orderBy(
                         StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则
                         sortOrder.equals("ascend"), // 这里结果为 true 代表 ASC 升序, false 代表 DESC 降序

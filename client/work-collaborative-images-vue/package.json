@@ -7,7 +7,7 @@
     "openapi2ts": "openapi2ts && echo 部分接口有些许问题需要您自己复制到对应文件中",
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
+    "preview": "vite preview --port 3000",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
