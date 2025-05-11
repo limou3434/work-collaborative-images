@@ -1,8 +1,8 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
-import cn.com.edtechhub.workcollaborativeimages.model.request.PictureAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.PictureUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -21,7 +21,7 @@ public interface PictureService extends IService<Picture> {
     /**
      * 图片添加服务
      */
-    Boolean pictureAdd(PictureAddRequest pictureAddRequest);
+    Picture pictureAdd(PictureAddRequest pictureAddRequest);
 
     /**
      * 图片删除服务
@@ -31,7 +31,7 @@ public interface PictureService extends IService<Picture> {
     /**
      * 图片更新服务
      */
-    Boolean pictureUpdate(PictureUpdateRequest pictureUpdateRequest);
+    Picture pictureUpdate(PictureUpdateRequest pictureUpdateRequest);
 
     /**
      * 图片查询服务

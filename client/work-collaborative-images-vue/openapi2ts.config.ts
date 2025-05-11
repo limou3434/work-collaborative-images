@@ -11,10 +11,10 @@ export default [
 ]
 
 // 下面是一些需要自己自定义的网路接口...
-// /** 已脱敏的图片上传网络接口 POST /picture/upload/vo */
-// export async function pictureUploadVo(
+// /** 已脱敏的图片上传网络接口 POST /picture/upload/ */
+// export async function pictureUpload(
 //   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-//   params: WorkCollaborativeImagesAPI.pictureUploadVOParams,
+//   params: WorkCollaborativeImagesAPI.pictureUploadParams,
 //   body?: {file: File},
 //   options?: { [key: string]: any }
 // ) {

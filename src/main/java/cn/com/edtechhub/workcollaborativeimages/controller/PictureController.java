@@ -3,8 +3,10 @@ package cn.com.edtechhub.workcollaborativeimages.controller;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.UserVO;
@@ -57,15 +59,78 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @Resource
     private UserService userService;
 
-    @Operation(summary = "图片删除网络接口")
+    /// 仅管理员 ///
+    @Operation(summary = "图片添加网络接口(管理)")
     @SaCheckLogin
+    @SaCheckRole("admin")
+    @PostMapping("/add")
+//    @SentinelResource(value = "pictureAdd")
+    public BaseResponse<Picture> pictureAdd(@RequestBody PictureAddRequest pictureAddRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureAdd(pictureAddRequest)); // 可以直接绕过 COS 进行添加落库
+    }
+
+    @Operation(summary = "图片删除网络接口(管理)")
+    @SaCheckLogin
+    @SaCheckRole("admin")
     @PostMapping("/delete")
 //    @SentinelResource(value = "pictureDelete")
     public BaseResponse<Boolean> pictureDelete(@RequestBody PictureDeleteRequest pictureDeleteRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(pictureDeleteRequest)); // TODO: 实际上管理员删除接口最重要的一点就是可以直接清理 COS 上的图片, 但是普通用户只是去除数据库中的关联而已
+    }
+
+    @Operation(summary = "图片更新网络接口(管理)")
+    @SaCheckLogin
+    @SaCheckRole("admin")
+    @PostMapping("/update")
+//    @SentinelResource(value = "pictureUpdate")
+    public BaseResponse<Picture> pictureUpdate(@RequestBody PictureUpdateRequest pictureUpdateRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpdate(pictureUpdateRequest)); // 可以直接绕过 COS 进行更新落库
+    }
+
+    @Operation(summary = "图片查询网络接口(管理)")
+    @SaCheckLogin
+    @SaCheckRole("admin")
+    @PostMapping("/search")
+//    @SentinelResource(value = "pictureSearch")
+    public BaseResponse<Page<Picture>> pictureSearch(@RequestBody PictureSearchRequest pictureSearchRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息
+    }
+
+    /// 普通接口 ///
+    @Operation(summary = "获取当前后支持图片类别网络接口")
+    @SaCheckLogin
+    @GetMapping("/categorys")
+//    @SentinelResource(value = "pictureCategorys")
+    public BaseResponse<List<String>> pictureCategorys() {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetCategorys());
+    }
+
+    @Operation(summary = "用户上传图片网络接口")
+    @SaCheckLogin
+    @PostMapping("/upload")
+//    @SentinelResource(value = "pictureUpload")
+    public BaseResponse<PictureVO> pictureUpload(
+            @RequestParam(value = "pictureId", required = false) Long pictureId,
+            @RequestParam(value = "pictureCategory", required = false) String pictureCategory,
+            @RequestParam(value = "pictureName", required = false) String pictureName,
+            @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction,
+            @RequestParam(value = "pictureTags", required = false) String pictureTags,
+            @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile
+    ) {
+        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, multipartFile));
+        pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetLoginInfo()));
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);
+    }
+
+    @Operation(summary = "用户销毁图片网络接口")
+    @SaCheckLogin
+    @PostMapping("/destroy")
+//    @SentinelResource(value = "pictureDestroy")
+    public BaseResponse<Boolean> pictureDestroy(@RequestBody PictureDeleteRequest pictureDeleteRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(pictureDeleteRequest));
     }
 
-    @Operation(summary = "图片查询网络接口")
+    @Operation(summary = "脱敏后的图片查询网络接口")
     @SaCheckLogin
     @PostMapping("/search/vo")
 //    @SentinelResource(value = "pictureSearchVo")
@@ -94,7 +159,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
                             return user1;
                         }
                 )); // 构建 userId 到 User 的映射避免 N+1 查询
-        log.debug("避免多次查询所构建的临时 userMap 的值未 {}", userMap);
+        log.debug("避免多次查询所构建的临时 userMap 的值为 {}", userMap);
         List<PictureVO> pictureVOList = pictureList
                 .stream()
                 .map(picture -> {
@@ -115,31 +180,6 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         pictureVOPage.setTotal(picturePage.getTotal());
         pictureVOPage.setRecords(pictureVOList);
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVOPage);
-    }
-
-    @Operation(summary = "图片上传网络接口")
-    @SaCheckLogin
-    @PostMapping("/upload/vo")
-//    @SentinelResource(value = "pictureUploadVO")
-    public BaseResponse<PictureVO> pictureUploadVO(
-            @RequestParam(value = "pictureId", required = false) Long pictureId,
-            @RequestParam(value = "pictureCategory", required = false) String pictureCategory,
-            @RequestParam(value = "pictureName", required = false) String pictureName,
-            @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction,
-            @RequestParam(value = "pictureTags", required = false) String pictureTags,
-            @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile
-    ) {
-        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, multipartFile));
-        pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetLoginInfo()));
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);
-    }
-
-    @Operation(summary = "获取当前后端支持的图片类别列表")
-    @SaCheckLogin
-    @GetMapping("/categorys")
-//    @SentinelResource(value = "pictureSearchVo")
-    public BaseResponse<List<String>> pictureCategorys() {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetCategorys());
     }
 
 }

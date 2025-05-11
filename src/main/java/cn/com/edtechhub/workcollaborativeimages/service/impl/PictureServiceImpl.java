@@ -6,8 +6,8 @@ import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
-import cn.com.edtechhub.workcollaborativeimages.model.request.PictureAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.PictureUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
@@ -18,6 +18,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,26 +44,48 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @Resource
     CosManager cosManager;
 
-    public Boolean pictureAdd(PictureAddRequest pictureAddRequest) {
-        return null;
+    public Picture pictureAdd(PictureAddRequest pictureAddRequest) {
+        // 检查参数
+        ThrowUtils.throwIf(pictureAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片添加请求体为空"));
+
+        // 创建用户实例的同时加密密码
+        var picture = new Picture();
+        BeanUtils.copyProperties(pictureAddRequest, picture);
+
+        // 保存实例的同时利用唯一键约束避免并发问题
+        try {
+            this.save(picture);
+        } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
+            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "已经存在该用户, 或者曾经被删除"));
+        }
+        return picture;
     }
 
     public Boolean pictureDelete(PictureDeleteRequest pictureDeleteRequest) {
-        ThrowUtils.throwIf(pictureDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片删除请求不能为空"));
-        ThrowUtils.throwIf(pictureDeleteRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法"));
+        ThrowUtils.throwIf(pictureDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片删除请求体不能为空"));
+        Long id = pictureDeleteRequest.getId();
+        ThrowUtils.throwIf(id <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法"));
 
-        // 先检查图片是否存在
-        long id = pictureDeleteRequest.getId();
-        Picture oldPicture = this.getById(id);
-        ThrowUtils.throwIf(oldPicture == null, new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "没有找到对应 id 的图片"));
         // 操作数据库
         boolean result = this.removeById(id);
-        ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "系统删除出现问题"));
+        ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "删除图片失败, 也许该图片不存在或者已经被删除"));
         return true;
     }
 
-    public Boolean pictureUpdate(PictureUpdateRequest pictureUpdateRequest) {
-        return null;
+    public Picture pictureUpdate(PictureUpdateRequest pictureUpdateRequest) {
+        // 检查参数
+        ThrowUtils.throwIf(pictureUpdateRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户 id 不能为空"));
+        ThrowUtils.throwIf(pictureUpdateRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户 id 必须是正整数"));
+
+        // 更新用户并且需要考虑密码的问题
+        Picture picture = new Picture();
+        BeanUtils.copyProperties(pictureUpdateRequest, picture);
+        this.updateById(picture);
+
+        // 更新用户后最好把用户的信息也返回, 这样方便前端做实时的数据更新
+        Long id = picture.getId();
+        Picture newEntity = this.getById(id);
+        return newEntity;
     }
 
     public Page<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest) {
@@ -194,7 +218,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                 .orderBy(
                         StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则
                         sortOrder.equals("ascend"), // 这里结果为 true 代表 ASC 升序, false 代表 DESC 降序
-                        Picture::getId // 默认按照标识排序
+                        Picture::getCreateTime // 默认按照创建时间排序
                 )
         ;
         return lambdaQueryWrapper;

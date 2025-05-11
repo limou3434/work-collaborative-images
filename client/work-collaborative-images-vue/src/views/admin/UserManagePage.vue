@@ -6,19 +6,58 @@ import dayjs from 'dayjs'
 
 // 定义表格的列名和对应字段
 const columns = [
-  { title: '标识', dataIndex: 'id' },
-  { title: '账号', dataIndex: 'account' },
-  { title: '名字', dataIndex: 'name' },
-  { title: '昵称', dataIndex: 'nick' },
-  { title: '邮箱', dataIndex: 'email' },
-  { title: '电话', dataIndex: 'phone' },
-  { title: '头像', dataIndex: 'avatar' },
-  { title: '简介', dataIndex: 'profile' },
-  { title: '角色', dataIndex: 'role' },
-  { title: '创建时间', dataIndex: 'createTime' },
-  { title: '更新时间', dataIndex: 'updateTime' },
-  { title: '操作', key: 'action' },
-  { title: '标签', dataIndex: 'tags' },
+  {
+    title: '标识',
+    dataIndex: 'id',
+  },
+  {
+    title: '账号',
+    dataIndex: 'account',
+  },
+  {
+    title: '名字',
+    dataIndex: 'name',
+  },
+  {
+    title: '昵称',
+    dataIndex: 'nick',
+  },
+  {
+    title: '邮箱',
+    dataIndex: 'email',
+  },
+  {
+    title: '电话',
+    dataIndex: 'phone',
+  },
+  {
+    title: '头像',
+    dataIndex: 'avatar',
+  },
+  {
+    title: '简介',
+    dataIndex: 'profile',
+  },
+  {
+    title: '角色',
+    dataIndex: 'role',
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'createTime',
+  },
+  {
+    title: '更新时间',
+    dataIndex: 'updateTime',
+  },
+  {
+    title: '操作',
+    key: 'action',
+  },
+  {
+    title: '标签',
+    dataIndex: 'tags',
+  },
 ]
 
 // 获取分页查询的结果
@@ -93,7 +132,7 @@ const renderTags = (tags: string[]) => {
     hiddenCount,
     allTags: tags,
   }
-} // 将数组数据渲染为不同颜色的 tag
+} // 将数组数据渲染为 tag
 const renderTagsForUser = (userTags: string | string[]) => {
   let tagList: string[] = []
   if (Array.isArray(userTags)) {
@@ -138,7 +177,7 @@ const doDelete = async (id: string) => {
         <a-input v-model:value="searchParams.account" allow-clear placeholder="输入账号" />
       </a-form-item>
       <a-form-item label="名字">
-        <a-input v-model:value="searchParams.name" allow-clear placeholder="输入用户名" />
+        <a-input v-model:value="searchParams.name" allow-clear placeholder="输入名字" />
       </a-form-item>
       <!-- 展开可用部分 -->
       <template v-if="showMore">
@@ -155,7 +194,6 @@ const doDelete = async (id: string) => {
           <a-input v-model:value="searchParams.tags" allow-clear placeholder="输入标签" />
         </a-form-item>
       </template>
-
       <a-form-item>
         <a-button html-type="submit" style="margin-right: 8px" type="primary">搜索</a-button>
         <a-button type="link" @click="toggleShowMore">
@@ -175,24 +213,11 @@ const doDelete = async (id: string) => {
       @change="doTableChange"
     >
       <template #bodyCell="{ column, record }">
+        <!-- 用户头像 -->
         <template v-if="column.dataIndex === 'avatar'">
           <a-image :src="record.avatar" :width="80" lazy />
         </template>
-        <template v-else-if="column.dataIndex === 'tags'">
-          <template v-if="renderTagsForUser(record.tags || []).displayTags">
-            <template
-              v-for="tag in renderTagsForUser(record.tags || []).displayTags"
-              :key="tag.content"
-            >
-              <a-tag>{{ tag.content }}</a-tag>
-            </template>
-            <template v-if="renderTagsForUser(record.tags || []).hiddenCount > 0">
-              <a-tooltip :title="renderTagsForUser(record.tags || []).allTags.join(', ')">
-                <a-tag>...</a-tag>
-              </a-tooltip>
-            </template>
-          </template>
-        </template>
+        <!-- 用户角色 -->
         <template v-else-if="column.dataIndex === 'role'">
           <a-tag
             :color="
@@ -216,13 +241,31 @@ const doDelete = async (id: string) => {
             }}
           </a-tag>
         </template>
+        <!-- 修改时间 -->
         <template
           v-else-if="column.dataIndex === 'createTime' || column.dataIndex === 'updateTime'"
         >
           {{ dayjs(record[column.dataIndex]).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
+        <!-- 具体操作 -->
         <template v-else-if="column.key === 'action'">
           <a-button danger type="link" @click="doDelete(record.id)">删除</a-button>
+        </template>
+        <!-- 标签渲染 -->
+        <template v-else-if="column.dataIndex === 'tags'">
+          <template v-if="renderTagsForUser(record.tags || []).displayTags">
+            <template
+              v-for="tag in renderTagsForUser(record.tags || []).displayTags"
+              :key="tag.content"
+            >
+              <a-tag>{{ tag.content }}</a-tag>
+            </template>
+            <template v-if="renderTagsForUser(record.tags || []).hiddenCount > 0">
+              <a-tooltip :title="renderTagsForUser(record.tags || []).allTags.join(', ')">
+                <a-tag>...</a-tag>
+              </a-tooltip>
+            </template>
+          </template>
         </template>
       </template>
     </a-table>

@@ -5,11 +5,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import {
   pictureSearchVo,
-  pictureUploadVo,
+  pictureUpload,
 } from '@/api/work-collaborative-images/pictureController.ts'
 
 // 设置请求图片上传的参数
-const pictureForm = reactive<WorkCollaborativeImagesAPI.pictureUploadVOParams>({
+const pictureForm = reactive<WorkCollaborativeImagesAPI.pictureUploadParams>({
   pictureId: -1,
   pictureName: '',
   pictureCategory: '',
@@ -36,7 +36,7 @@ const handleSubmit = async () => {
     return
   }
   pictureForm.pictureTags = JSON.stringify(pictureForm.pictureTags) // 序列化
-  const res = await pictureUploadVo(pictureForm)
+  const res = await pictureUpload(pictureForm)
   if (res.data.code === 20000 && res.data.data) {
     message.success('上传成功')
     // 跳转到图片详情页

@@ -25,9 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Limou
@@ -38,14 +36,12 @@ import java.util.List;
 @Service
 @Transactional
 @Slf4j
-public class UserServiceImpl extends ServiceImpl<UserMapper, User>
-        implements UserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    @SuppressWarnings("DataFlowIssue")
     @Override
     public User userAdd(UserAddRequest userAddRequest) {
         // 检查参数
-        ThrowUtils.throwIf(userAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "添加请求体为空"));
+        ThrowUtils.throwIf(userAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户添加请求体为空"));
         checkAccountAndPasswd(userAddRequest.getAccount(), userAddRequest.getPasswd());
 
         // 创建用户实例的同时加密密码
@@ -66,12 +62,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public Boolean userDelete(UserDeleteRequest userDeleteRequest) {
         // 检查参数
-        ThrowUtils.throwIf(userDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "删除请求体为空"));
-        Long userId = userDeleteRequest.getId();
-        ThrowUtils.throwIf(userId <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "参数用户 id 应为正整数"));
+        ThrowUtils.throwIf(userDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户删除请求体不能为空"));
+        Long id = userDeleteRequest.getId();
+        ThrowUtils.throwIf(id <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法"));
 
-        // 这里 MyBatisPlus 会自动转化为逻辑删除
-        boolean result = this.removeById(userId);
+        // 操作数据库
+        boolean result = this.removeById(id);
         ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "删除用户失败, 也许该用户不存在或者已经被删除"));
         return true;
     }
@@ -91,11 +87,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         this.updateById(user);
 
         // 更新用户后最好把用户的信息也返回, 这样方便前端做实时的数据更新
-        Long userId = user.getId();
-        User newUser = this.getById(userId);
-        StpUtil.getSessionByLoginId(userId).set(UserConstant.USER_LOGIN_STATE, newUser); // 并且还需要把用户的会话记录修改, 才能动态修改权限
-        StpUtil.kickout(userId); // 踢下线确保完全更新用户的所有信息, 这是一个保守做法
-        return newUser;
+        Long id = user.getId();
+        User newEntity = this.getById(id);
+        StpUtil.getSessionByLoginId(id).set(UserConstant.USER_LOGIN_STATE, newEntity); // 并且还需要把用户的会话记录修改, 才能动态修改权限
+        StpUtil.kickout(id); // 踢下线确保完全更新用户的所有信息, 这是一个保守做法
+        return newEntity;
     }
 
     @Override
@@ -114,8 +110,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 resultPage.setTotal(1);
                 resultPage.setSize(1);
                 resultPage.setCurrent(1);
-            }
-            else {
+            } else {
                 resultPage.setRecords(Collections.emptyList());
                 resultPage.setTotal(0);
                 resultPage.setSize(1);
@@ -233,8 +228,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public User userGetLoginInfo() {
-        User user = (User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE);
-        return user;
+        return (User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE);
     }
 
     /**

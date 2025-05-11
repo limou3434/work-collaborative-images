@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { message, type UploadProps } from 'ant-design-vue'
 import { ref } from 'vue'
-import { pictureUploadVo } from '@/api/work-collaborative-images/pictureController.ts'
+import { pictureUpload } from '@/api/work-collaborative-images/pictureController.ts'
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons-vue'
 
 // 接收外部传入的属性
@@ -30,7 +30,7 @@ const loading = ref<boolean>(false)
 const handleUpload = async ({ file }: any) => {
   loading.value = true
   try {
-    const res = await pictureUploadVo({}, { file }) // 传递文件到后端
+    const res = await pictureUpload({}, { file }) // 传递文件到后端
     if (res.data.code === 20000 && res.data.data) {
       message.success('图片上传成功')
       props.onSuccess?.(res.data.data) // 上传成功后将数据传递给父组件
