@@ -44,7 +44,7 @@ spring:
         stat:
           enabled: true
           db-type: mysql
-          log-slow-sql: true # 开启慢 sql 监控, 超过 2s 就认为是慢 sql, 记录到日志中
+          log-slow-sql: true # 开启慢 sql 监控, 超过 2s 就认为慢 sql, 记录到日志中
           slow-sql-millis: 2000
         # 日志监控，使用slf4j 进行日志输出
         slf4j:
@@ -102,6 +102,8 @@ server:
   address: 127.0.0.1
   ## 配置端口
   port: 8000
+  ## 配置超时
+  connection-timeout: 60000 # 设置连接超时时间为 60 秒
   ## 配置路由
   servlet:
     context-path: /work_collaborative_images_api # 这样所有接口都会带上前缀

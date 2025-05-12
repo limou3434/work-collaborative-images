@@ -5,6 +5,12 @@ declare namespace WorkCollaborativeImagesAPI {
     data?: boolean
   }
 
+  type BaseResponseInteger = {
+    code?: number
+    message?: string
+    data?: number
+  }
+
   type BaseResponseListString = {
     code?: number
     message?: string
@@ -142,6 +148,13 @@ declare namespace WorkCollaborativeImagesAPI {
     userId?: number
   }
 
+  type PictureBatchRequest = {
+    searchText?: string
+    searchCount?: number
+    namePrefix?: string
+    category?: string
+  }
+
   type PictureDeleteRequest = {
     id?: number
   }
@@ -194,6 +207,7 @@ declare namespace WorkCollaborativeImagesAPI {
     pictureName?: string
     pictureIntroduction?: string
     pictureTags?: string
+    pictureFileUrl?: string
   }
 
   type PictureVO = {

@@ -8,23 +8,30 @@ import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -100,12 +107,19 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             Picture picture = this.getById(pictureId);
             log.debug("单条查询的图片记录为 {}", picture);
             Page<Picture> resultPage = new Page<>();
-            if (picture != null && picture.getReviewStatus() == PictureReviewStatusEnum.PASS.getValue()) {
+            // 如果图片存在并且如果当前登录用户查询的自己就是创建的图片或者图片处于通过状态就允许返回结果
+            if (
+                    picture != null &&
+                            Long.parseLong(StpUtil.getLoginId().toString()) == picture.getUserId() ||
+                            picture.getReviewStatus() == PictureReviewStatusEnum.PASS.getValue()
+            ) {
                 resultPage.setRecords(Collections.singletonList(picture));
                 resultPage.setTotal(1);
                 resultPage.setSize(1);
                 resultPage.setCurrent(1);
-            } else {
+            }
+            // 否则直接返回空页面
+            else {
                 resultPage.setRecords(Collections.emptyList());
                 resultPage.setTotal(0);
                 resultPage.setSize(1);
@@ -151,60 +165,106 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return true;
     }
 
-    public Picture pictureUpload(Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, MultipartFile multipartFile) {
-        // 如果是更新图片(没有携带 id)
+    public Integer pictureBatch(String searchText, Integer searchCount, String namePrefix, String category) {
+        // 检查参数
+        ThrowUtils.throwIf(searchText == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "缺少需要爬取的关键文本"));
+        ThrowUtils.throwIf(searchCount == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "缺少需要爬取的图片个数"));
+        ThrowUtils.throwIf(searchCount > 30, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "最多 30 条"));
+
+        // 要抓取的地址
+        String fetchUrl = String.format("https://cn.bing.com/images/async?q=%s&mmasync=1", searchText);
+        Document document = null;
+        try {
+            document = Jsoup.connect(fetchUrl).get();
+        } catch (IOException e) {
+            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "获取页面失败"));
+        }
+        Element div = document.getElementsByClass("dgControl").first();
+        if (ObjUtil.isNull(div)) {
+            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "获取元素失败"));
+        }
+        Elements imgElementList = div.select("img.mimg");
+        int uploadCount = 0;
+        for (Element imgElement : imgElementList) {
+            String fileUrl = imgElement.attr("src");
+            if (StrUtil.isBlank(fileUrl)) {
+                log.debug("当前链接为空, 已跳过: {}", fileUrl);
+                continue;
+            }
+            // 处理图片上传地址，防止出现转义问题
+            int questionMarkIndex = fileUrl.indexOf("?");
+            if (questionMarkIndex > -1) {
+                fileUrl = fileUrl.substring(0, questionMarkIndex);
+            }
+            // 上传图片
+            try {
+                Picture picture = this.pictureUpload(null, category, namePrefix + (uploadCount + 1), null, null, fileUrl, null);
+                log.debug("图片上传成功, id = {}", picture.getId());
+                uploadCount++;
+            } catch (Exception e) {
+                log.debug("图片上传失败", e);
+                continue;
+            }
+            if (uploadCount >= searchCount) {
+                break;
+            }
+        }
+        return uploadCount;
+    }
+
+    public Picture pictureUpload(Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
+        // 如果有更新图片的需求, 也就是携带了 id
         if (pictureId != null) {
             boolean exists = this
                     .lambdaQuery()
                     .eq(Picture::getId, pictureId)
                     .exists();
             ThrowUtils.throwIf(!exists, new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "指定 id 所对应的图片不存在所以无法更新"));
-
-            // 如果还没有携带新的图片但是数据库中图片存在, 那么就只更新图片的元数据
-            if (multipartFile == null) {
-                Picture picture = this.getById(pictureId);
-                picture.setCategory(StringUtils.isNotBlank(pictureCategory) ? pictureCategory : null);
-                picture.setName(StringUtils.isNotBlank(pictureName) ? pictureName : null);
-                picture.setIntroduction(StringUtils.isNotBlank(pictureIntroduction) ? pictureIntroduction : null);
-                picture.setTags(StringUtils.isNotBlank(pictureTags) ? pictureTags : null);
-                picture.setUpdateTime(LocalDateTime.now()); // 更新修改时间
-                picture.setReviewStatus(0); // 重新设置为待审核状态 TODO: 如果当前用户为管理员状态则无需审核
-                boolean result = this.updateById(picture);
-                ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
-                Picture newPicture = this.getById(pictureId);
-                log.debug("检查更新入库后的图片 {}", newPicture);
-                return newPicture;
-            }
-
-            return null;
         }
-        // 如果是新增图片(确有携带 id)
-        else {
-            Long userId = Long.valueOf(StpUtil.getLoginId().toString());
-            String uploadPathPrefix = String.format("public/%s", userId); // 构造和用户相关的图片父目录
-            UploadPictureResult uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, multipartFile); // 执行具体的上传任务
 
-            Picture picture = new Picture(); // 构造要入库的图片信息
-            picture.setCategory(pictureCategory);
+        // 获取当前登录用户的 id 值
+        Long userId = Long.valueOf(StpUtil.getLoginId().toString());
+
+        // 构造要入库的图片信息
+        Picture picture = new Picture();
+        UploadPictureResult uploadPictureResult = null;
+        if (multipartFile != null) { // 支持对本地文件的上传
+            log.debug("支持对本地文件的上传");
+            String uploadPathPrefix = String.format("public/%s", userId); // 构造和用户相关的图片父目录
+            uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, multipartFile); // 执行具体的上传任务
+        }
+        if (pictureFileUrl != null) { // 支持对远端文件的上传
+            log.debug("支持对远端文件的上传");
+            String uploadPathPrefix = String.format("public/%s", userId); // 构造和用户相关的图片父目录
+            uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, pictureFileUrl); // 执行具体的上传任务
+        }
+        if (pictureId != null) {
+            picture.setId(pictureId);
+        }
+        picture.setCategory(pictureCategory);
+        picture.setTags(StringUtils.isNotBlank(pictureTags) ? pictureTags : null);
+        picture.setIntroduction(pictureIntroduction);
+        picture.setUserId(userId);
+        picture.setReviewStatus(0); // 重新设置为待审核状态 TODO: 如果当前用户为管理员状态则无需审核
+        picture.setReviewMessage("管理员正在审核");
+        picture.setName(StringUtils.isNotBlank(pictureName) ? pictureName : "尚无名称");
+        if (uploadPictureResult != null) {
             picture.setName(StringUtils.isNotBlank(pictureName) ? pictureName : uploadPictureResult.getPicName());
-            picture.setTags(StringUtils.isNotBlank(pictureTags) ? pictureTags : null);
-            picture.setIntroduction(pictureIntroduction);
+            log.debug("测试这里的图片名字 {}", picture.getName());
             picture.setUrl(uploadPictureResult.getUrl());
             picture.setPicSize(uploadPictureResult.getPicSize());
             picture.setPicWidth(uploadPictureResult.getPicWidth());
             picture.setPicHeight(uploadPictureResult.getPicHeight());
             picture.setPicScale(uploadPictureResult.getPicScale());
             picture.setPicFormat(uploadPictureResult.getPicFormat());
-            picture.setUserId(userId);
-            picture.setReviewStatus(0); // 重新设置为待审核状态 TODO: 如果当前用户为管理员状态则无需审核
-
-            boolean result = this.saveOrUpdate(picture);
-            ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
-
-            Picture newPicture = this.getById(picture.getId());
-            log.debug("检查新增入库后的图片 {}", newPicture);
-            return newPicture;
         }
+
+        // 执行落库
+        boolean result = this.saveOrUpdate(picture);
+        ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
+        Picture newPicture = this.getById(picture.getId());
+        log.debug("检查入库后的图片 {}", newPicture);
+        return newPicture;
     }
 
     public List<String> pictureGetCategorys() {

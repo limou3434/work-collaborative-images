@@ -17,6 +17,21 @@ export async function pictureAdd(
   })
 }
 
+/** 图片批量网络接口(管理) POST /picture/batch */
+export async function pictureBatch(
+  body: WorkCollaborativeImagesAPI.PictureBatchRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseInteger>('/picture/batch', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
 /** 获取当前后支持图片类别网络接口 GET /picture/categorys */
 export async function pictureCategorys(options?: { [key: string]: any }) {
   return request<WorkCollaborativeImagesAPI.BaseResponseListString>('/picture/categorys', {

@@ -8,6 +8,7 @@ import { LoadingOutlined, PlusOutlined } from '@ant-design/icons-vue'
 interface Props {
   picture?: WorkCollaborativeImagesAPI.PictureVO // 已上传的图片信息
   onSuccess?: (newPicture: WorkCollaborativeImagesAPI.PictureVO) => void // 成功回调，传递上传后的图片信息
+  pictureId?: number // 接收父组件传递的 pictureId, 因为可能需要更新
 }
 
 // 前端校验图片类型与大小
@@ -30,10 +31,39 @@ const loading = ref<boolean>(false)
 const handleUpload = async ({ file }: any) => {
   loading.value = true
   try {
-    const res = await pictureUpload({}, { file }) // 传递文件到后端
+    const uploadParams = props.pictureId ? { pictureId: props.pictureId } : {} // 如果有 pictureId，就传递它
+    const res = await pictureUpload({ ...uploadParams }, { file }) // 传递文件到后端
     if (res.data.code === 20000 && res.data.data) {
       message.success('图片上传成功')
       props.onSuccess?.(res.data.data) // 上传成功后将数据传递给父组件
+    } else {
+      message.error(res.data.message)
+    }
+  } catch (e: unknown) {
+    message.error(e as string)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 支持使用 URL 上传图片
+const fileUrl = ref<string>()
+const handleUrlUpload = async () => {
+  if (!fileUrl.value) {
+    message.error('请输入图片 URL')
+    return
+  }
+
+  loading.value = true
+  try {
+    const uploadParams: WorkCollaborativeImagesAPI.pictureUploadParams = { pictureFileUrl: fileUrl.value }
+    if (props.pictureId) uploadParams.pictureId = props.pictureId
+    const res = await pictureUpload(uploadParams)
+
+    if (res.data.code === 20000 && res.data.data) {
+      message.success('图片上传成功')
+      // 通过 onSuccess 回调传递新的图片信息
+      props.onSuccess?.(res.data.data)
     } else {
       message.error(res.data.message)
     }
@@ -60,6 +90,18 @@ const handleUpload = async ({ file }: any) => {
         <div class="ant-upload-text">点击或拖拽上传图片</div>
       </div>
     </a-upload>
+    <div class="url-picture-upload">
+      <a-input-group compact style="margin-bottom: 16px">
+        <a-input
+          v-model:value="fileUrl"
+          placeholder="请输入图片 URL"
+          style="width: calc(100% - 120px)"
+        />
+        <a-button :loading="loading" style="width: 120px" type="primary" @click="handleUrlUpload">
+          提交
+        </a-button>
+      </a-input-group>
+    </div>
   </div>
 </template>
 

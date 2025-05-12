@@ -15,17 +15,17 @@ public class PictureAddRequest implements Serializable {
     /**
      * 图片名称
      */
-    private String name;
+    private String name = "默认名称";
 
     /**
      * 简介
      */
-    private String introduction;
+    private String introduction = "暂无介绍...";
 
     /**
      * 分类
      */
-    private String category;
+    private String category = "默认类别";
 
     /**
      * 标签(JSON 数组)

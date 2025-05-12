@@ -124,7 +124,6 @@ public class CosManager {
         }
     }
 
-
     /**
      * 推送图片对象资源
      */

@@ -6,7 +6,6 @@ import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
-import cn.com.edtechhub.workcollaborativeimages.model.entity.UserRole;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.*;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
@@ -107,6 +106,15 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureReview(pictureReviewRequest.getId(), pictureReviewRequest.getReviewStatus(), pictureReviewRequest.getReviewMessage())); // 这个接口只是获取用户 id 不用获取详细的用户信息
     }
 
+    @Operation(summary = "图片批量网络接口(管理)")
+    @SaCheckLogin
+    @SaCheckRole("admin")
+    @PostMapping("/batch")
+    public BaseResponse<Integer> PictureBatch(@RequestBody PictureBatchRequest pictureBatchRequest) {
+        int uploadCount = pictureService.pictureBatch(pictureBatchRequest.getSearchText(), pictureBatchRequest.getSearchCount(), pictureBatchRequest.getNamePrefix(), pictureBatchRequest.getCategory());
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, uploadCount);
+    }
+
     /// 普通接口 ///
     @Operation(summary = "获取当前后支持图片类别网络接口")
     @SaCheckLogin
@@ -126,9 +134,11 @@ public class PictureController { // 通常控制层有服务层中的所有方�
             @RequestParam(value = "pictureName", required = false) String pictureName,
             @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction,
             @RequestParam(value = "pictureTags", required = false) String pictureTags,
+            @RequestParam(value = "pictureFileUrl", required = false) String pictureFileUrl,
             @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile
     ) {
-        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, multipartFile));
+        log.debug("传递的文件名为 {}", pictureName);
+        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl, multipartFile));
         pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetLoginInfo()));
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);
     }
@@ -146,8 +156,12 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @PostMapping("/search/vo")
 //    @SentinelResource(value = "pictureSearchVO")
     public BaseResponse<Page<PictureVO>> pictureSearchVO(@RequestBody PictureSearchRequest pictureSearchRequest) {
-        // 强制普通用户只能看到审核通过的图片
+        // 强制其他普通用户只能看到审核通过的图片
+        Integer userRole = ((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole();
+        log.debug("用户的登录 id 为 {}", StpUtil.getLoginId());
+        log.debug("当前用户权限为 {}", userRole);
         if (((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole() != UserRoleEnums.ADMIN_ROLE.getCode()) {
+            log.debug("非管理员只能查看审核通过的图片");
             pictureSearchRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
         }
 
@@ -161,7 +175,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         List<User> userList = userPage.getRecords();
         log.debug("库中的所有用户 {}", userList);
 
-        // 开始映射 TODO: 这里的映射在用户过量时还是有一些问题的
+        // 开始映射 TODO: 这里的映射在用户过量时还是有一些问题的, 例如用户只查询一张映射消耗比较大
         Map<Long, User> userMap = userList
                 .stream()
                 .collect(Collectors.toMap(

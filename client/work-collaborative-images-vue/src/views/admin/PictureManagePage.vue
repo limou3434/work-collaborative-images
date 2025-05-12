@@ -3,9 +3,10 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import {
+  pictureBatch,
   pictureDelete,
   pictureReview,
-  pictureSearch
+  pictureSearch,
 } from '@/api/work-collaborative-images/pictureController.ts'
 import { PIC_REVIEW_STATUS_ENUM, PIC_REVIEW_STATUS_MAP } from '@/constants/picture.ts'
 
@@ -165,7 +166,8 @@ const doDelete = async (id: string) => {
 
 // 设置审核回调
 const handleReview = async (record: WorkCollaborativeImagesAPI.PictureVO, reviewStatus: number) => {
-  const reviewMessage = reviewStatus === PIC_REVIEW_STATUS_ENUM.PASS ? '管理员操作通过' : '管理员操作拒绝'
+  const reviewMessage =
+    reviewStatus === PIC_REVIEW_STATUS_ENUM.PASS ? '管理员操作通过' : '管理员操作拒绝'
   const res = await pictureReview({
     id: record.id,
     reviewStatus,
@@ -178,20 +180,100 @@ const handleReview = async (record: WorkCollaborativeImagesAPI.PictureVO, review
     message.error('审核操作失败，' + res.data.message)
   }
 }
+
+// 添加批处理计时器
+const timer = ref<NodeJS.Timeout | null>(null)
+const seconds = ref(0)
+const startTimer = () => {
+  seconds.value = 0
+  timer.value = setInterval(() => {
+    seconds.value++
+  }, 1000)
+}
+const stopTimer = () => {
+  if (timer.value) {
+    clearInterval(timer.value)
+    timer.value = null
+  }
+}
+
+// 设置批量提交弹窗
+const loading = ref<boolean>(false)
+const showModal = ref(false)
+const form = reactive<WorkCollaborativeImagesAPI.PictureBatchRequest>({
+  searchText: '',
+  searchCount: 5,
+  namePrefix: '默认名称',
+  category: '默认分类',
+})
+const handleOk = async (): Promise<void> => {
+  loading.value = true
+  startTimer()
+  try {
+    message.success('图片正在后端批量爬取中, 这个过程可能有些久...')
+    showModal.value = false
+    const res = await pictureBatch({ ...form })
+    if (res.data.code === 20000 && res.data.data) {
+      message.success(`后台批量爬取成功, 总共 ${res.data.data} 条`)
+      window.location.reload()
+    } else {
+      message.error(res.data.message)
+    }
+  } catch (err) {
+    message.error('请求异常')
+    console.error(err)
+  } finally {
+    stopTimer()
+    loading.value = false
+  }
+}
 </script>
 
 <template>
   <div id="pictureManagePage">
+    <a-alert
+      v-if="loading"
+      :message="`任务进行中：已耗时 ${seconds} 秒...`"
+      show-icon
+      style="margin-bottom: 16px"
+      type="info"
+    />
     <!-- 管理标题 -->
     <a-flex justify="space-between">
       <h2>图片管理</h2>
-      <a-button href="/picture/add" target="_blank" type="primary">+ 创建图片</a-button>
+      <a-space>
+        <a-button href="/picture/add" target="_blank" type="primary">+ 创建图片</a-button>
+        <a-button ghost target="_blank" type="primary" @click="showModal = true"
+          >+ 批量创建图片
+        </a-button>
+      </a-space>
+      <a-modal
+        v-model:visible="showModal"
+        title="批量创建图片"
+        @cancel="showModal = false"
+        @ok="handleOk"
+      >
+        <a-form :model="form">
+          <a-form-item label="搜索词语">
+            <a-input v-model:value="form.searchText" placeholder="请输入请求搜索词语" />
+          </a-form-item>
+          <a-form-item label="抓取数量">
+            <a-input-number v-model:value="form.searchCount" />
+          </a-form-item>
+          <a-form-item label="名称前缀">
+            <a-input v-model:value="form.namePrefix" placeholder="请输入响应名称前缀" />
+          </a-form-item>
+          <a-form-item label="图片类别">
+            <a-input v-model:value="form.category" placeholder="请输入响应图片类别" />
+          </a-form-item>
+        </a-form>
+      </a-modal>
     </a-flex>
     <!-- 搜索表单 -->
     <a-form :model="searchParams" layout="vertical" @finish="doSearch">
       <!-- 快速可用部分 -->
-      <a-form-item label="名字">
-        <a-input v-model:value="searchParams.name" allow-clear placeholder="输入名字" />
+      <a-form-item label="名称">
+        <a-input v-model:value="searchParams.name" allow-clear placeholder="输入名称" />
       </a-form-item>
       <!-- 展开可用部分 -->
       <template v-if="showMore">
@@ -201,11 +283,7 @@ const handleReview = async (record: WorkCollaborativeImagesAPI.PictureVO, review
       </template>
       <template v-if="showMore">
         <a-form-item label="状态">
-          <a-select
-            v-model:value="searchParams.reviewStatus"
-            allow-clear
-            placeholder="选择状态"
-          >
+          <a-select v-model:value="searchParams.reviewStatus" allow-clear placeholder="选择状态">
             <a-select-option :value="0">待审核</a-select-option>
             <a-select-option :value="1">已通过</a-select-option>
             <a-select-option :value="2">已拒绝</a-select-option>
@@ -274,8 +352,8 @@ const handleReview = async (record: WorkCollaborativeImagesAPI.PictureVO, review
           </a-button>
           <a-button
             v-if="record.reviewStatus !== PIC_REVIEW_STATUS_ENUM.REJECT"
-            type="link"
             danger
+            type="link"
             @click="handleReview(record, PIC_REVIEW_STATUS_ENUM.REJECT)"
           >
             拒绝
