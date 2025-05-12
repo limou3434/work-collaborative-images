@@ -182,7 +182,7 @@ const handleReview = async (record: WorkCollaborativeImagesAPI.PictureVO, review
 }
 
 // 添加批处理计时器
-const timer = ref<NodeJS.Timeout | null>(null)
+const timer = ref<number | null>(null)
 const seconds = ref(0)
 const startTimer = () => {
   seconds.value = 0
