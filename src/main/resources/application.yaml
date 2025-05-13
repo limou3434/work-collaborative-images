@@ -104,9 +104,6 @@ server:
   port: 8000
   ## 配置超时
   connection-timeout: 60000 # 设置连接超时时间为 60 秒
-  ## 配置路由
-  servlet:
-    context-path: /work_collaborative_images_api # 这样所有接口都会带上前缀
 
 # 配置日志
 logging:

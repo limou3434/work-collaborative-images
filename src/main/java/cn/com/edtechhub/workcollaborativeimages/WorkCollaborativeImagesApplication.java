@@ -22,7 +22,7 @@ public class WorkCollaborativeImagesApplication {
         var context = SpringApplication.run(WorkCollaborativeImagesApplication.class, args);
         ServerConstant serverConstant = context.getBean(ServerConstant.class);
         OpenApiConstant springdocConfig = context.getBean(OpenApiConstant.class);
-        String baseUrl = "http://" + serverConstant.getAddress() + ":" + serverConstant.getPort() + serverConstant.getContextPath();
+        String baseUrl = "http://" + serverConstant.getAddress() + ":" + serverConstant.getPort();
         log.debug("访问 {} 或 {} 即可得到在线文档, 访问 {} 即可得到文档配置", baseUrl + springdocConfig.getKnife4jUi(), baseUrl + springdocConfig.getSwaggerUi(), baseUrl + springdocConfig.getApiDocsJson());
         log.debug("Spring Boot running...");
     }

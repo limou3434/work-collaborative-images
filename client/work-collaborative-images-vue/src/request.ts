@@ -3,7 +3,7 @@ import { message } from 'ant-design-vue'
 
 // 创建 Axios 实例
 const myAxios = axios.create({
-  baseURL: 'http://127.0.0.1:8000/work_collaborative_images_api',
+  baseURL: 'http://127.0.0.1:3006/work_collaborative_images_api', // 向自己请求的本质是做了代理
   timeout: 60000, // 响应时间未 6 s
   withCredentials: true, // 请求时携带 Cookie
 })

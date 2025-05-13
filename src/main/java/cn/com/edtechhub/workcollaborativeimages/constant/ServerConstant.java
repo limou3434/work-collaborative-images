@@ -31,10 +31,4 @@ public class ServerConstant {
     @Value("${server.port}")
     private String port;
 
-    /**
-     * 接口前缀
-     */
-    @Value("${server.servlet.context-path}")
-    private String contextPath;
-
 }
