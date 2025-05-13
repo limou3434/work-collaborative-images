@@ -75,7 +75,7 @@ spring:
     database: 2 # Redis 数据库索引(默认为 0, 通常为了方便开发会认为 0 号为生产环境、1 号为测试环境、2 号为开发环境)
     host: 127.0.0.1 # Redis 服务器地址
     port: 6379 # Redis 服务器连接端口
-    # password: Qwe54188_ # Redis 服务器连接密码(默认为空)
+    password: Qwe54188_ # Redis 服务器连接密码(默认为空)
     timeout: 10s # 连接超时时间
     lettuce:
       pool: # 链接池配置
