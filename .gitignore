@@ -1,8 +1,9 @@
 **.idea/
-**node_modules/
 **.next/
+**node_modules/
 **target/
-.env
+**dist/
+**.env
 
 ### STS ###
 .apt_generated
