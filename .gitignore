@@ -4,6 +4,7 @@
 **target/
 **dist/
 **.env
+**access.log
 
 ### STS ###
 .apt_generated
