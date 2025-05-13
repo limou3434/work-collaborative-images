@@ -1,9 +1,4 @@
 :3000 {
-    # 后端服务
-    handle_path /work_collaborative_images_api/* {
-        reverse_proxy {$SERVER_HOST}
-    }
-
     # 前端服务
     handle_path /* {
         root * ./dist

@@ -1,9 +1,15 @@
 import axios from 'axios'
 import { message } from 'ant-design-vue'
 
+// 后端服务地址
+const HOTS = {
+  develop: 'http://127.0.0.1:8000',
+  release: 'http://10.10.174.232:80/work_collaborative_images_api',
+}
+
 // 创建 Axios 实例
 const myAxios = axios.create({
-  baseURL: 'http://127.0.0.1:3006/work_collaborative_images_api', // 向自己请求的本质是做了代理
+  baseURL: HOTS['release'], // 后端服务地址
   timeout: 60000, // 响应时间未 6 s
   withCredentials: true, // 请求时携带 Cookie
 })
