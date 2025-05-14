@@ -42,7 +42,6 @@ import java.util.List;
  * @description 针对表【picture(图片表)】的数据库操作Service实现
  * @createDate 2025-05-04 22:19:43
  */
-@SuppressWarnings("ALL")
 @Service
 @Slf4j
 public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> implements PictureService {

@@ -77,7 +77,7 @@ public class Picture implements Serializable {
     private Long userId;
 
     /**
-     * 状态: 0-待审核; 1-通过; 2-拒绝
+     * 状态: 0-待审; 1-通过; 2-拒绝
      */
     private Integer reviewStatus;
 

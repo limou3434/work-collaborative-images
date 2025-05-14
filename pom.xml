@@ -83,9 +83,21 @@
 
         <!-- Redis: https://redis.io/ -->
         <dependency>
+            <!-- 提供简单的 Lettuce 客户端 -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
             <!-- 提供 Redis 连接池 -->
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
+        </dependency>
+
+        <!-- Caffeine: https://github.com/ben-manes/caffeine -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>3.1.8</version>
         </dependency>
 
         <!-- Lombok: https://projectlombok.org/ -->

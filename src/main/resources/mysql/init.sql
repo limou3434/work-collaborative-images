@@ -65,6 +65,7 @@ CREATE TABLE `picture`
 (
     `id`             BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'id',
     `url`            VARCHAR(512)    NOT NULL COMMENT '图片 url',
+    `thumbnail_url`  VARCHAR(512)    NULL COMMENT '缩略图 url',
     `name`           VARCHAR(128)    NOT NULL COMMENT '图片名称',
     `introduction`   VARCHAR(512)    NULL COMMENT '简介',
     `category`       VARCHAR(64)     NULL COMMENT '分类',
@@ -75,7 +76,7 @@ CREATE TABLE `picture`
     `pic_scale`      DOUBLE          NULL COMMENT '图片宽高比例',
     `pic_format`     VARCHAR(32)     NULL COMMENT '图片格式',
     `user_id`        BIGINT UNSIGNED NOT NULL COMMENT '创建用户 id',
-    `review_status`  INT                  DEFAULT 0 NOT NULL COMMENT '审核状态: 0-待审核; 1-通过; 2-拒绝',
+    `review_status`  INT                  DEFAULT 0 NOT NULL COMMENT '审核状态: 0-待审; 1-通过; 2-拒绝',
     `review_message` VARCHAR(512)    NULL COMMENT '审核信息',
     `review_time`    DATETIME        NULL COMMENT '审核时间',
     `reviewer_id`    BIGINT          NULL COMMENT '审核人 ID',

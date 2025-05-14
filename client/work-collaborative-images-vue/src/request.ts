@@ -5,11 +5,12 @@ import { message } from 'ant-design-vue'
 const HOTS = {
   develop: 'http://127.0.0.1:8000',
   release: 'http://10.10.174.232:80/work_collaborative_images_api',
+  production: 'https://wci.edtechhub.com.cn/work_collaborative_images_api',
 }
 
 // 创建 Axios 实例
 const myAxios = axios.create({
-  baseURL: HOTS['release'], // 后端服务地址
+  baseURL: HOTS['develop'], // 后端服务地址
   timeout: 60000, // 响应时间未 6 s
   withCredentials: true, // 请求时携带 Cookie
 })

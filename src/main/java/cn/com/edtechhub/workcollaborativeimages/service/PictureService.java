@@ -1,8 +1,10 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
-import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.*;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;

@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Component
 @Slf4j
-public class RequestLogInterceptor implements HandlerInterceptor {
+public class RequestLogAOP implements HandlerInterceptor {
 
     /**
      * 每次网络接口被调用都会执行这个方法

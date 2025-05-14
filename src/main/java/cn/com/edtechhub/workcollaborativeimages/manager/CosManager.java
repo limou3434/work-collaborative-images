@@ -7,19 +7,23 @@ import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpStatus;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
 import com.qcloud.cos.model.ciModel.persistence.PicOperations;
+import com.qcloud.cos.model.ciModel.persistence.ProcessResults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,7 +32,7 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import cn.hutool.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -128,14 +132,28 @@ public class CosManager {
      * 推送图片对象资源
      */
     public PutObjectResult putPicture(String key, File file) {
-        PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key, file); // 构造上传对象资源请求
+        // 构造上传对象资源请求
+        PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key, file);
+
+        // 设置图片压缩规则(转成 webp 格式)
+        List<PicOperations.Rule> rules = new ArrayList<>();
+        String webpKey = FileUtil.mainName(key) + ".webp";
+        PicOperations.Rule compressRule = new PicOperations.Rule();
+        compressRule.setRule("imageMogr2/format/webp");
+        compressRule.setBucket(cosClientConfig.getBucket());
+        compressRule.setFileId(webpKey);
+        rules.add(compressRule);
 
         // 上传的同时要求 COS 对图片进行处理, 注意需要开通数据万象并且绑定存储桶
         PicOperations picOperations = new PicOperations(); // 该对象通常用于设置上传对象时的图片处理操作
         picOperations.setIsPicInfo(1); // 表示在处理图片时返回图片元数据信息
-        putObjectRequest.setPicOperations(picOperations); // 把这个处理图片用的对象也添加到请求中
+        picOperations.setRules(rules); // 添加规则
 
-        return cosClient.putObject(putObjectRequest); // 提交请求
+        // 把这个处理图片用的对象也添加到请求中
+        putObjectRequest.setPicOperations(picOperations);
+
+        // 提交请求
+        return cosClient.putObject(putObjectRequest);
     }
 
     /**
@@ -155,20 +173,31 @@ public class CosManager {
         File file = null;
         UploadPictureResult uploadPictureResult = new UploadPictureResult(); // 封装图片元数据的结果
         try {
+            // 获取原始图元数据
             file = File.createTempFile(uploadPath, null); // 创建临时文件
             multipartFile.transferTo(file); // 然后把文件内容写入到临时文件中避免用户直接上传图片
             PutObjectResult putObjectResult = this.putPicture(uploadPath, file); // 开始上传图片
             ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo(); // 从上传结果中获取图片的元信息, 这依赖于之前设置的 IsPicInfo=1
 
-            int picWidth = imageInfo.getWidth();
-            int picHeight = imageInfo.getHeight();
+            // 获取压缩图元数据
+            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
+            List<CIObject> objectList = processResults.getObjectList();
+            CIObject compressedCiObject = null;
+            boolean res = CollUtil.isNotEmpty(objectList);
+            if (res) {
+                compressedCiObject = objectList.get(0);
+            }
+
+            // 如果压缩成功就把压缩图返回, 否则就只返回原始图
+            int picWidth = res ? compressedCiObject.getWidth() : imageInfo.getWidth(); // TODO: 如果下次改动了这段代码, 就提取进行重构
+            int picHeight = res ? compressedCiObject.getHeight() : imageInfo.getHeight();
             uploadPictureResult.setPicWidth(picWidth);
             uploadPictureResult.setPicHeight(picHeight);
-            uploadPictureResult.setPicFormat(imageInfo.getFormat());
+            uploadPictureResult.setPicFormat(res ? compressedCiObject.getFormat() : imageInfo.getFormat());
             uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
             uploadPictureResult.setPicScale(NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue()); // 将浮点数数四舍五入后保留两位小数, 然后把高精度的类型转化为低精度类型
-            uploadPictureResult.setPicSize(FileUtil.size(file));
-            uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);
+            uploadPictureResult.setPicSize(res ? compressedCiObject.getSize().longValue() : FileUtil.size(file));
+            uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + (res ? compressedCiObject.getKey() : uploadPath));
         } catch (Exception e) {
             log.debug("图片上传到对象存储失败 {}", e.getMessage());
             ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.SYSTEM_ERROR, "上传失败"));
@@ -197,21 +226,31 @@ public class CosManager {
         File file = null;
         UploadPictureResult uploadPictureResult = new UploadPictureResult(); // 封装图片元数据的结果
         try {
-            // 创建临时文件
-            file = File.createTempFile(uploadPath, null);
+            // 获取原始图元数据
+            file = File.createTempFile(uploadPath, null); // 创建临时文件
             HttpUtil.downloadFile(fileUrl, file); // multipartFile.transferTo(file);
             PutObjectResult putObjectResult = this.putPicture(uploadPath, file); // 开始上传图片
             ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo(); // 从上传结果中获取图片的元信息, 这依赖于之前设置的 IsPicInfo=1
 
-            int picWidth = imageInfo.getWidth();
-            int picHeight = imageInfo.getHeight();
+            // 获取压缩图元数据
+            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
+            List<CIObject> objectList = processResults.getObjectList();
+            CIObject compressedCiObject = null;
+            boolean res = CollUtil.isNotEmpty(objectList);
+            if (res) {
+                compressedCiObject = objectList.get(0);
+            }
+
+            // 如果压缩成功就把压缩图返回, 否则就只放回原始图
+            int picWidth = res ? compressedCiObject.getWidth() : imageInfo.getWidth();
+            int picHeight = res ? compressedCiObject.getHeight() : imageInfo.getHeight();
             uploadPictureResult.setPicWidth(picWidth);
             uploadPictureResult.setPicHeight(picHeight);
-            uploadPictureResult.setPicFormat(imageInfo.getFormat());
+            uploadPictureResult.setPicFormat(res ? compressedCiObject.getFormat() : imageInfo.getFormat());
             uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
             uploadPictureResult.setPicScale(NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue()); // 将浮点数数四舍五入后保留两位小数, 然后把高精度的类型转化为低精度类型
-            uploadPictureResult.setPicSize(FileUtil.size(file));
-            uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);
+            uploadPictureResult.setPicSize(res ? compressedCiObject.getSize().longValue() : FileUtil.size(file));
+            uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + (res ? compressedCiObject.getKey() : uploadPath));
         } catch (Exception e) {
             log.debug("图片上传到对象存储失败 {}", e.getMessage());
             ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.SYSTEM_ERROR, "上传失败"));

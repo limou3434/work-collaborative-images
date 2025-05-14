@@ -93,7 +93,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
 
-    @Operation(summary = "用户登入网络接口, 已经脱敏")
+    @Operation(summary = "用户登入网络接口")
     @SaIgnore
     @PostMapping("/login")
 //    @SentinelResource(value = "userLogin")
