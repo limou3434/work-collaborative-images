@@ -27,6 +27,11 @@ public class Picture implements Serializable {
     private String url;
 
     /**
+     * 缩略图
+     */
+    private String thumbnailUrl;
+
+    /**
      * 图片名称
      */
     private String name;
@@ -75,6 +80,11 @@ public class Picture implements Serializable {
      * 创建用户 id
      */
     private Long userId;
+
+    /**
+     * 空间 id(为空表示公共空间)
+     */
+    private Long spaceId;
 
     /**
      * 状态: 0-待审; 1-通过; 2-拒绝
@@ -129,6 +139,7 @@ public class Picture implements Serializable {
         Picture other = (Picture) that;
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
                 && (this.getUrl() == null ? other.getUrl() == null : this.getUrl().equals(other.getUrl()))
+                && (this.getThumbnailUrl() == null ? other.getThumbnailUrl() == null : this.getThumbnailUrl().equals(other.getThumbnailUrl()))
                 && (this.getName() == null ? other.getName() == null : this.getName().equals(other.getName()))
                 && (this.getIntroduction() == null ? other.getIntroduction() == null : this.getIntroduction().equals(other.getIntroduction()))
                 && (this.getCategory() == null ? other.getCategory() == null : this.getCategory().equals(other.getCategory()))
@@ -139,6 +150,7 @@ public class Picture implements Serializable {
                 && (this.getPicScale() == null ? other.getPicScale() == null : this.getPicScale().equals(other.getPicScale()))
                 && (this.getPicFormat() == null ? other.getPicFormat() == null : this.getPicFormat().equals(other.getPicFormat()))
                 && (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
+                && (this.getSpaceId() == null ? other.getSpaceId() == null : this.getSpaceId().equals(other.getSpaceId()))
                 && (this.getReviewStatus() == null ? other.getReviewStatus() == null : this.getReviewStatus().equals(other.getReviewStatus()))
                 && (this.getReviewMessage() == null ? other.getReviewMessage() == null : this.getReviewMessage().equals(other.getReviewMessage()))
                 && (this.getReviewTime() == null ? other.getReviewTime() == null : this.getReviewTime().equals(other.getReviewTime()))
@@ -154,6 +166,7 @@ public class Picture implements Serializable {
         int result = 1;
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
         result = prime * result + ((getUrl() == null) ? 0 : getUrl().hashCode());
+        result = prime * result + ((getThumbnailUrl() == null) ? 0 : getThumbnailUrl().hashCode());
         result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
         result = prime * result + ((getIntroduction() == null) ? 0 : getIntroduction().hashCode());
         result = prime * result + ((getCategory() == null) ? 0 : getCategory().hashCode());
@@ -164,6 +177,7 @@ public class Picture implements Serializable {
         result = prime * result + ((getPicScale() == null) ? 0 : getPicScale().hashCode());
         result = prime * result + ((getPicFormat() == null) ? 0 : getPicFormat().hashCode());
         result = prime * result + ((getUserId() == null) ? 0 : getUserId().hashCode());
+        result = prime * result + ((getSpaceId() == null) ? 0 : getSpaceId().hashCode());
         result = prime * result + ((getReviewStatus() == null) ? 0 : getReviewStatus().hashCode());
         result = prime * result + ((getReviewMessage() == null) ? 0 : getReviewMessage().hashCode());
         result = prime * result + ((getReviewTime() == null) ? 0 : getReviewTime().hashCode());
@@ -181,6 +195,7 @@ public class Picture implements Serializable {
                 "Hash = " + hashCode() +
                 ", id=" + id +
                 ", url=" + url +
+                ", thumbnailUrl=" + thumbnailUrl +
                 ", name=" + name +
                 ", introduction=" + introduction +
                 ", category=" + category +
@@ -191,6 +206,7 @@ public class Picture implements Serializable {
                 ", picScale=" + picScale +
                 ", picFormat=" + picFormat +
                 ", userId=" + userId +
+                ", spaceId=" + spaceId +
                 ", reviewStatus" + reviewStatus +
                 ", reviewMessage" + reviewMessage +
                 ", reviewTime" + reviewTime +

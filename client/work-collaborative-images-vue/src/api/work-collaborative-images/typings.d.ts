@@ -115,6 +115,7 @@ declare namespace WorkCollaborativeImagesAPI {
   type Picture = {
     id?: number
     url?: string
+    thumbnailUrl?: string
     name?: string
     introduction?: string
     category?: string
@@ -213,6 +214,7 @@ declare namespace WorkCollaborativeImagesAPI {
   type PictureVO = {
     id?: number
     url?: string
+    thumbnailUrl?: string
     name?: string
     introduction?: string
     category?: string

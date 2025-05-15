@@ -90,7 +90,6 @@ onMounted(() => {
 
 <template>
   <div id="addPicturePage">
-    {{pictureForm.pictureName}}
     <!-- 页面标题 -->
     <h2 style="margin-bottom: 16px">{{ pictureForm.pictureId ? '编辑图片' : '填写信息以创建图片' }}</h2> <!-- 修改标题，根据是否有图片ID判断是编辑还是创建 -->
     <!-- 上传组件 -->

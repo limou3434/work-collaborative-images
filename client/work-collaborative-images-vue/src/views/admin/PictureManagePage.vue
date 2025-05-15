@@ -6,7 +6,7 @@ import {
   pictureBatch,
   pictureDelete,
   pictureReview,
-  pictureSearch,
+  pictureSearchVo,
 } from '@/api/work-collaborative-images/pictureController.ts'
 import { PIC_REVIEW_STATUS_ENUM, PIC_REVIEW_STATUS_MAP } from '@/constants/picture.ts'
 
@@ -79,7 +79,7 @@ const pagination = ref({
 }) // 存储页面上的分页配置, 后续用来控制分页渲染
 const paginationConfig = computed(() => pagination.value) // 计算分页配置
 const getTableData = async () => {
-  const res = await pictureSearch({
+  const res = await pictureSearchVo({
     ...searchParams,
   })
   if (res.data.code === 20000 && res.data?.data) {
@@ -311,16 +311,15 @@ const handleOk = async (): Promise<void> => {
       <template #bodyCell="{ column, record }">
         <!-- 图片展示 -->
         <template v-if="column.dataIndex === 'url'">
-          <a-image :src="record.url" :width="120" />
+          <a-image :src="record.thumbnailUrl" :width="120" />
         </template>
         <!-- 图片信息 -->
         <template v-if="column.dataIndex === 'picInfo'">
-          <a-tooltip :title="record.url">
-            链接:
-            <a-typography-text copyable>
+          <a-typography-text :copyable="{ text: record.url }">
+            <a-tooltip :title="record.url">
               {{ record.url.slice(0, 30) }}{{ record.url.length > 30 ? '...' : '' }}
-            </a-typography-text>
-          </a-tooltip>
+            </a-tooltip>
+          </a-typography-text>
           <div>格式: {{ record.picFormat }}</div>
           <div>宽度: {{ record.picWidth }}</div>
           <div>高度: {{ record.picHeight }}</div>

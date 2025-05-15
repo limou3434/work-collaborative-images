@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
-import { onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, reactive, ref } from 'vue'
 import {
   pictureCategorys,
   pictureSearchVo,
@@ -72,6 +72,28 @@ const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
     path: `/picture/${picture.id}`,
   })
 }
+
+// 懒加载图片
+const setupLazyLoad = () => {
+  const lazyImages = document.querySelectorAll('img.lazy')
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const img = entry.target as HTMLImageElement // TypeScript 现在知道是图片元素
+        img.src = img.dataset.src ?? '' // 将 data-src 的值赋给 src 属性
+        img.classList.remove('lazy')
+        observer.unobserve(img) // 停止观察已加载的图片
+      }
+    })
+  }) // 创建 Intersection Observer
+  lazyImages.forEach((image) => observer.observe(image)) // 观察每个图片
+}
+onMounted(async () => {
+  await getTagCategoryOptions()
+  await getTableData()
+  await nextTick()
+  setupLazyLoad()
+})
 </script>
 
 <template>
@@ -115,7 +137,8 @@ const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
           <a-card class="picture-card" hoverable @click="doClickPicture(picture)">
             <template #cover>
               <div class="image-wrapper">
-                <img :alt="picture.name" :src="picture.url" class="image" />
+                <!-- <img :alt="picture.name" :src="picture.url" class="image" /> -->
+                <img :alt="picture.name" :data-src="picture.url" class="image lazy" src="" />
                 <div class="overlay">
                   <div class="info">
                     <div class="title">{{ picture.name }}</div>

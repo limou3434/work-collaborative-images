@@ -1,52 +1,52 @@
 -- 项目数库
-DROP DATABASE IF EXISTS work_collaborative_images;
-CREATE DATABASE work_collaborative_images CHARACTER SET utf8mb4 COLLATE = utf8mb4_unicode_ci;
-USE work_collaborative_images;
+DROP DATABASE IF EXISTS `work_collaborative_images`;
+CREATE DATABASE `work_collaborative_images` CHARACTER SET `utf8mb4` COLLATE = `utf8mb4_unicode_ci`;
+USE `work_collaborative_images`;
 
 -- 项目用户
 DROP USER IF EXISTS 'wci'@'%';
 CREATE USER 'wci'@'%' IDENTIFIED BY 'Qwe54188_';
-GRANT ALL PRIVILEGES ON work_collaborative_images.* TO 'wci'@'%';
+GRANT ALL PRIVILEGES ON `work_collaborative_images`.* TO 'wci'@'%';
 FLUSH PRIVILEGES;
 
 -- 项目数表
 CREATE TABLE `user_role`
 (
     `id`          TINYINT   NOT NULL COMMENT '本角色唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)',
-    `name`        VARCHAR(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '角色名称',
-    `deleted`     TINYINT                                DEFAULT '0' COMMENT '是否删除(0 为未删除, 1 为已删除)',
-    `create_time` TIMESTAMP NULL                         DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间(受时区影响)',
-    `update_time` TIMESTAMP NULL                         DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间(受时区影响)',
+    `name`        VARCHAR(50) COLLATE `utf8mb4_unicode_ci` DEFAULT NULL COMMENT '角色名称',
+    `deleted`     TINYINT                                  DEFAULT '0' COMMENT '是否删除(0 为未删除, 1 为已删除)',
+    `create_time` TIMESTAMP NULL                           DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间(受时区影响)',
+    `update_time` TIMESTAMP NULL                           DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间(受时区影响)',
     PRIMARY KEY (`id`) COMMENT '主键'
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci COMMENT ='用户角色表'
+  DEFAULT CHARSET = `utf8mb4`
+  COLLATE = `utf8mb4_unicode_ci` COMMENT ='用户角色表'
 ;
 
 CREATE TABLE `user`
 (
-    `id`          BIGINT UNSIGNED                         NOT NULL AUTO_INCREMENT COMMENT '本用户唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)',
-    `account`     VARCHAR(256) COLLATE utf8mb4_unicode_ci      DEFAULT NULL COMMENT '账户号(业务层需要决定某一种或多种登录方式, 因此这里不限死为非空)',
-    `wx_union`    VARCHAR(256) COLLATE utf8mb4_unicode_ci      DEFAULT NULL COMMENT '微信号',
-    `mp_open`     VARCHAR(256) COLLATE utf8mb4_unicode_ci      DEFAULT NULL COMMENT '公众号',
-    `email`       VARCHAR(256) COLLATE utf8mb4_unicode_ci      DEFAULT NULL COMMENT '邮箱号',
-    `phone`       VARCHAR(20) COLLATE utf8mb4_unicode_ci       DEFAULT NULL COMMENT '电话号',
-    `ident`       VARCHAR(50) COLLATE utf8mb4_unicode_ci       DEFAULT NULL COMMENT '身份证',
-    `passwd`      VARCHAR(512) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户密码(业务层强制刚刚注册的用户重新设置密码, 交给用户时默认密码为 123456, 并且加盐密码)',
-    `avatar`      VARCHAR(1024) COLLATE utf8mb4_unicode_ci     DEFAULT NULL COMMENT '用户头像(业务层需要考虑默认头像使用 cos 对象存储)',
-    `tags`        VARCHAR(256)                                 DEFAULT NULL COMMENT '用户标签(业务层需要 json 数组格式存储用户标签数组)',
-    `nick`        VARCHAR(256) COLLATE utf8mb4_unicode_ci      DEFAULT NULL COMMENT '用户昵称',
-    `name`        VARCHAR(256) COLLATE utf8mb4_unicode_ci      DEFAULT NULL COMMENT '用户名字',
-    `profile`     VARCHAR(512) COLLATE utf8mb4_unicode_ci      DEFAULT NULL COMMENT '用户简介',
-    `birthday`    VARCHAR(512) COLLATE utf8mb4_unicode_ci      DEFAULT NULL COMMENT '用户生日',
-    `country`     VARCHAR(50) COLLATE utf8mb4_unicode_ci       DEFAULT NULL COMMENT '用户国家',
-    `address`     TEXT COLLATE utf8mb4_unicode_ci COMMENT '用户地址',
-    `role`        TINYINT                                      DEFAULT '0' COMMENT '用户角色(业务层需知 -1 为封号, 0 为用户, 1 为管理, ...)',
-    `level`       TINYINT                                      DEFAULT '0' COMMENT '用户等级(业务层需知 0 为 level0, 1 为 level1, 2 为 level2, 3 为 level3, ...)',
-    `gender`      TINYINT                                      DEFAULT '0' COMMENT '用户性别(业务层需知 0 为未知, 1 为男性, 2 为女性)',
-    `deleted`     TINYINT                                      DEFAULT '0' COMMENT '是否删除(0 为未删除, 1 为已删除)',
-    `create_time` TIMESTAMP                               NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间(受时区影响)',
-    `update_time` TIMESTAMP                               NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间(受时区影响)',
+    `id`          BIGINT UNSIGNED                           NOT NULL AUTO_INCREMENT COMMENT '本用户唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)',
+    `account`     VARCHAR(256) COLLATE `utf8mb4_unicode_ci`      DEFAULT NULL COMMENT '账户号(业务层需要决定某一种或多种登录方式, 因此这里不限死为非空)',
+    `wx_union`    VARCHAR(256) COLLATE `utf8mb4_unicode_ci`      DEFAULT NULL COMMENT '微信号',
+    `mp_open`     VARCHAR(256) COLLATE `utf8mb4_unicode_ci`      DEFAULT NULL COMMENT '公众号',
+    `email`       VARCHAR(256) COLLATE `utf8mb4_unicode_ci`      DEFAULT NULL COMMENT '邮箱号',
+    `phone`       VARCHAR(20) COLLATE `utf8mb4_unicode_ci`       DEFAULT NULL COMMENT '电话号',
+    `ident`       VARCHAR(50) COLLATE `utf8mb4_unicode_ci`       DEFAULT NULL COMMENT '身份证',
+    `passwd`      VARCHAR(512) COLLATE `utf8mb4_unicode_ci` NOT NULL COMMENT '用户密码(业务层强制刚刚注册的用户重新设置密码, 交给用户时默认密码为 123456, 并且加盐密码)',
+    `avatar`      VARCHAR(1024) COLLATE `utf8mb4_unicode_ci`     DEFAULT NULL COMMENT '用户头像(业务层需要考虑默认头像使用 cos 对象存储)',
+    `tags`        VARCHAR(256)                                   DEFAULT NULL COMMENT '用户标签(业务层需要 json 数组格式存储用户标签数组)',
+    `nick`        VARCHAR(256) COLLATE `utf8mb4_unicode_ci`      DEFAULT NULL COMMENT '用户昵称',
+    `name`        VARCHAR(256) COLLATE `utf8mb4_unicode_ci`      DEFAULT NULL COMMENT '用户名字',
+    `profile`     VARCHAR(512) COLLATE `utf8mb4_unicode_ci`      DEFAULT NULL COMMENT '用户简介',
+    `birthday`    VARCHAR(512) COLLATE `utf8mb4_unicode_ci`      DEFAULT NULL COMMENT '用户生日',
+    `country`     VARCHAR(50) COLLATE `utf8mb4_unicode_ci`       DEFAULT NULL COMMENT '用户国家',
+    `address`     TEXT COLLATE `utf8mb4_unicode_ci` COMMENT '用户地址',
+    `role`        TINYINT                                        DEFAULT '0' COMMENT '用户角色(业务层需知 -1 为封号, 0 为用户, 1 为管理, ...)',
+    `level`       TINYINT                                        DEFAULT '0' COMMENT '用户等级(业务层需知 0 为 level0, 1 为 level1, 2 为 level2, 3 为 level3, ...)',
+    `gender`      TINYINT                                        DEFAULT '0' COMMENT '用户性别(业务层需知 0 为未知, 1 为男性, 2 为女性)',
+    `deleted`     TINYINT                                        DEFAULT '0' COMMENT '是否删除(0 为未删除, 1 为已删除)',
+    `create_time` TIMESTAMP                                 NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间(受时区影响)',
+    `update_time` TIMESTAMP                                 NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间(受时区影响)',
     PRIMARY KEY (`id`) COMMENT '主键',
     UNIQUE KEY (`account`) COMMENT '唯一',
     KEY `idx_role` (`role`),
@@ -57,8 +57,8 @@ CREATE TABLE `user`
         ON UPDATE CASCADE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 27
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci COMMENT ='用户信息表'
+  DEFAULT CHARSET = `utf8mb4`
+  COLLATE = `utf8mb4_unicode_ci` COMMENT ='用户信息表'
 ;
 
 CREATE TABLE `picture`
@@ -76,6 +76,7 @@ CREATE TABLE `picture`
     `pic_scale`      DOUBLE          NULL COMMENT '图片宽高比例',
     `pic_format`     VARCHAR(32)     NULL COMMENT '图片格式',
     `user_id`        BIGINT UNSIGNED NOT NULL COMMENT '创建用户 id',
+    `space_id`       BIGINT          NULL COMMENT '空间 id(为空表示公共空间)',
     `review_status`  INT                  DEFAULT 0 NOT NULL COMMENT '审核状态: 0-待审; 1-通过; 2-拒绝',
     `review_message` VARCHAR(512)    NULL COMMENT '审核信息',
     `review_time`    DATETIME        NULL COMMENT '审核时间',
@@ -84,15 +85,36 @@ CREATE TABLE `picture`
     `create_time`    TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间(受时区影响)',
     `update_time`    TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间(受时区影响)',
     PRIMARY KEY (`id`) COMMENT '主键',
-    INDEX idx_name (`name`) COMMENT '提升基于图片名称的查询性能',
-    INDEX idx_introduction (`introduction`) COMMENT '用于模糊搜索图片简介',
-    INDEX idx_category (`category`) COMMENT '提升基于分类的查询性能',
-    INDEX idx_tags (`tags`) COMMENT '提升基于标签的查询性能',
-    INDEX idx_userid (`user_id`) COMMENT '提升基于用户 ID 的查询性能',
-    INDEX idx_review_status (`review_status`) COMMENT '提升基于审核状态的查询性能'
+    INDEX `idx_name` (`name`) COMMENT '提升基于图片名称的查询性能',
+    INDEX `idx_introduction` (`introduction`) COMMENT '用于模糊搜索图片简介',
+    INDEX `idx_category` (`category`) COMMENT '提升基于分类的查询性能',
+    INDEX `idx_tags` (`tags`) COMMENT '提升基于标签的查询性能',
+    INDEX `idx_user_id` (`user_id`) COMMENT '提升基于用户 ID 的查询性能',
+    INDEX `idx_space_id` (`space_id`) COMMENT '提升基于空间 ID 的查询性能',
+    INDEX `idx_review_status` (`review_status`) COMMENT '提升基于审核状态的查询性能'
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci COMMENT ='图片表'
+  DEFAULT CHARSET = `utf8mb4`
+  COLLATE = `utf8mb4_unicode_ci` COMMENT ='图片表'
+;
+
+CREATE TABLE IF NOT EXISTS `space`
+(
+    `id`          BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'id',
+    `space_name`  VARCHAR(128)      NULL COMMENT '空间名称',
+    `space_level` INT     DEFAULT 0 NULL COMMENT '空间级别: 0-普通版 1-专业版 2-旗舰版',
+    `max_size`    BIGINT  DEFAULT 0 NULL COMMENT '空间图片的最大总大小',
+    `max_count`   BIGINT  DEFAULT 0 NULL COMMENT '空间图片的最大数量',
+    `total_size`  BIGINT  DEFAULT 0 NULL COMMENT '当前空间下图片的总大小',
+    `total_count` BIGINT  DEFAULT 0 NULL COMMENT '当前空间下的图片数量',
+    `user_id`     BIGINT            NOT NULL COMMENT '创建用户 id',
+    `deleted`     TINYINT DEFAULT '0' COMMENT '是否删除(0 为未删除, 1 为已删除)',
+    `create_time` TIMESTAMP         NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间(受时区影响)',
+    `update_time` TIMESTAMP         NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间(受时区影响)',
+    PRIMARY KEY (`id`) COMMENT '主键',
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_space_name` (`space_name`),
+    INDEX `idx_space_level` (`space_level`)
+) COLLATE = `utf8mb4_unicode_ci` COMMENT '空间表'
 ;
 
 -- 项目数据

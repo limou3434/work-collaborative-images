@@ -251,6 +251,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             picture.setName(StringUtils.isNotBlank(pictureName) ? pictureName : uploadPictureResult.getPicName());
             log.debug("测试这里的图片名字 {}", picture.getName());
             picture.setUrl(uploadPictureResult.getUrl());
+            picture.setThumbnailUrl(uploadPictureResult.getThumbnailUrl());
             picture.setPicSize(uploadPictureResult.getPicSize());
             picture.setPicWidth(uploadPictureResult.getPicWidth());
             picture.setPicHeight(uploadPictureResult.getPicHeight());

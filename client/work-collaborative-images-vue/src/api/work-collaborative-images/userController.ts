@@ -55,7 +55,7 @@ export async function userInfo(options?: { [key: string]: any }) {
   })
 }
 
-/** 用户登入网络接口, 已经脱敏 POST /user/login */
+/** 用户登入网络接口 POST /user/login */
 export async function userLogin(
   body: WorkCollaborativeImagesAPI.UserLoginRequest,
   options?: { [key: string]: any }

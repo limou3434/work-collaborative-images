@@ -129,25 +129,46 @@ public class CosManager {
     }
 
     /**
-     * 推送图片对象资源
+     * 获取操作图片的规则列表
      */
-    public PutObjectResult putPicture(String key, File file) {
-        // 构造上传对象资源请求
-        PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key, file);
-
-        // 设置图片压缩规则(转成 webp 格式)
+    private List<PicOperations.Rule> getOperationsRule(String key, File file) {
+        // 创建操作规则对象
         List<PicOperations.Rule> rules = new ArrayList<>();
-        String webpKey = FileUtil.mainName(key) + ".webp";
+
+        // 设置压缩图的规则
         PicOperations.Rule compressRule = new PicOperations.Rule();
+        String webpKey = FileUtil.mainName(key) + ".webp";
         compressRule.setRule("imageMogr2/format/webp");
         compressRule.setBucket(cosClientConfig.getBucket());
         compressRule.setFileId(webpKey);
         rules.add(compressRule);
 
-        // 上传的同时要求 COS 对图片进行处理, 注意需要开通数据万象并且绑定存储桶
+        // 设置缩略图的规则
+        if (file.length() > 2 * PictureConstant.ONE_K) { // 只有在图片超过一定大小才做缩略图, 否则小图片反而在缩略后体积变大了
+            PicOperations.Rule thumbnailRule = new PicOperations.Rule();
+            thumbnailRule.setBucket(cosClientConfig.getBucket());
+            String thumbnailKey = FileUtil.mainName(key) + "_thumbnail." + FileUtil.getSuffix(key);
+            thumbnailRule.setFileId(thumbnailKey);
+            thumbnailRule.setRule(String.format("imageMogr2/thumbnail/%sx%s>", 128, 128));
+            rules.add(thumbnailRule);
+        }
+
+        // 返回规则
+        log.debug("查看本次上传图片时的操作规则 {}", rules);
+        return rules;
+    }
+
+    /**
+     * 推送图片对象资源
+     */
+    private PutObjectResult putPicture(String key, File file) {
+        // 构造上传对象资源请求
+        PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key, file);
+
+        // 上传的同时要求 COS 对图片进行处理, 同时遵循响应的规则(注意需要开通数据万象并且绑定存储桶才能操作 COS 图片)
         PicOperations picOperations = new PicOperations(); // 该对象通常用于设置上传对象时的图片处理操作
         picOperations.setIsPicInfo(1); // 表示在处理图片时返回图片元数据信息
-        picOperations.setRules(rules); // 添加规则
+        picOperations.setRules(getOperationsRule(key, file)); // 添加规则
 
         // 把这个处理图片用的对象也添加到请求中
         putObjectRequest.setPicOperations(picOperations);
@@ -183,9 +204,11 @@ public class CosManager {
             ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
             List<CIObject> objectList = processResults.getObjectList();
             CIObject compressedCiObject = null;
+            CIObject thumbnailCiObject = null;
             boolean res = CollUtil.isNotEmpty(objectList);
             if (res) {
                 compressedCiObject = objectList.get(0);
+                thumbnailCiObject = objectList.size() > 1 ? objectList.get(1) : compressedCiObject; // 如果没有缩略图, 缩略图就等于压缩图(主要是为了配置前面避免小图片文件压缩后更大的问题)
             }
 
             // 如果压缩成功就把压缩图返回, 否则就只返回原始图
@@ -198,13 +221,14 @@ public class CosManager {
             uploadPictureResult.setPicScale(NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue()); // 将浮点数数四舍五入后保留两位小数, 然后把高精度的类型转化为低精度类型
             uploadPictureResult.setPicSize(res ? compressedCiObject.getSize().longValue() : FileUtil.size(file));
             uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + (res ? compressedCiObject.getKey() : uploadPath));
+            uploadPictureResult.setThumbnailUrl(res ? cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey() : null);
         } catch (Exception e) {
             log.debug("图片上传到对象存储失败 {}", e.getMessage());
             ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.SYSTEM_ERROR, "上传失败"));
         } finally {
             this.deleteTempFile(file); // 无论是哪一种结果最终都会把临时文件删除
         }
-        log.debug("本次上传的图片最终网络地址为 {}", uploadPictureResult.getUrl());
+        log.debug("本次上传的图片最终返回结果为 {}", uploadPictureResult);
         return uploadPictureResult;
     }
 
@@ -236,9 +260,11 @@ public class CosManager {
             ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
             List<CIObject> objectList = processResults.getObjectList();
             CIObject compressedCiObject = null;
+            CIObject thumbnailCiObject = null;
             boolean res = CollUtil.isNotEmpty(objectList);
             if (res) {
                 compressedCiObject = objectList.get(0);
+                thumbnailCiObject = objectList.size() > 1 ? objectList.get(1) : compressedCiObject; // 如果没有缩略图, 缩略图就等于压缩图(主要是为了配置前面避免小图片文件压缩后更大的问题)
             }
 
             // 如果压缩成功就把压缩图返回, 否则就只放回原始图
@@ -251,6 +277,7 @@ public class CosManager {
             uploadPictureResult.setPicScale(NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue()); // 将浮点数数四舍五入后保留两位小数, 然后把高精度的类型转化为低精度类型
             uploadPictureResult.setPicSize(res ? compressedCiObject.getSize().longValue() : FileUtil.size(file));
             uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + (res ? compressedCiObject.getKey() : uploadPath));
+            uploadPictureResult.setThumbnailUrl(res ? cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey() : null);
         } catch (Exception e) {
             log.debug("图片上传到对象存储失败 {}", e.getMessage());
             ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.SYSTEM_ERROR, "上传失败"));

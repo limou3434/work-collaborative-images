@@ -7,6 +7,7 @@
     <resultMap id="BaseResultMap" type="cn.com.edtechhub.workcollaborativeimages.model.entity.Picture">
         <id property="id" column="id"/>
         <result property="url" column="url"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
         <result property="name" column="name"/>
         <result property="introduction" column="introduction"/>
         <result property="category" column="category"/>
@@ -17,6 +18,7 @@
         <result property="picScale" column="pic_scale"/>
         <result property="picFormat" column="pic_format"/>
         <result property="userId" column="user_id"/>
+        <result property="spaceId" column="space_id"/>
         <result property="reviewerId" column="reviewer_id"/>
         <result property="reviewStatus" column="review_status"/>
         <result property="reviewMessage" column="review_message"/>
@@ -28,8 +30,8 @@
 
     <sql id="Base_Column_List">
         id
-        ,url,name,introduction,category,tags,
+        ,url,thumbnail_url,name,introduction,category,tags,
         pic_size,pic_width,pic_height,pic_scale,pic_format,
-        user_id,deleted,create_time,update_time
+        user_id,space_id,deleted,create_time,update_time
     </sql>
 </mapper>
