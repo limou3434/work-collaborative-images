@@ -13,6 +13,11 @@ public class PictureAddRequest implements Serializable {
     private String url;
 
     /**
+     * 空间标识
+     */
+    private String spaceId;
+
+    /**
      * 图片名称
      */
     private String name = "默认名称";

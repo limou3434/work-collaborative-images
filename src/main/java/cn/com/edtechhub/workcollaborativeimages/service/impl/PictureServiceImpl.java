@@ -7,11 +7,13 @@ import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
+import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjUtil;
@@ -52,6 +54,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @Resource
     CosManager cosManager;
 
+    /**
+     * 注入空间服务依赖
+     */
+    @Resource
+    private SpaceService spaceService;
+
     public Picture pictureAdd(PictureAddRequest pictureAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(pictureAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片添加请求体为空"));
@@ -64,9 +72,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         try {
             this.save(picture);
         } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
-            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "已经存在该用户, 或者曾经被删除"));
+            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "已经存在该图片, 或者曾经被删除"));
         }
-        return picture;
+        return this.getById(picture.getId());
     }
 
     public Boolean pictureDelete(PictureDeleteRequest pictureDeleteRequest) {
@@ -82,8 +90,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
     public Picture pictureUpdate(PictureUpdateRequest pictureUpdateRequest) {
         // 检查参数
-        ThrowUtils.throwIf(pictureUpdateRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户 id 不能为空"));
-        ThrowUtils.throwIf(pictureUpdateRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户 id 必须是正整数"));
+        ThrowUtils.throwIf(pictureUpdateRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 不能为空"));
+        ThrowUtils.throwIf(pictureUpdateRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 必须是正整数"));
 
         // 更新用户并且需要考虑密码的问题
         Picture picture = new Picture();
@@ -197,7 +205,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             }
             // 上传图片
             try {
-                Picture picture = this.pictureUpload(null, category, namePrefix + (uploadCount + 1), null, null, fileUrl, null);
+                Picture picture = this.pictureUpload(null, null, category, namePrefix + (uploadCount + 1), null, null, fileUrl, null);
                 log.debug("图片上传成功, id = {}", picture.getId());
                 uploadCount++;
             } catch (Exception e) {
@@ -211,7 +219,19 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return uploadCount;
     }
 
-    public Picture pictureUpload(Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
+    public Picture pictureUpload(Long spaceId, Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
+        // 获取当前登录用户的 id 值
+        Long userId = Long.valueOf(StpUtil.getLoginId().toString());
+
+        // 只有对应空间的用户才可以上传图片
+        if (spaceId != null) {
+            Space space = spaceService.getById(spaceId);
+            ThrowUtils.throwIf(space == null, new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "空间不存在"));
+            // 必须空间创建人才能上传
+            ThrowUtils.throwIf(!userId.equals(space.getUserId()), new BusinessException(CodeBindMessageEnums.NO_AUTH_ERROR, "您没有空间权限"));
+            log.debug("该图片有指定需要上传的图库");
+        }
+
         // 如果有更新图片的需求, 也就是携带了 id
         if (pictureId != null) {
             boolean exists = this
@@ -220,9 +240,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                     .exists();
             ThrowUtils.throwIf(!exists, new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "指定 id 所对应的图片不存在所以无法更新"));
         }
-
-        // 获取当前登录用户的 id 值
-        Long userId = Long.valueOf(StpUtil.getLoginId().toString());
 
         // 构造要入库的图片信息
         Picture picture = new Picture();
@@ -240,6 +257,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         if (pictureId != null) {
             picture.setId(pictureId);
         }
+        picture.setSpaceId(spaceId);
         picture.setCategory(pictureCategory);
         picture.setTags(StringUtils.isNotBlank(pictureTags) ? pictureTags : null);
         picture.setIntroduction(pictureIntroduction);

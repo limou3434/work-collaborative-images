@@ -68,7 +68,7 @@ import java.util.stream.Collectors;
  * (原始实现)虽然可以使用 img 标签的属性 loading="lazy", 但是这种方案不兼容 IE 浏览器
  * (脚本实现)所以考虑使用 JS 的 Intersection Observer API, 这个接口能检查元素是否进入视图, 将图片的真实 src 替换为一个占位属性(如 data-src), 使用 Intersection Observer 监听图片是否进入视口, 当图片进入视口时将 data-src 的值赋给 src 触发加载, 并且还需要知道懒加载的时机是在页面完全挂载后才运行
  * (三库实现)或者直接使用现成的库实现, 比如 lazysizes 库
- * (组件实现)不过其实更加优美的做法是直接使用渐进式加载, 和懒加载技术类似, 先加载低分辨率或低质量的占位资源(如模糊的图片缩略图), 在用户访问或等待期间逐步加载高分辨率的完整资源, 加载完成后再替换掉占位资源
+ * (组件实现)不过其实更加优美的做法是直接使用 a-image 渐进式加载 #placeholder, 和懒加载技术类似, 先加载低分辨率或低质量的占位资源(如模糊的图片缩略图), 在用户访问或等待期间逐步加载高分辨率的完整资源, 加载完成后再替换掉占位资源
  * c. 内容分发: 内容分发网络, 是通过将图片文件分发到全球各地的节点, 用户访问时从离自己最近的节点获取资源的技术, 常用于文件资源或后端动态请求的网络加速, 也能大幅分摊源站的压力, 支持更多请求同时访问, 是性能提升的利器, 其原理实际上就是在 DNS 解析时干预用户的请求 IP, 在没有分发内容之前需要访问 COS 的源站, 如果分发好了访问图片就只需要访问距离用户较近的节点直接获取缓存的图片即可, 在此基础上就可以降低源站的访问压力, 提高图片的访问速度, 不过很贵...有时间再来做, 注意需要设置
  * (缓存策略) 静态资源设置长期缓存时间减少回源的次数和消耗
  * (防止盗链) 配置 Referer 防盗链保护资源比如仅允许自己的域名可以加载图片
@@ -113,7 +113,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @Resource
     private UserService userService;
 
-    /// 仅管理员 ///
+    /// 管理接口 ///
     @Operation(summary = "图片添加网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
@@ -147,7 +147,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @PostMapping("/search")
 //    @SentinelResource(value = "pictureSearch")
     public BaseResponse<Page<Picture>> pictureSearch(@RequestBody PictureSearchRequest pictureSearchRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息, 同时这个接口也是实时的, 对于管理员修改状态后实时刷新更加友好
     }
 
     @Operation(summary = "图片审核网络接口(管理)")
@@ -156,6 +156,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @PostMapping("/review")
 //    @SentinelResource(value = "pictureReview")
     public BaseResponse<Boolean> pictureReview(@RequestBody PictureReviewRequest pictureReviewRequest) {
+        log.debug("本次需要审核的报文 {}", pictureReviewRequest);
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureReview(pictureReviewRequest.getId(), pictureReviewRequest.getReviewStatus(), pictureReviewRequest.getReviewMessage())); // 这个接口只是获取用户 id 不用获取详细的用户信息
     }
 
@@ -169,26 +170,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     }
 
     /// 普通接口 ///
-    @Operation(summary = "获取当前后支持图片类别网络接口")
-    @SaCheckLogin
-    @GetMapping("/categorys")
-//    @SentinelResource(value = "pictureCategorys")
-    public BaseResponse<List<String>> pictureCategorys() {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetCategorys());
-    }
-
-    @Operation(summary = "用户上传图片网络接口")
-    @SaCheckLogin
-    @PostMapping("/upload")
-//    @SentinelResource(value = "pictureUpload")
-    public BaseResponse<PictureVO> pictureUpload(@RequestParam(value = "pictureId", required = false) Long pictureId, @RequestParam(value = "pictureCategory", required = false) String pictureCategory, @RequestParam(value = "pictureName", required = false) String pictureName, @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction, @RequestParam(value = "pictureTags", required = false) String pictureTags, @RequestParam(value = "pictureFileUrl", required = false) String pictureFileUrl, @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile) {
-        log.debug("传递的文件名为 {}", pictureName);
-        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl, multipartFile));
-        pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetLoginInfo()));
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);
-    }
-
-    @Operation(summary = "用户销毁图片网络接口")
+    @Operation(summary = "销毁图片网络接口")
     @SaCheckLogin
     @PostMapping("/destroy")
 //    @SentinelResource(value = "pictureDestroy")
@@ -196,12 +178,12 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(pictureDeleteRequest));
     }
 
-    @Operation(summary = "脱敏后的图片查询网络接口")
+    @Operation(summary = "查找图片网络接口")
     @SaCheckLogin
-    @PostMapping("/search/vo")
+    @PostMapping("/query")
 //    @SentinelResource(value = "pictureSearchVO")
     @CacheSearchOptimization(ttl = 60)
-    public BaseResponse<Page<PictureVO>> pictureSearchVO(@RequestBody PictureSearchRequest pictureSearchRequest) {
+    public BaseResponse<Page<PictureVO>> pictureQuery(@RequestBody PictureSearchRequest pictureSearchRequest) {
         // 强制其他普通用户只能看到审核通过的图片
         Integer userRole = ((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole();
         log.debug("用户的登录 id 为 {}", StpUtil.getLoginId());
@@ -257,5 +239,26 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         pictureVOPage.setRecords(pictureVOList);
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVOPage);
     }
+
+    @Operation(summary = "获取当前后端支持图片类别网络接口")
+    @SaCheckLogin
+    @GetMapping("/categorys")
+//    @SentinelResource(value = "pictureCategorys")
+    public BaseResponse<List<String>> pictureCategorys() {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetCategorys());
+    }
+
+    @Operation(summary = "用户上传图片网络接口")
+    @SaCheckLogin
+    @PostMapping("/upload")
+//    @SentinelResource(value = "pictureUpload")
+    public BaseResponse<PictureVO> pictureUpload(@RequestParam(value = "spaceId", required = false) Long spaceId, @RequestParam(value = "pictureId", required = false) Long pictureId, @RequestParam(value = "pictureCategory", required = false) String pictureCategory, @RequestParam(value = "pictureName", required = false) String pictureName, @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction, @RequestParam(value = "pictureTags", required = false) String pictureTags, @RequestParam(value = "pictureFileUrl", required = false) String pictureFileUrl, @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile) {
+        log.debug("传递的文件名为 {}", pictureName);
+        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(spaceId, pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl, multipartFile));
+        pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetLoginInfo()));
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);
+    }
+
+    // TODO: 修改了两个接口, 最好是前端同步修改
 
 }

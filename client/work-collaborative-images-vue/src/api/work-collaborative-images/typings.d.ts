@@ -29,6 +29,18 @@ declare namespace WorkCollaborativeImagesAPI {
     data?: PagePictureVO
   }
 
+  type BaseResponsePageSpace = {
+    code?: number
+    message?: string
+    data?: PageSpace
+  }
+
+  type BaseResponsePageSpaceVO = {
+    code?: number
+    message?: string
+    data?: PageSpaceVO
+  }
+
   type BaseResponsePageUser = {
     code?: number
     message?: string
@@ -45,6 +57,18 @@ declare namespace WorkCollaborativeImagesAPI {
     code?: number
     message?: string
     data?: PictureVO
+  }
+
+  type BaseResponseSpace = {
+    code?: number
+    message?: string
+    data?: Space
+  }
+
+  type BaseResponseSpaceVO = {
+    code?: number
+    message?: string
+    data?: SpaceVO
   }
 
   type BaseResponseUser = {
@@ -98,6 +122,34 @@ declare namespace WorkCollaborativeImagesAPI {
     pages?: number
   }
 
+  type PageSpace = {
+    records?: Space[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PageSpace
+    searchCount?: PageSpace
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
+  }
+
+  type PageSpaceVO = {
+    records?: SpaceVO[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PageSpaceVO
+    searchCount?: PageSpaceVO
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
+  }
+
   type PageUser = {
     records?: User[]
     total?: number
@@ -126,6 +178,7 @@ declare namespace WorkCollaborativeImagesAPI {
     picScale?: number
     picFormat?: string
     userId?: number
+    spaceId?: number
     reviewStatus?: number
     reviewMessage?: string
     reviewTime?: string
@@ -225,12 +278,67 @@ declare namespace WorkCollaborativeImagesAPI {
     picScale?: number
     picFormat?: string
     userId?: number
+    spaceId?: number
     createTime?: string
     updateTime?: string
     userVO?: UserVO
     reviewStatus?: number
     reviewMessage?: string
     reviewerId?: number
+  }
+
+  type Space = {
+    id?: number
+    spaceName?: string
+    spaceLevel?: number
+    maxSize?: number
+    maxCount?: number
+    totalSize?: number
+    totalCount?: number
+    userId?: number
+    deleted?: number
+    createTime?: string
+    updateTime?: string
+  }
+
+  type SpaceAddRequest = {
+    spaceName?: string
+    spaceLevel?: number
+  }
+
+  type SpaceDeleteRequest = true
+
+  type SpaceSearchRequest = {
+    pageCurrent?: number
+    pageSize?: number
+    sortField?: string
+    sortOrder?: string
+    id?: number
+    userId?: number
+    spaceName?: string
+    spaceLevel?: number
+  }
+
+  type SpaceUpdateRequest = {
+    id?: number
+    spaceName?: string
+    spaceLevel?: number
+    maxSize?: number
+    maxCount?: number
+  }
+
+  type SpaceVO = {
+    id?: number
+    spaceName?: string
+    spaceLevel?: number
+    maxSize?: number
+    maxCount?: number
+    totalSize?: number
+    totalCount?: number
+    userId?: number
+    createTime?: string
+    updateTime?: string
+    user?: UserVO
   }
 
   type User = {

@@ -2,6 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
@@ -28,6 +29,7 @@ public class UserRole implements Serializable {
     /**
      * 是否删除(0 为未删除, 1 为已删除)
      */
+    @TableLogic // 手动修改为逻辑删除
     private Integer deleted;
 
     /**

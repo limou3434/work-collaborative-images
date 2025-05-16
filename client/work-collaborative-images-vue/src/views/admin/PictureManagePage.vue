@@ -6,7 +6,7 @@ import {
   pictureBatch,
   pictureDelete,
   pictureReview,
-  pictureSearchVo,
+  pictureSearch,
 } from '@/api/work-collaborative-images/pictureController.ts'
 import { PIC_REVIEW_STATUS_ENUM, PIC_REVIEW_STATUS_MAP } from '@/constants/picture.ts'
 
@@ -79,7 +79,7 @@ const pagination = ref({
 }) // 存储页面上的分页配置, 后续用来控制分页渲染
 const paginationConfig = computed(() => pagination.value) // 计算分页配置
 const getTableData = async () => {
-  const res = await pictureSearchVo({
+  const res = await pictureSearch({
     ...searchParams,
   })
   if (res.data.code === 20000 && res.data?.data) {

@@ -45,15 +45,15 @@ public enum UserRoleEnums { // 由于效率问题, 这里手动缓存了数据�
     }
 
     /**
-     * 根据角色码值获取角色描述
+     * 根据角色码值获取角色枚举
      */
-    public static String getUserDescription(int code) {
+    public static UserRoleEnums getUserDescription(int code) { // TODO: 等待改正放回值为枚举
         if (ObjUtil.isEmpty(code)) {
             return null;
         }
         for (UserRoleEnums role : UserRoleEnums.values()) {
             if (role.getCode() == code) {
-                return role.getDescription();
+                return role;
             }
         }
         return null;

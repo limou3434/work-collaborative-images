@@ -2,6 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.model.request.userService;
 
 import cn.com.edtechhub.workcollaborativeimages.model.request.PageRequest;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 
@@ -10,6 +11,7 @@ import java.io.Serializable;
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class UserSearchRequest extends PageRequest implements Serializable {
 

@@ -32,7 +32,7 @@ export async function pictureBatch(
   })
 }
 
-/** 获取当前后支持图片类别网络接口 GET /picture/categorys */
+/** 获取当前后端支持图片类别网络接口 GET /picture/categorys */
 export async function pictureCategorys(options?: { [key: string]: any }) {
   return request<WorkCollaborativeImagesAPI.BaseResponseListString>('/picture/categorys', {
     method: 'GET',

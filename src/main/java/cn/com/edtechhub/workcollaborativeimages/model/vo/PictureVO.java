@@ -1,6 +1,8 @@
 package cn.com.edtechhub.workcollaborativeimages.model.vo;
 
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -18,6 +20,7 @@ public class PictureVO implements Serializable {
     /**
      * id
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long id;
 
     /**

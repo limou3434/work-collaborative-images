@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @TableName(value = "user")
 @Data
 public class User implements Serializable {
+
     /**
      * 本用户唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)
      */
@@ -225,4 +226,5 @@ public class User implements Serializable {
                 "]";
         return sb;
     }
+
 }

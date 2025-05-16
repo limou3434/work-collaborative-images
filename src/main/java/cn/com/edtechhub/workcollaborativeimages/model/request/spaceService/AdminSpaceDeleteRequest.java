@@ -1,11 +1,11 @@
-package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
+package cn.com.edtechhub.workcollaborativeimages.model.request.spaceService;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class PictureDeleteRequest implements Serializable {
+public class AdminSpaceDeleteRequest implements Serializable {
 
     /**
      * id

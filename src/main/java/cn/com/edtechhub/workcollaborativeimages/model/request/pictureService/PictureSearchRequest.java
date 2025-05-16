@@ -2,9 +2,11 @@ package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
 
 import cn.com.edtechhub.workcollaborativeimages.model.request.PageRequest;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class PictureSearchRequest extends PageRequest implements Serializable {
 
