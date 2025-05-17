@@ -17,7 +17,7 @@ const searchParams = reactive<WorkCollaborativeImagesAPI.AdminPictureSearchReque
 const getOldPicture = async () => {
   const id = route.query?.id // 页面传递的图片 id
   if (id) {
-    searchParams.id = String(id) as unknown as number
+    searchParams.id = Number(id)
     const res = await pictureQuery(searchParams)
     if (res.data.code === 20000 && res.data.data && res.data.data.records) {
       const data = res.data.data.records[0]

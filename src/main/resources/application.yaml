@@ -140,12 +140,6 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-  ## 配置逻辑删除
-  global-config:
-    db-config:
-      logic-delete-field: deleted # 指定数据库全局逻辑删除字段名, 并且给实体类的对应字段加上 @TableLogic
-      logic-delete-value: 1 # 逻辑已删除值
-      logic-not-delete-value: 0 # 逻辑未删除值
 
 # 配置 Sa-Token
 sa-token: # 默认开启 Redis 配置将自动支持 Sa-token 使用 Redis 存储认证相关键值对, 想要关掉需要去除相关依赖

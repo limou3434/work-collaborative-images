@@ -63,7 +63,6 @@ public class Space implements Serializable {
     /**
      * 是否删除(0 为未删除, 1 为已删除)
      */
-    @TableLogic // 手动修改为逻辑删除
     private Integer deleted;
 
     /**

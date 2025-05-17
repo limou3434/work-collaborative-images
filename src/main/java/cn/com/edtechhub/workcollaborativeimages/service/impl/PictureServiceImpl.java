@@ -1,14 +1,16 @@
 package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
-import cn.com.edtechhub.workcollaborativeimages.annotation.CacheSearchOptimization;
+import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
+import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureSearchRequest;
@@ -223,14 +225,17 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     public Picture pictureUpload(Long spaceId, Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
         // 获取当前登录用户的 id 值
         Long userId = Long.valueOf(StpUtil.getLoginId().toString());
+        log.debug("检查当前登陆用户者 {}", userId);
 
-        // 只有对应空间的用户才可以上传图片
         if (spaceId != null) {
+            // 只有空间存在才能上传照片
+            log.debug("该图片有指定需要上传的图库");
             Space space = spaceService.getById(spaceId);
             ThrowUtils.throwIf(space == null, new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "空间不存在"));
-            // 必须空间创建人才能上传
+
+            // 只有允许权限才能上传图片(空间所属人或项目管理员)
+            log.debug("检查空间所属者 {}", space.getUserId());
             ThrowUtils.throwIf(!userId.equals(space.getUserId()), new BusinessException(CodeBindMessageEnums.NO_AUTH_ERROR, "您没有空间权限"));
-            log.debug("该图片有指定需要上传的图库");
         }
 
         // 如果有更新图片的需求, 也就是携带了 id
@@ -245,14 +250,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         // 构造要入库的图片信息
         Picture picture = new Picture();
         UploadPictureResult uploadPictureResult = null;
+        String uploadPathPrefix = String.format(spaceId == null ? "public/%s" : "space/%s", userId); // 构造和用户相关的图片父目录
         if (multipartFile != null) { // 支持对本地文件的上传
             log.debug("支持对本地文件的上传");
-            String uploadPathPrefix = String.format("public/%s", userId); // 构造和用户相关的图片父目录
             uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, multipartFile); // 执行具体的上传任务
         }
         if (pictureFileUrl != null) { // 支持对远端文件的上传
             log.debug("支持对远端文件的上传");
-            String uploadPathPrefix = String.format("public/%s", userId); // 构造和用户相关的图片父目录
             uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, pictureFileUrl); // 执行具体的上传任务
         }
         if (pictureId != null) {

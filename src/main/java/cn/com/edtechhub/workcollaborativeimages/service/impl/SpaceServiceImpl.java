@@ -58,20 +58,14 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         synchronized (lock) { // 针对用户进行加锁 TODO: 这种加锁有可能导致字符串池膨胀(目前概率较低), 可以考虑使用 Guava Cache
             return transactionTemplate.execute(status -> { // 必须在锁内处理事务
                 // 锁内事务原理
-                // A线程进入方法，开始事务
-                // B线程也进入方法，开始另一个事务
-                // A线程执行到 synchronized 加锁，拿到锁
-                // A查询数据库，此时还没有空间 → 合法 → 创建空间 → 提交事务
-                // A释放锁
-                // B线程获得锁，但它事务早就开始了
-                // B线程查询数据库，此时看不到 A 的新数据（隔离级别问题）
-                // B线程也判断为合法 → 也创建了空间
-
-                // 若普通用户已经存在自己的空间则不允创建多余的空间
-                var adminSpaceSearchRequest = new AdminSpaceSearchRequest();
-                boolean exists = this.lambdaQuery().eq(Space::getUserId, userId).exists();
-                ThrowUtils.throwIf(exists, new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个私有空间"));
-
+                // A 线程进入方法，开始事务
+                // B 线程也进入方法，开始另一个事务
+                // A 线程执行到 synchronized 加锁，拿到锁
+                // A 查询数据库，此时还没有空间 → 合法 → 创建空间 → 提交事务
+                // A 释放锁
+                // B 线程获得锁，但它事务早就开始了
+                // B 线程查询数据库，此时看不到 A 的新数据（隔离级别问题）
+                // B 线程也判断为合法 → 也创建了空间
                 // 若普通用户尚未存在自己的空间则允许创建多余的空间
                 this.save(space);
                 return this.getById(space.getId());

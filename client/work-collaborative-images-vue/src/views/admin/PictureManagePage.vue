@@ -153,7 +153,7 @@ const doDelete = async (id: string) => {
     return
   }
   const deleteParams = reactive<WorkCollaborativeImagesAPI.AdminPictureDeleteRequest>({
-    id: String(id) as unknown as number,
+    id: Number(id),
   })
   const res = await adminPictureDelete(deleteParams)
   if (res.data.code === 20000) {
