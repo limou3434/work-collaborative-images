@@ -1,18 +1,24 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
 
 import cn.com.edtechhub.workcollaborativeimages.model.request.PageRequest;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class PictureSearchRequest extends PageRequest implements Serializable {
+@Accessors(chain = true) // 实现链式调用
+public class AdminPictureSearchRequest extends PageRequest implements Serializable {
 
     /**
      * id
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long id;
 
     /**
@@ -63,6 +69,7 @@ public class PictureSearchRequest extends PageRequest implements Serializable {
     /**
      * 创建用户 id
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long userId;
 
     /**
@@ -78,9 +85,19 @@ public class PictureSearchRequest extends PageRequest implements Serializable {
     /**
      * 审核人 id
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long reviewerId;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 转换方法
+     */
+    public static AdminPictureSearchRequest copyProperties(PictureQueryRequest pictureQueryRequest) {
+        var adminPictureSearchRequest = new AdminPictureSearchRequest();
+        BeanUtils.copyProperties(pictureQueryRequest, adminPictureSearchRequest);
+        return adminPictureSearchRequest;
+    }
 
 }

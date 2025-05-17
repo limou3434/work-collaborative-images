@@ -1,5 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.model.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 /**
@@ -28,6 +30,7 @@ public class UserStatus {
     /**
      * 登录用户 id
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     String userId;
 
     /**

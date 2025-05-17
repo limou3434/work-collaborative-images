@@ -1,10 +1,10 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureDeleteRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureSearchRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureUpdateRequest;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,22 +21,22 @@ public interface PictureService extends IService<Picture> {
     /**
      * 图片添加服务
      */
-    Picture pictureAdd(PictureAddRequest pictureAddRequest);
+    Picture pictureAdd(AdminPictureAddRequest adminPictureAddRequest);
 
     /**
      * 图片删除服务
      */
-    Boolean pictureDelete(PictureDeleteRequest pictureDeleteRequest);
+    Boolean pictureDelete(AdminPictureDeleteRequest adminPictureDeleteRequest);
 
     /**
      * 图片更新服务
      */
-    Picture pictureUpdate(PictureUpdateRequest pictureUpdateRequest);
+    Picture pictureUpdate(AdminPictureUpdateRequest adminPictureUpdateRequest);
 
     /**
      * 图片查询服务
      */
-    Page<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest);
+    Page<Picture> pictureSearch(AdminPictureSearchRequest adminPictureSearchRequest);
 
     /**
      * 图片审核服务

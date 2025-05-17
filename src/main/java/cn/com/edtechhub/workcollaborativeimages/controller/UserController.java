@@ -36,10 +36,11 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @Resource
     private UserService userService;
 
+    /// 管理接口 ///
     @Operation(summary = "添加用户网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
-    @PostMapping("/add")
+    @PostMapping("/admin/add")
 //    @SentinelResource(value = "userAdd")
     public BaseResponse<User> userAdd(@RequestBody UserAddRequest userAddRequest) {
         User user = userService.userAdd(userAddRequest);
@@ -49,9 +50,9 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @Operation(summary = "删除用户网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
-    @PostMapping("/delete")
+    @PostMapping("/admin/delete")
 //    @SentinelResource(value = "userDelete")
-    public BaseResponse<Boolean> userDelete(@RequestBody UserDeleteRequest userDeleteRequest) {
+    public BaseResponse<Boolean> adminUserDelete(@RequestBody UserDeleteRequest userDeleteRequest) {
         Boolean result = userService.userDelete(userDeleteRequest);
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
@@ -59,31 +60,32 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @Operation(summary = "修改用户网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
-    @PostMapping("/update")
+    @PostMapping("/admin/update")
 //    @SentinelResource(value = "userUpdate")
-    public BaseResponse<User> userUpdate(@RequestBody UserUpdateRequest userUpdateRequest) {
+    public BaseResponse<User> adminUserUpdate(@RequestBody UserUpdateRequest userUpdateRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userUpdate(userUpdateRequest));
     }
 
     @Operation(summary = "查询用户网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
-    @PostMapping("/search")
+    @PostMapping("/admin/search")
 //    @SentinelResource(value = "userSearch")
-    public BaseResponse<Page<User>> userSearch(@RequestBody UserSearchRequest userSearchRequest) {
+    public BaseResponse<Page<User>> adminUserSearch(@RequestBody UserSearchRequest userSearchRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userSearch(userSearchRequest));
     }
 
     @Operation(summary = "封禁用户网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
-    @PostMapping("/disable")
+    @PostMapping("/admin/disable")
 //    @SentinelResource(value = "userDisable")
-    public BaseResponse<Boolean> userDisable(@RequestBody UserDisableRequest userDisableRequest) {
+    public BaseResponse<Boolean> adminUserDisable(@RequestBody UserDisableRequest userDisableRequest) {
         Boolean result = userService.userDisable(userDisableRequest.getId(), userDisableRequest.getDisableTime());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
 
+    /// 普通接口 ///
     @Operation(summary = "用户注册网络接口")
     @SaIgnore
     @PostMapping("/register")

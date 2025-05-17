@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.model.request.spaceService;
+package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 @Data
 @Accessors(chain = true) // 实现链式调用
-public class AdminSpaceDeleteRequest implements Serializable {
+public class AdminPictureDeleteRequest implements Serializable {
 
     /**
      * id
@@ -24,10 +24,10 @@ public class AdminSpaceDeleteRequest implements Serializable {
     /**
      * 转换方法
      */
-    public static AdminSpaceDeleteRequest copyProperties(SpaceDestroyRequest spaceDestroyRequest) {
-        var adminSpaceDeleteRequest = new AdminSpaceDeleteRequest();
-        BeanUtils.copyProperties(spaceDestroyRequest, adminSpaceDeleteRequest);
-        return adminSpaceDeleteRequest;
+    public static AdminPictureDeleteRequest copyProperties(PictureDestroyRequest pictureDestroyRequest) {
+        var adminPictureDeleteRequest = new AdminPictureDeleteRequest();
+        BeanUtils.copyProperties(pictureDestroyRequest, adminPictureDeleteRequest);
+        return adminPictureDeleteRequest;
     }
 
 }

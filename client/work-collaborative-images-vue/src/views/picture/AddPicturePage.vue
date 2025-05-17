@@ -5,20 +5,20 @@ import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import {
   pictureCategorys,
-  pictureSearchVo,
+  pictureQuery,
   pictureUpload,
 } from '@/api/work-collaborative-images/pictureController.ts'
 
 // 这个页面作为创建页面的同时也可以作为修改页面把路径中的 id 获取到后直接显示在上传组件上
 const route = useRoute()
-const searchParams = reactive<WorkCollaborativeImagesAPI.PictureSearchRequest>({
+const searchParams = reactive<WorkCollaborativeImagesAPI.AdminPictureSearchRequest>({
   id: -1,
 }) // 存储初始化的查询参数, 后续用来做搜索请求
 const getOldPicture = async () => {
   const id = route.query?.id // 页面传递的图片 id
   if (id) {
-    searchParams.id = Number(id)
-    const res = await pictureSearchVo(searchParams)
+    searchParams.id = String(id) as unknown as number
+    const res = await pictureQuery(searchParams)
     if (res.data.code === 20000 && res.data.data && res.data.data.records) {
       const data = res.data.data.records[0]
       picture.value = data

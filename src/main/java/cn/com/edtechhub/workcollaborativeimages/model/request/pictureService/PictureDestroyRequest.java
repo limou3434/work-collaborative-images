@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.model.request.spaceService;
+package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -7,7 +7,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class SpaceDestroyRequest implements Serializable {
+public class PictureDestroyRequest implements Serializable {
 
     /**
      * id

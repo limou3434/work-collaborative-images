@@ -3,7 +3,7 @@ import { message } from 'ant-design-vue'
 import { onMounted, reactive, ref } from 'vue'
 import {
   pictureCategorys,
-  pictureSearchVo,
+  pictureQuery,
 } from '@/api/work-collaborative-images/pictureController.ts'
 import { useRouter } from 'vue-router'
 
@@ -35,7 +35,7 @@ const pagination = reactive({
 })
 
 // 获取所有的图片数据
-const searchParams = reactive<WorkCollaborativeImagesAPI.PictureSearchRequest>({
+const searchParams = reactive<WorkCollaborativeImagesAPI.AdminPictureSearchRequest>({
   sortOrder: 'inverted',
   pageCurrent: 1,
   pageSize: 10,
@@ -44,7 +44,7 @@ const dataList = ref<WorkCollaborativeImagesAPI.PictureVO[]>([])
 const loading = ref(true)
 const getTableData = async () => {
   loading.value = true
-  const res = await pictureSearchVo(searchParams)
+  const res = await pictureQuery(searchParams)
   if (res.data.data) {
     dataList.value = res.data.data.records ?? []
     pagination.total = res.data.data.total ?? 0

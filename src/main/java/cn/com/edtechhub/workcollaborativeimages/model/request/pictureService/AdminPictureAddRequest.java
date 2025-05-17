@@ -1,11 +1,17 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
 
+import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
+import lombok.experimental.Accessors;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 
 @Data
-public class PictureAddRequest implements Serializable {
+@Accessors(chain = true) // 实现链式调用
+public class AdminPictureAddRequest implements Serializable {
 
     /**
      * 图片 url
@@ -15,6 +21,7 @@ public class PictureAddRequest implements Serializable {
     /**
      * 空间标识
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private String spaceId;
 
     /**
@@ -65,9 +72,19 @@ public class PictureAddRequest implements Serializable {
     /**
      * 创建用户 id
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long userId;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 转换方法
+     */
+    public static AdminPictureAddRequest copyProperties(PictureCreateRequest pictureCreateRequest) {
+        var adminPictureAddRequest = new AdminPictureAddRequest();
+        BeanUtils.copyProperties(pictureCreateRequest, adminPictureAddRequest);
+        return adminPictureAddRequest;
+    }
 
 }

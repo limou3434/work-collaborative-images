@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { userDelete, userSearch } from '@/api/work-collaborative-images/userController.ts'
+import { adminUserDelete, adminUserSearch } from '@/api/work-collaborative-images/userController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 
@@ -82,7 +82,7 @@ const pagination = ref({
 }) // 存储页面上的分页配置, 后续用来控制分页渲染
 const paginationConfig = computed(() => pagination.value) // 计算分页配置
 const getTableData = async () => {
-  const res = await userSearch({
+  const res = await adminUserSearch({
     ...searchParams,
   })
   if (res.data.code === 20000 && res.data?.data) {
@@ -158,7 +158,7 @@ const doDelete = async (id: string) => {
   const deleteParams = reactive<WorkCollaborativeImagesAPI.UserDeleteRequest>({
     id: Number(id),
   })
-  const res = await userDelete(deleteParams)
+  const res = await adminUserDelete(deleteParams)
   if (res.data.code === 20000) {
     message.success('删除成功')
     await getTableData() // 刷新数据

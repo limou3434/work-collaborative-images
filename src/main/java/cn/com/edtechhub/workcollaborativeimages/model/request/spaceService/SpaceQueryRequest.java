@@ -1,6 +1,8 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.spaceService;
 
 import cn.com.edtechhub.workcollaborativeimages.model.request.PageRequest;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -13,11 +15,13 @@ public class SpaceQueryRequest extends PageRequest implements Serializable {
     /**
      * id
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long id;
 
     /**
      * 用户 id
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long userId;
 
     /**

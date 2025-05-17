@@ -63,7 +63,7 @@ CREATE TABLE `user`
 
 CREATE TABLE `picture`
 (
-    `id`             BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'id',
+    `id`             BIGINT UNSIGNED AUTO_INCREMENT COMMENT '本图片唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)',
     `url`            VARCHAR(512)    NOT NULL COMMENT '图片 url',
     `thumbnail_url`  VARCHAR(512)    NULL COMMENT '缩略图 url',
     `name`           VARCHAR(128)    NOT NULL COMMENT '图片名称',
@@ -99,7 +99,7 @@ CREATE TABLE `picture`
 
 CREATE TABLE IF NOT EXISTS `space`
 (
-    `id`          BIGINT UNSIGNED AUTO_INCREMENT COMMENT 'id',
+    `id`          BIGINT UNSIGNED AUTO_INCREMENT COMMENT '本空间唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)',
     `space_name`  VARCHAR(128)      NULL COMMENT '空间名称',
     `space_level` INT     DEFAULT 0 NULL COMMENT '空间级别: 0-普通版 1-专业版 2-旗舰版',
     `max_size`    BIGINT  DEFAULT 0 NULL COMMENT '空间图片的最大总大小',

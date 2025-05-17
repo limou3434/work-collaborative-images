@@ -117,55 +117,55 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @Operation(summary = "图片添加网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
-    @PostMapping("/add")
-//    @SentinelResource(value = "pictureAdd")
-    public BaseResponse<Picture> pictureAdd(@RequestBody PictureAddRequest pictureAddRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureAdd(pictureAddRequest)); // 可以直接绕过 COS 进行添加落库
+    @PostMapping("/admin/add")
+//    @SentinelResource(value = "adminPictureAdd")
+    public BaseResponse<Picture> adminPictureAdd(@RequestBody AdminPictureAddRequest adminPictureAddRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureAdd(adminPictureAddRequest)); // 可以直接绕过 COS 进行添加落库
     }
 
     @Operation(summary = "图片删除网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
-    @PostMapping("/delete")
-//    @SentinelResource(value = "pictureDelete")
-    public BaseResponse<Boolean> pictureDelete(@RequestBody PictureDeleteRequest pictureDeleteRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(pictureDeleteRequest)); // TODO: 实际上管理员删除接口最重要的一点就是可以直接清理 COS 上的图片, 但是普通用户只是去除数据库中的关联而已
+    @PostMapping("/admin/delete")
+//    @SentinelResource(value = "adminPictureDelete")
+    public BaseResponse<Boolean> adminPictureDelete(@RequestBody AdminPictureDeleteRequest adminPictureDeleteRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(adminPictureDeleteRequest)); // TODO: 实际上管理员删除接口最重要的一点就是可以直接清理 COS 上的图片, 但是普通用户只是去除数据库中的关联而已
     }
 
     @Operation(summary = "图片更新网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
-    @PostMapping("/update")
-//    @SentinelResource(value = "pictureUpdate")
-    public BaseResponse<Picture> pictureUpdate(@RequestBody PictureUpdateRequest pictureUpdateRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpdate(pictureUpdateRequest)); // 可以直接绕过 COS 进行更新落库
+    @PostMapping("/admin/update")
+//    @SentinelResource(value = "adminPictureUpdate")
+    public BaseResponse<Picture> adminPictureUpdate(@RequestBody AdminPictureUpdateRequest adminPictureUpdateRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpdate(adminPictureUpdateRequest)); // 可以直接绕过 COS 进行更新落库
     }
 
     @Operation(summary = "图片查询网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
-    @PostMapping("/search")
-//    @SentinelResource(value = "pictureSearch")
-    public BaseResponse<Page<Picture>> pictureSearch(@RequestBody PictureSearchRequest pictureSearchRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息, 同时这个接口也是实时的, 对于管理员修改状态后实时刷新更加友好
+    @PostMapping("/admin/search")
+//    @SentinelResource(value = "adminPictureSearch")
+    public BaseResponse<Page<Picture>> adminPictureSearch(@RequestBody AdminPictureSearchRequest adminPictureSearchRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(adminPictureSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息, 同时这个接口也是实时的, 对于管理员修改状态后实时刷新更加友好
     }
 
     @Operation(summary = "图片审核网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/review")
-//    @SentinelResource(value = "pictureReview")
-    public BaseResponse<Boolean> pictureReview(@RequestBody PictureReviewRequest pictureReviewRequest) {
-        log.debug("本次需要审核的报文 {}", pictureReviewRequest);
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureReview(pictureReviewRequest.getId(), pictureReviewRequest.getReviewStatus(), pictureReviewRequest.getReviewMessage())); // 这个接口只是获取用户 id 不用获取详细的用户信息
+//    @SentinelResource(value = "adminPictureReview")
+    public BaseResponse<Boolean> adminPictureReview(@RequestBody AdminPictureReviewRequest adminPictureReviewRequest) {
+        log.debug("本次需要审核的报文 {}", adminPictureReviewRequest);
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureReview(adminPictureReviewRequest.getId(), adminPictureReviewRequest.getReviewStatus(), adminPictureReviewRequest.getReviewMessage())); // 这个接口只是获取用户 id 不用获取详细的用户信息
     }
 
     @Operation(summary = "图片批量网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/batch")
-    public BaseResponse<Integer> PictureBatch(@RequestBody PictureBatchRequest pictureBatchRequest) {
-        int uploadCount = pictureService.pictureBatch(pictureBatchRequest.getSearchText(), pictureBatchRequest.getSearchCount(), pictureBatchRequest.getNamePrefix(), pictureBatchRequest.getCategory());
+    public BaseResponse<Integer> adminPictureBatch(@RequestBody AdminPictureBatchRequest adminPictureBatchRequest) {
+        int uploadCount = pictureService.pictureBatch(adminPictureBatchRequest.getSearchText(), adminPictureBatchRequest.getSearchCount(), adminPictureBatchRequest.getNamePrefix(), adminPictureBatchRequest.getCategory());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, uploadCount);
     }
 
@@ -173,28 +173,31 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @Operation(summary = "销毁图片网络接口")
     @SaCheckLogin
     @PostMapping("/destroy")
-//    @SentinelResource(value = "pictureDestroy")
-    public BaseResponse<Boolean> pictureDestroy(@RequestBody PictureDeleteRequest pictureDeleteRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(pictureDeleteRequest));
+//    @SentinelResource(value = "pictureDestroy") c
+    public BaseResponse<Boolean> pictureDestroy(@RequestBody PictureDestroyRequest pictureDestroyRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(AdminPictureDeleteRequest.copyProperties(pictureDestroyRequest)));
     }
 
     @Operation(summary = "查找图片网络接口")
     @SaCheckLogin
     @PostMapping("/query")
-//    @SentinelResource(value = "pictureSearchVO")
     @CacheSearchOptimization(ttl = 60)
-    public BaseResponse<Page<PictureVO>> pictureQuery(@RequestBody PictureSearchRequest pictureSearchRequest) {
+//    @SentinelResource(value = "pictureQuery")
+    public BaseResponse<Page<PictureVO>> pictureQuery(@RequestBody PictureQueryRequest pictureQueryRequest) {
         // 强制其他普通用户只能看到审核通过的图片
         Integer userRole = ((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole();
         log.debug("用户的登录 id 为 {}", StpUtil.getLoginId());
         log.debug("当前用户权限为 {}", userRole);
         if (((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole() != UserRoleEnums.ADMIN_ROLE.getCode()) {
             log.debug("非管理员只能查看审核通过的图片");
-            pictureSearchRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+            pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
         }
 
         // 先查出所有用户分页和图片分页
-        Page<Picture> picturePage = pictureService.pictureSearch(pictureSearchRequest);
+        Page<Picture> picturePage = pictureService.pictureSearch(AdminPictureSearchRequest.copyProperties(pictureQueryRequest));
+
+        log.debug("检查 picturePage 是否在缓存后有问题 {}", picturePage);
+
         Page<User> userPage = userService.userSearch(new UserSearchRequest());
 
         // 利用映射机制来减少多次单 SQL 后顺便做脱敏
@@ -218,10 +221,12 @@ public class PictureController { // 通常控制层有服务层中的所有方�
                         }
                 )); // 构建 userId 到 User 的映射避免 N+1 查询
         log.debug("避免多次查询所构建的临时 userMap 的值为 {}", userMap);
+
         List<PictureVO> pictureVOList = pictureList
                 .stream()
                 .map(picture -> {
                     PictureVO pictureVO = PictureVO.removeSensitiveData(picture); // 需要脱敏
+                    log.debug("liasdufsd");
                     User user = userMap.get(picture.getUserId()); // 需要把用户信息都映射进去, 同时避免重复查询
                     if (user != null) {
                         pictureVO.setUserVO(UserVO.removeSensitiveData(user));

@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
+import cn.com.edtechhub.workcollaborativeimages.annotation.CacheSearchOptimization;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
@@ -8,10 +9,10 @@ import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureDeleteRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureSearchRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
@@ -60,13 +61,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @Resource
     private SpaceService spaceService;
 
-    public Picture pictureAdd(PictureAddRequest pictureAddRequest) {
+    public Picture pictureAdd(AdminPictureAddRequest adminPictureAddRequest) {
         // 检查参数
-        ThrowUtils.throwIf(pictureAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片添加请求体为空"));
+        ThrowUtils.throwIf(adminPictureAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片添加请求体为空"));
 
         // 创建用户实例的同时加密密码
         var picture = new Picture();
-        BeanUtils.copyProperties(pictureAddRequest, picture);
+        BeanUtils.copyProperties(adminPictureAddRequest, picture);
 
         // 保存实例的同时利用唯一键约束避免并发问题
         try {
@@ -77,9 +78,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return this.getById(picture.getId());
     }
 
-    public Boolean pictureDelete(PictureDeleteRequest pictureDeleteRequest) {
-        ThrowUtils.throwIf(pictureDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片删除请求体不能为空"));
-        Long id = pictureDeleteRequest.getId();
+    public Boolean pictureDelete(AdminPictureDeleteRequest adminPictureDeleteRequest) {
+        ThrowUtils.throwIf(adminPictureDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片删除请求体不能为空"));
+        Long id = adminPictureDeleteRequest.getId();
         ThrowUtils.throwIf(id <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法"));
 
         // 操作数据库
@@ -88,14 +89,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return true;
     }
 
-    public Picture pictureUpdate(PictureUpdateRequest pictureUpdateRequest) {
+    public Picture pictureUpdate(AdminPictureUpdateRequest adminPictureUpdateRequest) {
         // 检查参数
-        ThrowUtils.throwIf(pictureUpdateRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 不能为空"));
-        ThrowUtils.throwIf(pictureUpdateRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 必须是正整数"));
+        ThrowUtils.throwIf(adminPictureUpdateRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 不能为空"));
+        ThrowUtils.throwIf(adminPictureUpdateRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 必须是正整数"));
 
         // 更新用户并且需要考虑密码的问题
         Picture picture = new Picture();
-        BeanUtils.copyProperties(pictureUpdateRequest, picture);
+        BeanUtils.copyProperties(adminPictureUpdateRequest, picture);
         this.updateById(picture);
 
         // 更新用户后最好把用户的信息也返回, 这样方便前端做实时的数据更新
@@ -103,12 +104,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return this.getById(id);
     }
 
-    public Page<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest) {
+    public Page<Picture> pictureSearch(AdminPictureSearchRequest adminPictureSearchRequest) {
         // 检查参数
-        ThrowUtils.throwIf(pictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片查询请求不能为空"));
+        ThrowUtils.throwIf(adminPictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片查询请求不能为空"));
 
         // 如果用户传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
-        Long pictureId = pictureSearchRequest.getId();
+        Long pictureId = adminPictureSearchRequest.getId();
         if (pictureId != null) {
             log.debug("本次查询只需要查询一条记录, 使用 id 字段来提高效率");
             Picture picture = this.getById(pictureId);
@@ -136,10 +137,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         }
 
         // 获取查询对象
-        LambdaQueryWrapper<Picture> queryWrapper = this.getQueryWrapper(pictureSearchRequest); // 构造查询条件
+        LambdaQueryWrapper<Picture> queryWrapper = this.getQueryWrapper(adminPictureSearchRequest); // 构造查询条件
 
         // 获取分页对象
-        Page<Picture> page = new Page<>(pictureSearchRequest.getPageCurrent(), pictureSearchRequest.getPageSize()); // 这里还指定了页码和条数
+        Page<Picture> page = new Page<>(adminPictureSearchRequest.getPageCurrent(), adminPictureSearchRequest.getPageSize()); // 这里还指定了页码和条数
 
         // 查询用户分页后直接取得内部的列表进行返回
         return this.page(page, queryWrapper); // 调用 MyBatis-Plus 的分页查询方法
@@ -292,24 +293,24 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     /**
      * 获取查询封装器的方法
      */
-    private LambdaQueryWrapper<Picture> getQueryWrapper(PictureSearchRequest pictureSearchRequest) {
+    private LambdaQueryWrapper<Picture> getQueryWrapper(AdminPictureSearchRequest adminPictureSearchRequest) {
         // 查询请求不能为空
-        ThrowUtils.throwIf(pictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空"));
+        ThrowUtils.throwIf(adminPictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空"));
 
         // 取得需要查询的参数
-        String name = pictureSearchRequest.getName();
-        String introduction = pictureSearchRequest.getIntroduction();
-        String category = pictureSearchRequest.getCategory();
-        String tags = pictureSearchRequest.getTags();
-        Long picSize = pictureSearchRequest.getPicSize();
-        Integer picWidth = pictureSearchRequest.getPicWidth();
-        Integer picHeight = pictureSearchRequest.getPicHeight();
-        Double picScale = pictureSearchRequest.getPicScale();
-        String picFormat = pictureSearchRequest.getPicFormat();
-        Long userId = pictureSearchRequest.getUserId();
-        Integer reviewStatus = pictureSearchRequest.getReviewStatus();
-        String sortField = pictureSearchRequest.getSortField();
-        String sortOrder = pictureSearchRequest.getSortOrder();
+        String name = adminPictureSearchRequest.getName();
+        String introduction = adminPictureSearchRequest.getIntroduction();
+        String category = adminPictureSearchRequest.getCategory();
+        String tags = adminPictureSearchRequest.getTags();
+        Long picSize = adminPictureSearchRequest.getPicSize();
+        Integer picWidth = adminPictureSearchRequest.getPicWidth();
+        Integer picHeight = adminPictureSearchRequest.getPicHeight();
+        Double picScale = adminPictureSearchRequest.getPicScale();
+        String picFormat = adminPictureSearchRequest.getPicFormat();
+        Long userId = adminPictureSearchRequest.getUserId();
+        Integer reviewStatus = adminPictureSearchRequest.getReviewStatus();
+        String sortField = adminPictureSearchRequest.getSortField();
+        String sortOrder = adminPictureSearchRequest.getSortOrder();
 
         log.debug("用户需要查询的审核状态 {}", reviewStatus);
 

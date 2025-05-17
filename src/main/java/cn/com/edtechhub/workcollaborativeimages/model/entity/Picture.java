@@ -20,7 +20,7 @@ public class Picture implements Serializable {
     /**
      * id
      */
-    @TableId(type = IdType.ASSIGN_ID) // 手动添加雪花算法
+    @TableId(type = IdType.AUTO)
     @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long id;
 
@@ -82,11 +82,13 @@ public class Picture implements Serializable {
     /**
      * 创建用户 id
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long userId;
 
     /**
      * 空间 id(为空表示公共空间)
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long spaceId;
 
     /**
@@ -107,6 +109,7 @@ public class Picture implements Serializable {
     /**
      * 审核人 id
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long reviewerId;
 
     /**

@@ -3,10 +3,10 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import {
-  pictureBatch,
-  pictureDelete,
-  pictureReview,
-  pictureSearch,
+  adminPictureBatch,
+  adminPictureDelete,
+  adminPictureReview,
+  adminPictureSearch,
 } from '@/api/work-collaborative-images/pictureController.ts'
 import { PIC_REVIEW_STATUS_ENUM, PIC_REVIEW_STATUS_MAP } from '@/constants/picture.ts'
 
@@ -64,7 +64,7 @@ const columns = [
 
 // 获取分页查询的结果
 const dataList = ref<WorkCollaborativeImagesAPI.Picture[]>([]) // 存储分页查询后的图片数组
-const searchParams = reactive<WorkCollaborativeImagesAPI.PictureSearchRequest>({
+const searchParams = reactive<WorkCollaborativeImagesAPI.AdminPictureSearchRequest>({
   sortOrder: 'inverted',
   pageCurrent: 1,
   pageSize: 10,
@@ -79,7 +79,7 @@ const pagination = ref({
 }) // 存储页面上的分页配置, 后续用来控制分页渲染
 const paginationConfig = computed(() => pagination.value) // 计算分页配置
 const getTableData = async () => {
-  const res = await pictureSearch({
+  const res = await adminPictureSearch({
     ...searchParams,
   })
   if (res.data.code === 20000 && res.data?.data) {
@@ -152,10 +152,10 @@ const doDelete = async (id: string) => {
   if (!id) {
     return
   }
-  const deleteParams = reactive<WorkCollaborativeImagesAPI.PictureDeleteRequest>({
-    id: Number(id),
+  const deleteParams = reactive<WorkCollaborativeImagesAPI.AdminPictureDeleteRequest>({
+    id: String(id) as unknown as number,
   })
-  const res = await pictureDelete(deleteParams)
+  const res = await adminPictureDelete(deleteParams)
   if (res.data.code === 20000) {
     message.success('删除成功')
     await getTableData() // 刷新数据
@@ -168,7 +168,7 @@ const doDelete = async (id: string) => {
 const handleReview = async (record: WorkCollaborativeImagesAPI.PictureVO, reviewStatus: number) => {
   const reviewMessage =
     reviewStatus === PIC_REVIEW_STATUS_ENUM.PASS ? '管理员操作通过' : '管理员操作拒绝'
-  const res = await pictureReview({
+  const res = await adminPictureReview({
     id: record.id,
     reviewStatus,
     reviewMessage,
@@ -200,7 +200,7 @@ const stopTimer = () => {
 // 设置批量提交弹窗
 const loading = ref<boolean>(false)
 const showModal = ref(false)
-const form = reactive<WorkCollaborativeImagesAPI.PictureBatchRequest>({
+const form = reactive<WorkCollaborativeImagesAPI.AdminPictureBatchRequest>({
   searchText: '',
   searchCount: 5,
   namePrefix: '默认名称',
@@ -212,7 +212,7 @@ const handleOk = async (): Promise<void> => {
   try {
     message.success('图片正在后端批量爬取中, 这个过程可能有些久...')
     showModal.value = false
-    const res = await pictureBatch({ ...form })
+    const res = await adminPictureBatch({ ...form })
     if (res.data.code === 20000 && res.data.data) {
       message.success(`后台批量爬取成功, 总共 ${res.data.data} 条`)
       window.location.reload()

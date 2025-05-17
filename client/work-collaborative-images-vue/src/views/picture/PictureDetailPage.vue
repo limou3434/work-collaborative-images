@@ -2,8 +2,8 @@
 import { message } from 'ant-design-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import {
-  pictureDelete,
-  pictureSearchVo,
+  adminPictureDelete,
+  pictureQuery,
 } from '@/api/work-collaborative-images/pictureController.ts'
 import ShareModal from '@/components/ShareModal.vue'
 import { formatSize } from '@/utils'
@@ -22,13 +22,13 @@ const props = defineProps<{
 }>()
 
 // 根据从页面上获取到的 id 来查询图片详情
-const searchParams = reactive<WorkCollaborativeImagesAPI.PictureSearchRequest>({
+const searchParams = reactive<WorkCollaborativeImagesAPI.AdminPictureSearchRequest>({
   id: props.id,
 }) // 存储初始化的查询参数, 后续用来做搜索请求
 const picture = ref<WorkCollaborativeImagesAPI.PictureVO>({})
 const fetchPictureDetail = async () => {
   try {
-    const res = await pictureSearchVo(searchParams)
+    const res = await pictureQuery(searchParams)
     if (res.data.code === 20000 && res.data.data && res.data.data.records) {
       if(res.data.data.records.length === 0) {
         message.error('图片不存在')
@@ -92,11 +92,11 @@ const doDelete = async () => {
   if (!id) {
     return
   }
-  const deletePicture: WorkCollaborativeImagesAPI.PictureDeleteRequest = {
+  const deletePicture: WorkCollaborativeImagesAPI.AdminPictureDeleteRequest = {
     id: -1,
   }
   deletePicture.id = id
-  const res = await pictureDelete(deletePicture)
+  const res = await adminPictureDelete(deletePicture)
   if (res.data.code === 20000) {
     message.success('删除成功')
   } else {

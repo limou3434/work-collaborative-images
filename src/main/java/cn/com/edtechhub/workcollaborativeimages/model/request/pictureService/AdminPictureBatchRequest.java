@@ -1,11 +1,13 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
 @Data
-public class PictureBatchRequest implements Serializable {
+@Accessors(chain = true) // 实现链式调用
+public class AdminPictureBatchRequest implements Serializable {
 
     /**
      * 搜索词语

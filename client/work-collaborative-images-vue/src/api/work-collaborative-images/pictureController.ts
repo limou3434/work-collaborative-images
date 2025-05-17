@@ -2,12 +2,57 @@
 /* eslint-disable */
 import request from '@/request'
 
-/** 图片添加网络接口(管理) POST /picture/add */
-export async function pictureAdd(
-  body: WorkCollaborativeImagesAPI.PictureAddRequest,
+/** 图片添加网络接口(管理) POST /picture/admin/add */
+export async function adminPictureAdd(
+  body: WorkCollaborativeImagesAPI.AdminPictureAddRequest,
   options?: { [key: string]: any }
 ) {
-  return request<WorkCollaborativeImagesAPI.BaseResponsePicture>('/picture/add', {
+  return request<WorkCollaborativeImagesAPI.BaseResponsePicture>('/picture/admin/add', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
+/** 图片删除网络接口(管理) POST /picture/admin/delete */
+export async function adminPictureDelete(
+  body: WorkCollaborativeImagesAPI.AdminPictureDeleteRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/picture/admin/delete', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
+/** 图片查询网络接口(管理) POST /picture/admin/search */
+export async function adminPictureSearch(
+  body: WorkCollaborativeImagesAPI.AdminPictureSearchRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponsePagePicture>('/picture/admin/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
+/** 图片更新网络接口(管理) POST /picture/admin/update */
+export async function adminPictureUpdate(
+  body: WorkCollaborativeImagesAPI.AdminPictureUpdateRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponsePicture>('/picture/admin/update', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -18,8 +63,8 @@ export async function pictureAdd(
 }
 
 /** 图片批量网络接口(管理) POST /picture/batch */
-export async function pictureBatch(
-  body: WorkCollaborativeImagesAPI.PictureBatchRequest,
+export async function adminPictureBatch(
+  body: WorkCollaborativeImagesAPI.AdminPictureBatchRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseInteger>('/picture/batch', {
@@ -40,24 +85,9 @@ export async function pictureCategorys(options?: { [key: string]: any }) {
   })
 }
 
-/** 图片删除网络接口(管理) POST /picture/delete */
-export async function pictureDelete(
-  body: WorkCollaborativeImagesAPI.PictureDeleteRequest,
-  options?: { [key: string]: any }
-) {
-  return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/picture/delete', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  })
-}
-
-/** 用户销毁图片网络接口 POST /picture/destroy */
+/** 销毁图片网络接口 POST /picture/destroy */
 export async function pictureDestroy(
-  body: WorkCollaborativeImagesAPI.PictureDeleteRequest,
+  body: WorkCollaborativeImagesAPI.PictureDestroyRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/picture/destroy', {
@@ -70,57 +100,27 @@ export async function pictureDestroy(
   })
 }
 
+/** 查找图片网络接口 POST /picture/query */
+export async function pictureQuery(
+  body: WorkCollaborativeImagesAPI.PictureQueryRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponsePagePictureVO>('/picture/query', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
 /** 图片审核网络接口(管理) POST /picture/review */
-export async function pictureReview(
-  body: WorkCollaborativeImagesAPI.PictureReviewRequest,
+export async function adminPictureReview(
+  body: WorkCollaborativeImagesAPI.AdminPictureReviewRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/picture/review', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  })
-}
-
-/** 图片查询网络接口(管理) POST /picture/search */
-export async function pictureSearch(
-  body: WorkCollaborativeImagesAPI.PictureSearchRequest,
-  options?: { [key: string]: any }
-) {
-  return request<WorkCollaborativeImagesAPI.BaseResponsePagePicture>('/picture/search', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  })
-}
-
-/** 脱敏后的图片查询网络接口 POST /picture/search/vo */
-export async function pictureSearchVo(
-  body: WorkCollaborativeImagesAPI.PictureSearchRequest,
-  options?: { [key: string]: any }
-) {
-  return request<WorkCollaborativeImagesAPI.BaseResponsePagePictureVO>('/picture/search/vo', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  })
-}
-
-/** 图片更新网络接口(管理) POST /picture/update */
-export async function pictureUpdate(
-  body: WorkCollaborativeImagesAPI.PictureUpdateRequest,
-  options?: { [key: string]: any }
-) {
-  return request<WorkCollaborativeImagesAPI.BaseResponsePicture>('/picture/update', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

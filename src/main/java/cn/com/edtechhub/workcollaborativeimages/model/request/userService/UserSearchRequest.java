@@ -1,6 +1,8 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.userService;
 
 import cn.com.edtechhub.workcollaborativeimages.model.request.PageRequest;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -18,6 +20,7 @@ public class UserSearchRequest extends PageRequest implements Serializable {
     /**
      * 本用户唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long id;
 
     /**

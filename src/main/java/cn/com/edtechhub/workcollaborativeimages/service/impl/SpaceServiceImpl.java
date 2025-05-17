@@ -19,9 +19,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.annotation.Resource;
 import java.util.Collections;
 
 /**
@@ -33,25 +34,49 @@ import java.util.Collections;
 @Slf4j
 public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements SpaceService {
 
+    /**
+     * 注入事务管理依赖
+     */
+    @Resource
+    TransactionTemplate transactionTemplate;
+
     public Space spaceAdd(AdminSpaceAddRequest adminSpaceAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(adminSpaceAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "空间添加请求体为空"));
         ThrowUtils.throwIf(StrUtil.isBlank(adminSpaceAddRequest.getSpaceName()), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "空间名称不能为空"));
         ThrowUtils.throwIf(adminSpaceAddRequest.getSpaceLevel() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "空间等级不能为空"));
 
-        // 创建空间实例的同时加密密码
+        // 创建空间实例
         var space = new Space();
         BeanUtils.copyProperties(adminSpaceAddRequest, space);
         this.fillSpaceBySpaceLevel(space);
         space.setUserId(Long.valueOf(StpUtil.getLoginId().toString()));
 
-        // 保存实例的同时利用唯一键约束避免并发问题
-        try {
-            this.save(space);
-        } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
-            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "已经存在该空间, 或者曾经被删除"));
+        // 保存实例, 同时不能利用唯一键约束避免并发问题, 因为这样后续就无法拓展单用户多空间
+        Long userId = Long.valueOf(StpUtil.getLoginId().toString()); // 获取当前登录用户的 id 值
+        String lock = String.valueOf(userId).intern();
+        synchronized (lock) { // 针对用户进行加锁 TODO: 这种加锁有可能导致字符串池膨胀(目前概率较低), 可以考虑使用 Guava Cache
+            return transactionTemplate.execute(status -> { // 必须在锁内处理事务
+                // 锁内事务原理
+                // A线程进入方法，开始事务
+                // B线程也进入方法，开始另一个事务
+                // A线程执行到 synchronized 加锁，拿到锁
+                // A查询数据库，此时还没有空间 → 合法 → 创建空间 → 提交事务
+                // A释放锁
+                // B线程获得锁，但它事务早就开始了
+                // B线程查询数据库，此时看不到 A 的新数据（隔离级别问题）
+                // B线程也判断为合法 → 也创建了空间
+
+                // 若普通用户已经存在自己的空间则不允创建多余的空间
+                var adminSpaceSearchRequest = new AdminSpaceSearchRequest();
+                boolean exists = this.lambdaQuery().eq(Space::getUserId, userId).exists();
+                ThrowUtils.throwIf(exists, new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个私有空间"));
+
+                // 若普通用户尚未存在自己的空间则允许创建多余的空间
+                this.save(space);
+                return this.getById(space.getId());
+            });
         }
-        return this.getById(space.getId());
     }
 
     public Boolean spaceDelete(AdminSpaceDeleteRequest adminSpaceDeleteRequest) {

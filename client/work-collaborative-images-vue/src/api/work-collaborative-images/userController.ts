@@ -2,12 +2,12 @@
 /* eslint-disable */
 import request from '@/request'
 
-/** 添加用户网络接口(管理) POST /user/add */
+/** 添加用户网络接口(管理) POST /user/admin/add */
 export async function userAdd(
   body: WorkCollaborativeImagesAPI.UserAddRequest,
   options?: { [key: string]: any }
 ) {
-  return request<WorkCollaborativeImagesAPI.BaseResponseUser>('/user/add', {
+  return request<WorkCollaborativeImagesAPI.BaseResponseUser>('/user/admin/add', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -17,12 +17,12 @@ export async function userAdd(
   })
 }
 
-/** 删除用户网络接口(管理) POST /user/delete */
-export async function userDelete(
+/** 删除用户网络接口(管理) POST /user/admin/delete */
+export async function adminUserDelete(
   body: WorkCollaborativeImagesAPI.UserDeleteRequest,
   options?: { [key: string]: any }
 ) {
-  return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/user/delete', {
+  return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/user/admin/delete', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -32,12 +32,42 @@ export async function userDelete(
   })
 }
 
-/** 封禁用户网络接口(管理) POST /user/disable */
-export async function userDisable(
+/** 封禁用户网络接口(管理) POST /user/admin/disable */
+export async function adminUserDisable(
   body: WorkCollaborativeImagesAPI.UserDisableRequest,
   options?: { [key: string]: any }
 ) {
-  return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/user/disable', {
+  return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/user/admin/disable', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
+/** 查询用户网络接口(管理) POST /user/admin/search */
+export async function adminUserSearch(
+  body: WorkCollaborativeImagesAPI.UserSearchRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponsePageUser>('/user/admin/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
+/** 修改用户网络接口(管理) POST /user/admin/update */
+export async function adminUserUpdate(
+  body: WorkCollaborativeImagesAPI.UserUpdateRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseUser>('/user/admin/update', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -93,40 +123,10 @@ export async function userRegister(
   })
 }
 
-/** 查询用户网络接口(管理) POST /user/search */
-export async function userSearch(
-  body: WorkCollaborativeImagesAPI.UserSearchRequest,
-  options?: { [key: string]: any }
-) {
-  return request<WorkCollaborativeImagesAPI.BaseResponsePageUser>('/user/search', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  })
-}
-
 /** 获取登录状态网络接口 GET /user/status */
 export async function userStatus(options?: { [key: string]: any }) {
   return request<WorkCollaborativeImagesAPI.BaseResponseUserStatus>('/user/status', {
     method: 'GET',
-    ...(options || {}),
-  })
-}
-
-/** 修改用户网络接口(管理) POST /user/update */
-export async function userUpdate(
-  body: WorkCollaborativeImagesAPI.UserUpdateRequest,
-  options?: { [key: string]: any }
-) {
-  return request<WorkCollaborativeImagesAPI.BaseResponseUser>('/user/update', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
     ...(options || {}),
   })
 }

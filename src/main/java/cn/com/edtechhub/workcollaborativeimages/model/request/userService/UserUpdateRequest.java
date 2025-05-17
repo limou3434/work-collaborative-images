@@ -1,5 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.userService;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,6 +17,7 @@ public class UserUpdateRequest implements Serializable {
     /**
      * 本用户唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)
      */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long id; // 这个 id 是用来寻找需要更新的用户的
 
     /**

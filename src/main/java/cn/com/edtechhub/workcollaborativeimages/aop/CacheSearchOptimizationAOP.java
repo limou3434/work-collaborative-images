@@ -46,7 +46,6 @@ public class CacheSearchOptimizationAOP { // TODO: 需要预防缓存击穿、�
     @Around("@annotation(cacheSearchOptimization)")
     public Object around(ProceedingJoinPoint joinPoint, CacheSearchOptimization cacheSearchOptimization) throws Throwable {
         log.debug(">>> [CacheSearchOptimizationAOP] 执行前");
-
         log.debug("检查 {}", cacheSearchOptimization);
 
         // 获取方法签名
@@ -131,4 +130,5 @@ public class CacheSearchOptimizationAOP { // TODO: 需要预防缓存击穿、�
         log.debug("<<< [CacheSearchOptimizationAOP] 执行后");
         return result;
     }
+
 }
