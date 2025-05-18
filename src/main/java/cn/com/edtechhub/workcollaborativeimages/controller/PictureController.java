@@ -5,16 +5,21 @@ import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
+import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.*;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.AdminSpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.UserVO;
 import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
+import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
+import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
@@ -27,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -175,6 +181,13 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @PostMapping("/destroy")
 //    @SentinelResource(value = "pictureDestroy") c
     public BaseResponse<Boolean> pictureDestroy(@RequestBody PictureDestroyRequest pictureDestroyRequest) {
+        // 若普通用户已经存在自己的空间则不允创建多余的空间
+        Long userId = Long.valueOf(StpUtil.getLoginId().toString()); // 获取当前登录用户的 id 值
+        log.debug("销毁前检查当前登陆的用户 {}", userId);
+        List<Picture> pictureList = pictureService.pictureSearch(new AdminPictureSearchRequest().setId(pictureDestroyRequest.getId())).getRecords();
+        ThrowUtils.throwIf(pictureList.isEmpty(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不存在该图片, 或者该图片属于某个用户的私人空间"));
+        Picture picture = pictureList.get(0);
+        ThrowUtils.throwIf(!Objects.equals(picture.getUserId(), userId), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您无法销毁不是自己的空间的图片"));
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(AdminPictureDeleteRequest.copyProperties(pictureDestroyRequest)));
     }
 

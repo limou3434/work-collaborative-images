@@ -213,6 +213,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public Long userGetCurrentLonginUserId() {
+        return Long.valueOf(StpUtil.getLoginId().toString());
+    }
+
+    @Override
     public UserStatus userGetLoginStatus() {
         UserStatus userStatus = new UserStatus();
         userStatus.setIsLogin(StpUtil.isLogin());

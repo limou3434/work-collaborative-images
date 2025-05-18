@@ -1,22 +1,20 @@
 package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
-import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
-import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
-import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
+import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjUtil;
@@ -58,6 +56,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     CosManager cosManager;
 
     /**
+     * 注入用户服务依赖
+     */
+    @Resource
+    UserService userService;
+
+    /**
      * 注入空间服务依赖
      */
     @Resource
@@ -66,8 +70,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     public Picture pictureAdd(AdminPictureAddRequest adminPictureAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(adminPictureAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片添加请求体为空"));
+        ThrowUtils.throwIf(StrUtil.isNotBlank(adminPictureAddRequest.getName()) && adminPictureAddRequest.getName().length() > 30, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片名称不能大于 30 个字符"));
 
-        // 创建用户实例的同时加密密码
+        // 创建图片实例
         var picture = new Picture();
         BeanUtils.copyProperties(adminPictureAddRequest, picture);
 
@@ -81,18 +86,20 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     }
 
     public Boolean pictureDelete(AdminPictureDeleteRequest adminPictureDeleteRequest) {
+        // 检查参数
         ThrowUtils.throwIf(adminPictureDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片删除请求体不能为空"));
-        Long id = adminPictureDeleteRequest.getId();
-        ThrowUtils.throwIf(id <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法"));
+        ThrowUtils.throwIf(adminPictureDeleteRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识不能为空"));
+        ThrowUtils.throwIf(adminPictureDeleteRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法"));
 
         // 操作数据库
-        boolean result = this.removeById(id);
+        boolean result = this.removeById(adminPictureDeleteRequest.getId());
         ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "删除图片失败, 也许该图片不存在或者已经被删除"));
         return true;
     }
 
     public Picture pictureUpdate(AdminPictureUpdateRequest adminPictureUpdateRequest) {
         // 检查参数
+        ThrowUtils.throwIf(adminPictureUpdateRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片更新请求体不能为空"));
         ThrowUtils.throwIf(adminPictureUpdateRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 不能为空"));
         ThrowUtils.throwIf(adminPictureUpdateRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 必须是正整数"));
 
@@ -117,11 +124,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             Picture picture = this.getById(pictureId);
             log.debug("单条查询的图片记录为 {}", picture);
             Page<Picture> resultPage = new Page<>();
+            log.debug("提前检查单次查询的分页结果 {}", resultPage);
             // 如果图片存在并且如果当前登录用户查询的自己就是创建的图片或者图片处于通过状态就允许返回结果
             if (
                     picture != null &&
-                            Long.parseLong(StpUtil.getLoginId().toString()) == picture.getUserId() ||
-                            picture.getReviewStatus() == PictureReviewStatusEnum.PASS.getValue()
+                            (Long.parseLong(StpUtil.getLoginId().toString()) == picture.getUserId() || picture.getReviewStatus() == PictureReviewStatusEnum.PASS.getValue())
             ) {
                 resultPage.setRecords(Collections.singletonList(picture));
                 resultPage.setTotal(1);
@@ -135,6 +142,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                 resultPage.setSize(1);
                 resultPage.setCurrent(1);
             }
+            log.debug("检查单次查询的分页结果 {}", resultPage);
             return resultPage;
         }
 

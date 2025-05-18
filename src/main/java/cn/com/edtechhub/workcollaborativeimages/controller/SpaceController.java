@@ -10,6 +10,7 @@ import cn.com.edtechhub.workcollaborativeimages.model.vo.SpaceVO;
 import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
+import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
@@ -42,6 +43,12 @@ import java.util.Objects;
 @RequestMapping("/space")
 @Slf4j
 public class SpaceController { // 通常控制层有服务层中的所有方法, 并且还有组合而成的方法, 如果组合的方法开始变得复杂就会封装到服务层内部
+
+    /**
+     * 注入用户服务依赖
+     */
+    @Resource
+    UserService userService;
 
     /**
      * 注入空间服务依赖
@@ -92,23 +99,30 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @PostMapping("/create")
     public BaseResponse<SpaceVO> spaceCreate(@RequestBody SpaceCreateRequest spaceCreateRequest) {
         // 若普通用户已经存在自己的空间则不允创建多余的空间
-        Long userId = Long.valueOf(StpUtil.getLoginId().toString()); // 获取当前登录用户的 id 值
-        boolean res = spaceService.lambdaQuery().eq(Space::getUserId, userId).exists();
-        ThrowUtils.throwIf(res, new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个私有空间"));
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceAdd(AdminSpaceAddRequest.copyProperties(spaceCreateRequest).setSpaceLevel(SpaceLevelEnums.COMMON.getCode()))));
+        Long userId = userService.userGetCurrentLonginUserId();
+        boolean res = spaceService.spaceSearch(new AdminSpaceSearchRequest().setUserId(userId)).getRecords().isEmpty(); // 获取对应的空间
+        ThrowUtils.throwIf(!res, new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个私有空间"));
+
+        // 否则就给该用户创建新的空间
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceAdd(AdminSpaceAddRequest.copyProperties(spaceCreateRequest).setSpaceLevel(SpaceLevelEnums.COMMON.getCode()).setUserId(userId))));
     }
 
     @Operation(summary = "销毁空间网络接口")
     @SaCheckLogin
     @PostMapping("/destroy")
-    public BaseResponse<Boolean> spaceDestroy(@RequestBody SpaceDestroyRequest SpaceDestroyRequest) {
-        // 若普通用户已经存在自己的空间则不允创建多余的空间
-        Long userId = Long.valueOf(StpUtil.getLoginId().toString()); // 获取当前登录用户的 id 值
-        List<Space> spaceList = spaceService.spaceSearch(new AdminSpaceSearchRequest().setId(SpaceDestroyRequest.getId())).getRecords(); // 获取对应的空间
-        ThrowUtils.throwIf(spaceList.isEmpty(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不存在该空间"));
+    public BaseResponse<Boolean> spaceDestroy(@RequestBody SpaceDestroyRequest spaceDestroyRequest) {
+        // 若该空间不存在则不允许销毁空间
+        Long userId = userService.userGetCurrentLonginUserId();
+        List<Space> spaceList = spaceService.spaceSearch(new AdminSpaceSearchRequest().setId(spaceDestroyRequest.getId())).getRecords(); // 获取对应的空间
+        boolean res = spaceList.isEmpty();
+        ThrowUtils.throwIf(res, new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不存在该空间"));
+
+        // 若用户不是空间的所属人则不允许销毁空间
         Space space = spaceList.get(0);
-        ThrowUtils.throwIf(!Objects.equals(space.getUserId(), userId), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您无法删除不是自己的空间"));
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceDelete(AdminSpaceDeleteRequest.copyProperties(SpaceDestroyRequest)));
+        ThrowUtils.throwIf(!Objects.equals(space.getUserId(), userId), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您无法销毁不是自己的空间"));
+
+        // 允许销毁空间
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceDelete(AdminSpaceDeleteRequest.copyProperties(spaceDestroyRequest)));
     }
 
     @Operation(summary = "编辑空间网络接口")

@@ -61,7 +61,8 @@ const canEdit = computed(() => {
 
 // 下载图片
 const doDownload = () => {
-  message.info('下载功能待实现')
+  message.success('下载成功')
+  window.location.href = <string>picture.value.url
 }
 
 // 分享图片

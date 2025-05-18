@@ -59,12 +59,17 @@ public interface UserService extends IService<User> {
     Boolean userLogout(String device);
 
     /**
-     * 用户状态服务
+     * 用户获取标识服务
+     */
+    Long userGetCurrentLonginUserId();
+
+    /**
+     * 用户获取状态服务
      */
     UserStatus userGetLoginStatus();
 
     /**
-     * 用户信息服务
+     * 用户获取信息服务
      */
     User userGetLoginInfo();
 
