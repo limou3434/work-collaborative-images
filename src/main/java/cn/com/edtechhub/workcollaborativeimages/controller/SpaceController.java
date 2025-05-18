@@ -4,6 +4,7 @@ import cn.com.edtechhub.workcollaborativeimages.annotation.CacheSearchOptimizati
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.*;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.SpaceVO;
@@ -173,6 +174,13 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         spaceVOPage.setSize(spacePage.getSize());
         spaceVOPage.setCurrent(spacePage.getCurrent());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceVOPage);
+    }
+
+    @Operation(summary = "获取空间等级描述网络接口")
+    @SaCheckLogin
+    @PostMapping("/level")
+    public BaseResponse<List<SpaceLevelInfo>> spaceLevel() {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceGetLevelInfo());
     }
 
 }

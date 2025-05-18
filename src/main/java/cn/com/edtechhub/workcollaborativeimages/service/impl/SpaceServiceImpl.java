@@ -2,9 +2,10 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.mapper.SpaceMapper;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.AdminSpaceAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.AdminSpaceDeleteRequest;
@@ -13,7 +14,6 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.Admin
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -25,7 +25,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author ljp
@@ -154,6 +157,58 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
         // 查询空间分页后直接取得内部的列表进行返回
         return this.page(page, queryWrapper); // 调用 MyBatis-Plus 的分页查询方法
+    }
+
+    public Boolean spaceCheckSize() {
+        Space space = this.spaceGetCurrentLoginUserPrivateSpace();
+        Long maxSize = space.getMaxSize();
+        Long totalSize = space.getTotalSize();
+        return totalSize < maxSize;
+    }
+
+    public Boolean spaceCheckCount() {
+        Space space = this.spaceGetCurrentLoginUserPrivateSpace();
+        Long maxCount = space.getMaxCount();
+        Long totalCount = space.getTotalCount();
+        return totalCount < maxCount;
+    }
+
+    public void spaceIncreaseCurrent(Picture picture) {
+        Space space = this.spaceGetCurrentLoginUserPrivateSpace();
+        space.setTotalSize(space.getTotalSize() + picture.getPicSize());
+        space.setTotalCount(space.getTotalCount() + 1);
+        this.updateById(space);
+    }
+
+    public void spaceDecreaseCurrent(Picture picture) {
+        Space space = this.spaceGetCurrentLoginUserPrivateSpace();
+        space.setTotalSize(space.getTotalSize() - picture.getPicSize());
+        space.setTotalCount(space.getTotalCount() - 1);
+        if (space.getTotalSize() < 0L) {
+            space.setTotalSize(0L);
+        }
+        this.updateById(space);
+    }
+
+    public List<SpaceLevelInfo> spaceGetLevelInfo() {
+        return Arrays.stream(SpaceLevelEnums.values()) // 获取所有枚举
+                .map(spaceLevelEnum -> new SpaceLevelInfo(
+                        spaceLevelEnum.getCode(),
+                        spaceLevelEnum.getDescription(),
+                        spaceLevelEnum.getMaxCount(),
+                        spaceLevelEnum.getMaxSize()))
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * 获取当前用户的私有空间
+     */
+    private Space spaceGetCurrentLoginUserPrivateSpace() {
+        Long userId = userService.userGetCurrentLonginUserId();
+        List<Space> spaceList = this.spaceSearch(new AdminSpaceSearchRequest().setUserId(userId)).getRecords();
+        ThrowUtils.throwIf(spaceList.isEmpty(), new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "该用户没有私有空间"));
+        return spaceList.get(0);
     }
 
     /**

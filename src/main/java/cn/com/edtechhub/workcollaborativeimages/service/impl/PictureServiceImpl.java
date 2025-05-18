@@ -30,13 +30,13 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,6 +49,12 @@ import java.util.List;
 public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> implements PictureService {
 
     /**
+     * 注入事务管理依赖
+     */
+    @Resource
+    TransactionTemplate transactionTemplate;
+
+    /**
      * 注入 COS 管理器依赖
      */
     @Resource
@@ -59,6 +65,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
      */
     @Resource
     UserService userService;
+
+    @Resource
+    SpaceService spaceService;
 
     public Picture pictureAdd(AdminPictureAddRequest adminPictureAddRequest) {
         // 检查参数
@@ -85,9 +94,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         ThrowUtils.throwIf(adminPictureDeleteRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法"));
 
         // 操作数据库
-        boolean result = this.removeById(adminPictureDeleteRequest.getId());
-        ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "删除图片失败, 也许该图片不存在或者已经被删除"));
-        return true;
+        return transactionTemplate.execute(status -> {
+            boolean result = this.removeById(adminPictureDeleteRequest.getId());
+            ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "删除图片失败, 也许该图片不存在或者已经被删除"));
+            return true;
+        });
     }
 
     public Picture pictureUpdate(AdminPictureUpdateRequest adminPictureUpdateRequest) {
@@ -97,7 +108,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         ThrowUtils.throwIf(adminPictureUpdateRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识必须是正整数"));
         ThrowUtils.throwIf(StrUtil.isNotBlank(adminPictureUpdateRequest.getName()) && adminPictureUpdateRequest.getName().length() > 30, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片名称不能大于 30 个字符"));
 
-        // 更新用户并且需要考虑密码的问题
+        // 更新图片
         Picture picture = new Picture();
         BeanUtils.copyProperties(adminPictureUpdateRequest, picture);
         this.updateById(picture);
@@ -244,12 +255,22 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             picture.setPicFormat(uploadPictureResult.getPicFormat());
         }
 
-        // 执行落库
-        boolean result = this.saveOrUpdate(picture);
-        ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
-        Picture newPicture = this.getById(picture.getId());
-        log.debug("检查入库后的图片 {}", newPicture);
-        return newPicture;
+        // 开启事务
+        return transactionTemplate.execute(status -> {
+            // 校验额度并且增加存量
+            if (spaceId != 0) { // TODO: 其实应该提前截获图片的大小的
+                ThrowUtils.throwIf(!spaceService.spaceCheckSize(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "剩余空间额度大小不足"));
+                ThrowUtils.throwIf(!spaceService.spaceCheckCount(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "剩余空间额度数量不足"));
+                spaceService.spaceIncreaseCurrent(picture);
+            }
+
+            // 执行落库
+            boolean result = this.saveOrUpdate(picture);
+            ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
+            Picture newPicture = this.getById(picture.getId());
+            log.debug("检查入库后的图片 {}", newPicture);
+            return newPicture;
+        });
     }
 
     public List<String> pictureGetCategorys() {

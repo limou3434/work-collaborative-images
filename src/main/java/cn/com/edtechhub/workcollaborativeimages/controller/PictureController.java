@@ -247,6 +247,9 @@ public class PictureController { // 通常控制层有服务层中的所有方�
             ThrowUtils.throwIf(!userId.equals(space.getUserId()) && ((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole() != UserRoleEnums.ADMIN_ROLE.getCode(), new BusinessException(CodeBindMessageEnums.NO_AUTH_ERROR, "该图片属于私有空间图片, 您不是该空间的所属者, 没有权限删除图片"));
         }
         ThrowUtils.throwIf(!Objects.equals(picture.getUserId(), userService.userGetCurrentLonginUserId()), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您无法销毁不是自己的空间的图片"));
+        if (picture.getSpaceId() != 0) {
+            spaceService.spaceDecreaseCurrent(picture);
+        }
 
         // 响应数据
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(AdminPictureDeleteRequest.copyProperties(pictureDestroyRequest)));
