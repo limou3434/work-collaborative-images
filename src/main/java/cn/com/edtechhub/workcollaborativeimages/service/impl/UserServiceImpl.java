@@ -99,25 +99,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 检查参数
         ThrowUtils.throwIf(userSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户查询请求不能为空"));
 
-        // 如果用户传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
-        Long userId = userSearchRequest.getId();
-        if (userId != null) {
-            log.debug("本次查询只需要查询一条记录, 使用 id 字段来提高效率");
-            User user = this.getById(userId);
-            Page<User> resultPage = new Page<>();
-            if (user != null) {
-                resultPage.setRecords(Collections.singletonList(user));
-                resultPage.setTotal(1);
-                resultPage.setSize(1);
-                resultPage.setCurrent(1);
-            } else {
-                resultPage.setRecords(Collections.emptyList());
-                resultPage.setTotal(0);
-                resultPage.setSize(1);
-                resultPage.setCurrent(1);
-            }
-            return resultPage;
-        }
+        // TODO: 如果用户传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
 
         // 获取查询对象
         LambdaQueryWrapper<User> queryWrapper = this.getQueryWrapper(userSearchRequest); // 构造查询条件
@@ -234,6 +216,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public User userGetLoginInfo() {
         return (User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE);
+    }
+
+    @Override
+    public Integer userIsAdmin() {
+        return ((User) StpUtil.getSessionByLoginId(this.userGetCurrentLonginUserId()).get(UserConstant.USER_LOGIN_STATE)).getRole();
     }
 
     /**

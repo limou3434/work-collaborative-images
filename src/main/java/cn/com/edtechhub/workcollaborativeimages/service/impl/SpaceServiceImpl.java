@@ -57,7 +57,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
         // 创建空间实例
         var space = new Space();
-        BeanUtils.copyProperties(adminSpaceAddRequest, this.fillSpaceBySpaceLevel(space));
+        BeanUtils.copyProperties(adminSpaceAddRequest, space);
 
         // 保存实例, 同时不能数据库的利用唯一键约束避免并发问题, 因为这样后续就无法拓展单用户多空间
         Long userId = userService.userGetCurrentLonginUserId();
@@ -74,7 +74,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 // B 线程查询数据库，此时看不到 A 的新数据（隔离级别问题）
                 // B 线程也判断为合法 → 也创建了空间
                 // 若普通用户尚未存在自己的空间则允许创建多余的空间
-                this.save(space);
+                this.save(this.fillSpaceBySpaceLevel(space));
 
                 // 添加空间后最好把空间的信息也返回, 这样方便前端做实时的数据更新
                 return this.getById(space.getId());
@@ -122,7 +122,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         ThrowUtils.throwIf(StrUtil.isNotBlank(adminSpaceSearchRequest.getSpaceName()) && adminSpaceSearchRequest.getSpaceName().length() > 30, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "空间名称不能大于 30 个字符"));
         ThrowUtils.throwIf(adminSpaceSearchRequest.getSpaceLevel() != null && SpaceLevelEnums.getLevelDescription(adminSpaceSearchRequest.getSpaceLevel()) == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "空间等级非法"));
 
-        // 如果空间传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
+        // TODO: 如果空间传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
+
         Long spaceId = adminSpaceSearchRequest.getId();
         if (spaceId != null) {
             log.debug("本次查询只需要查询一条记录, 使用 id 字段来提高效率");
@@ -141,6 +142,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 resultPage.setRecords(Collections.emptyList());
                 resultPage.setTotal(0);
             }
+            log.debug("检查单次查询的分页结果 {}", resultPage);
             return resultPage;
         }
 

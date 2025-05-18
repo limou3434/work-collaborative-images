@@ -9,8 +9,6 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserUp
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
-import java.util.List;
-
 /**
  * @author Limou
  * @description 针对表【user(用户信息表)】的数据库操作Service
@@ -72,5 +70,10 @@ public interface UserService extends IService<User> {
      * 用户获取信息服务
      */
     User userGetLoginInfo();
+
+    /**
+     * 用户确认为管理员服务
+     */
+    Integer userIsAdmin();
 
 }

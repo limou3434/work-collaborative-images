@@ -76,7 +76,7 @@ CREATE TABLE `picture`
     `pic_scale`      DOUBLE          NULL COMMENT '图片宽高比例',
     `pic_format`     VARCHAR(32)     NULL COMMENT '图片格式',
     `user_id`        BIGINT UNSIGNED NOT NULL COMMENT '创建用户 id',
-    `space_id`       BIGINT          NULL COMMENT '空间 id(为空表示公共空间)',
+    `space_id`       BIGINT          DEFAULT 0 COMMENT '空间 id(为 0 表示公共空间)',
     `review_status`  INT                  DEFAULT 0 NOT NULL COMMENT '审核状态: 0-待审; 1-通过; 2-拒绝',
     `review_message` VARCHAR(512)    NULL COMMENT '审核信息',
     `review_time`    DATETIME        NULL COMMENT '审核时间',

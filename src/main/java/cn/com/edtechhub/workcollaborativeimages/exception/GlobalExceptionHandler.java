@@ -29,8 +29,6 @@ public class GlobalExceptionHandler {
 
     /**
      * 全局所有异常处理方法(兜底把所有运行时异常拦截后进行处理)
-     *
-     * @param e 参数异常对象
      */
     @ExceptionHandler // 直接拦截 Throwable
     public BaseResponse<String> exceptionHandler(Exception e) {
@@ -41,9 +39,6 @@ public class GlobalExceptionHandler {
 
     /**
      * 业务内部异常处理方法(服务层手动使用)
-     *
-     * @param e 参数异常对象
-     * @return 包含错误原因的通用响应体对象
      */
     @ExceptionHandler(BusinessException.class)
     public BaseResponse<?> businessExceptionHandler(BusinessException e) {
@@ -53,9 +48,6 @@ public class GlobalExceptionHandler {
 
     /**
      * 登录认证异常处理方法(由 Sa-token 框架自己来触发)
-     *
-     * @param e 登录异常对象
-     * @return 包含错误原因的通用响应体对象s
      */
     @ExceptionHandler(NotLoginException.class)
     public BaseResponse<?> notLoginExceptionHandler(NotLoginException e) {
@@ -65,9 +57,6 @@ public class GlobalExceptionHandler {
 
     /**
      * 权限认证异常处理方法(权限码值认证)
-     *
-     * @param e 权限异常对象
-     * @return 包含错误原因的通用响应体对象
      */
 
     @ExceptionHandler(NotPermissionException.class)
@@ -78,9 +67,6 @@ public class GlobalExceptionHandler {
 
     /**
      * 权限认证异常处理方法(角色标识认证)
-     *
-     * @param e 权限异常对象
-     * @return 包含错误原因的通用响应体对象
      */
     @ExceptionHandler(NotRoleException.class)
     public BaseResponse<?> notRoleExceptionHandler(NotRoleException e) {
@@ -90,9 +76,6 @@ public class GlobalExceptionHandler {
 
     /**
      * 用户封禁异常处理方法
-     *
-     * @param e 权限异常对象
-     * @return 包含错误原因的通用响应体对象
      */
     @ExceptionHandler(DisableServiceException.class)
     public BaseResponse<?> disableServiceExceptionHandler(DisableServiceException e) {

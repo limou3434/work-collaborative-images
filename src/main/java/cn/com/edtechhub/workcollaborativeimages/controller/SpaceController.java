@@ -14,7 +14,6 @@ import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 空间控制层
@@ -61,7 +61,6 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/add")
-//    @SentinelResource(value = "adminSpaceAdd")
     public BaseResponse<Space> adminSpaceAdd(@RequestBody AdminSpaceAddRequest adminSpaceAddRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceAdd(adminSpaceAddRequest)); // 可以直接绕过 COS 进行添加落库
     }
@@ -70,7 +69,6 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/delete")
-//    @SentinelResource(value = "adminSpaceDelete")
     public BaseResponse<Boolean> adminSpaceDelete(@RequestBody AdminSpaceDeleteRequest adminSpaceDeleteRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceDelete(adminSpaceDeleteRequest)); // TODO: 实际上管理员删除接口最重要的一点就是可以直接清理 COS 上的空间, 但是普通用户只是去除数据库中的关联而已
     }
@@ -79,7 +77,6 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/update")
-//    @SentinelResource(value = "adminSpaceUpdate")
     public BaseResponse<Space> adminSpaceUpdate(@RequestBody AdminSpaceUpdateRequest adminSpaceUpdateRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceUpdate(adminSpaceUpdateRequest)); // 可以直接绕过 COS 进行更新落库
     }
@@ -88,7 +85,6 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/search")
-//    @SentinelResource(value = "adminSpaceSearch")
     public BaseResponse<Page<Space>> adminSpaceSearch(@RequestBody AdminSpaceSearchRequest adminSpaceSearchRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceSearch(adminSpaceSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息
     }
@@ -98,38 +94,56 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @SaCheckLogin
     @PostMapping("/create")
     public BaseResponse<SpaceVO> spaceCreate(@RequestBody SpaceCreateRequest spaceCreateRequest) {
-        // 若普通用户已经存在自己的空间则不允创建多余的空间
-        Long userId = userService.userGetCurrentLonginUserId();
-        boolean res = spaceService.spaceSearch(new AdminSpaceSearchRequest().setUserId(userId)).getRecords().isEmpty(); // 获取对应的空间
-        ThrowUtils.throwIf(!res, new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个私有空间"));
+        // 检查参数
+        ThrowUtils.throwIf(spaceCreateRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "错误调用"));
 
-        // 否则就给该用户创建新的空间
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceAdd(AdminSpaceAddRequest.copyProperties(spaceCreateRequest).setSpaceLevel(SpaceLevelEnums.COMMON.getCode()).setUserId(userId))));
+        // 处理请求
+        var request = AdminSpaceAddRequest.copyProperties(spaceCreateRequest);
+        Long userId = userService.userGetCurrentLonginUserId();
+        ThrowUtils.throwIf(!spaceService.spaceSearch(new AdminSpaceSearchRequest().setUserId(userId)).getRecords().isEmpty(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个私有空间"));
+        request
+                .setUserId(userId) // 强制用户只能创建属于自己的私有空间
+                .setSpaceLevel(SpaceLevelEnums.COMMON.getCode()) // 强制用户只能得到普通版本私有空间
+        ;
+
+        // 响应数据
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceAdd(request)));
     }
 
     @Operation(summary = "销毁空间网络接口")
     @SaCheckLogin
     @PostMapping("/destroy")
     public BaseResponse<Boolean> spaceDestroy(@RequestBody SpaceDestroyRequest spaceDestroyRequest) {
-        // 若该空间不存在则不允许销毁空间
+        // 检查参数
+        ThrowUtils.throwIf(spaceDestroyRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "错误调用"));
+
+        // 处理请求
+        var request = AdminSpaceDeleteRequest.copyProperties(spaceDestroyRequest);
         Long userId = userService.userGetCurrentLonginUserId();
         List<Space> spaceList = spaceService.spaceSearch(new AdminSpaceSearchRequest().setId(spaceDestroyRequest.getId())).getRecords(); // 获取对应的空间
-        boolean res = spaceList.isEmpty();
-        ThrowUtils.throwIf(res, new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不存在该空间"));
+        ThrowUtils.throwIf(spaceList.isEmpty(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不存在该空间, 无法销毁"));
+        ThrowUtils.throwIf(!Objects.equals(spaceList.get(0).getUserId(), userId), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您无法销毁不是自己的空间")); // 若用户不是空间的所属人则不允许销毁空间
 
-        // 若用户不是空间的所属人则不允许销毁空间
-        Space space = spaceList.get(0);
-        ThrowUtils.throwIf(!Objects.equals(space.getUserId(), userId), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您无法销毁不是自己的空间"));
-
-        // 允许销毁空间
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceDelete(AdminSpaceDeleteRequest.copyProperties(spaceDestroyRequest)));
+        // 响应数据
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceDelete(request));
     }
 
     @Operation(summary = "编辑空间网络接口")
     @SaCheckLogin
     @PostMapping("/edit")
-    public BaseResponse<SpaceVO> spaceEdit(@RequestBody SpaceEditRequest SpaceEditRequest) {
-        return TheResult.notyet();
+    public BaseResponse<SpaceVO> spaceEdit(@RequestBody SpaceEditRequest spaceEditRequest) {
+        // 检查参数
+        ThrowUtils.throwIf(spaceEditRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "错误调用"));
+
+        // 处理请求
+        var request = AdminSpaceUpdateRequest.copyProperties(spaceEditRequest);
+        Long userId = userService.userGetCurrentLonginUserId();
+        List<Space> spaceList = spaceService.spaceSearch(new AdminSpaceSearchRequest().setId(spaceEditRequest.getId())).getRecords(); // 获取对应的空间
+        ThrowUtils.throwIf(spaceList.isEmpty(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不存在该空间, 无法修改"));
+        ThrowUtils.throwIf(!Objects.equals(spaceList.get(0).getUserId(), userId), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您无法修改不是自己的空间")); // 若用户不是空间的所属人则不允许修改空间
+
+        // 响应数据
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceUpdate(request)));
     }
 
     @Operation(summary = "查找空间网络接口")
@@ -137,8 +151,28 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @PostMapping("/query")
     @CacheSearchOptimization(ttl = 60)
     public BaseResponse<Page<SpaceVO>> spaceQuery(@RequestBody SpaceQueryRequest SpaceQueryRequest) {
-        return TheResult.notyet();
+        // 检查参数
+        ThrowUtils.throwIf(SpaceQueryRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "错误调用"));
+
+        // 处理请求
+        var request = AdminSpaceSearchRequest.copyProperties(SpaceQueryRequest);
+        Long userId = userService.userGetCurrentLonginUserId();
+        request
+                .setUserId(userId) // 强制用户只能查询属于自己的私有空间
+        ;
+
+        // 响应数据
+        Page<Space> spacePage = spaceService.spaceSearch(request);
+        List<SpaceVO> spaceVOList = spacePage.getRecords()
+                .stream()
+                .map(SpaceVO::removeSensitiveData)
+                .collect(Collectors.toList());
+        Page<SpaceVO> spaceVOPage = new Page<>();
+        spaceVOPage.setRecords(spaceVOList);
+        spaceVOPage.setTotal(spacePage.getTotal());
+        spaceVOPage.setSize(spacePage.getSize());
+        spaceVOPage.setCurrent(spacePage.getCurrent());
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceVOPage);
     }
 
 }
-

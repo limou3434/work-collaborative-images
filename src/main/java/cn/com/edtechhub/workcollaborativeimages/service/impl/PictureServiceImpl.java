@@ -7,7 +7,6 @@ import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
-import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureSearchRequest;
@@ -61,12 +60,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @Resource
     UserService userService;
 
-    /**
-     * 注入空间服务依赖
-     */
-    @Resource
-    private SpaceService spaceService;
-
     public Picture pictureAdd(AdminPictureAddRequest adminPictureAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(adminPictureAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片添加请求体为空"));
@@ -100,8 +93,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     public Picture pictureUpdate(AdminPictureUpdateRequest adminPictureUpdateRequest) {
         // 检查参数
         ThrowUtils.throwIf(adminPictureUpdateRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片更新请求体不能为空"));
-        ThrowUtils.throwIf(adminPictureUpdateRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 不能为空"));
-        ThrowUtils.throwIf(adminPictureUpdateRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 必须是正整数"));
+        ThrowUtils.throwIf(adminPictureUpdateRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识不能为空"));
+        ThrowUtils.throwIf(adminPictureUpdateRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识必须是正整数"));
+        ThrowUtils.throwIf(StrUtil.isNotBlank(adminPictureUpdateRequest.getName()) && adminPictureUpdateRequest.getName().length() > 30, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片名称不能大于 30 个字符"));
 
         // 更新用户并且需要考虑密码的问题
         Picture picture = new Picture();
@@ -116,35 +110,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     public Page<Picture> pictureSearch(AdminPictureSearchRequest adminPictureSearchRequest) {
         // 检查参数
         ThrowUtils.throwIf(adminPictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片查询请求不能为空"));
+        ThrowUtils.throwIf(adminPictureSearchRequest.getId() != null && adminPictureSearchRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法"));
+        ThrowUtils.throwIf(StrUtil.isNotBlank(adminPictureSearchRequest.getName()) && adminPictureSearchRequest.getName().length() > 30, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片名称不能大于 30 个字符"));
 
-        // 如果用户传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
-        Long pictureId = adminPictureSearchRequest.getId();
-        if (pictureId != null) {
-            log.debug("本次查询只需要查询一条记录, 使用 id 字段来提高效率");
-            Picture picture = this.getById(pictureId);
-            log.debug("单条查询的图片记录为 {}", picture);
-            Page<Picture> resultPage = new Page<>();
-            log.debug("提前检查单次查询的分页结果 {}", resultPage);
-            // 如果图片存在并且如果当前登录用户查询的自己就是创建的图片或者图片处于通过状态就允许返回结果
-            if (
-                    picture != null &&
-                            (Long.parseLong(StpUtil.getLoginId().toString()) == picture.getUserId() || picture.getReviewStatus() == PictureReviewStatusEnum.PASS.getValue())
-            ) {
-                resultPage.setRecords(Collections.singletonList(picture));
-                resultPage.setTotal(1);
-                resultPage.setSize(1);
-                resultPage.setCurrent(1);
-            }
-            // 否则直接返回空页面
-            else {
-                resultPage.setRecords(Collections.emptyList());
-                resultPage.setTotal(0);
-                resultPage.setSize(1);
-                resultPage.setCurrent(1);
-            }
-            log.debug("检查单次查询的分页结果 {}", resultPage);
-            return resultPage;
-        }
+        // TODO: 如果用户传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
 
         // 获取查询对象
         LambdaQueryWrapper<Picture> queryWrapper = this.getQueryWrapper(adminPictureSearchRequest); // 构造查询条件
@@ -216,7 +185,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             }
             // 上传图片
             try {
-                Picture picture = this.pictureUpload(null, null, category, namePrefix + (uploadCount + 1), null, null, fileUrl, null);
+                Picture picture = this.pictureUpload(userService.userGetCurrentLonginUserId(), null, null, category, namePrefix + (uploadCount + 1), null, null, fileUrl, null);
                 log.debug("图片上传成功, id = {}", picture.getId());
                 uploadCount++;
             } catch (Exception e) {
@@ -230,22 +199,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return uploadCount;
     }
 
-    public Picture pictureUpload(Long spaceId, Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
-        // 获取当前登录用户的 id 值
-        Long userId = Long.valueOf(StpUtil.getLoginId().toString());
-        log.debug("检查当前登陆用户者 {}", userId);
-
-        if (spaceId != null) {
-            // 只有空间存在才能上传照片
-            log.debug("该图片有指定需要上传的图库");
-            Space space = spaceService.getById(spaceId);
-            ThrowUtils.throwIf(space == null, new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "空间不存在"));
-
-            // 只有允许权限才能上传图片(空间所属人或项目管理员)
-            log.debug("检查空间所属者 {}", space.getUserId());
-            ThrowUtils.throwIf(!userId.equals(space.getUserId()), new BusinessException(CodeBindMessageEnums.NO_AUTH_ERROR, "您没有空间权限"));
-        }
-
+    public Picture pictureUpload(Long userId, Long spaceId, Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
         // 如果有更新图片的需求, 也就是携带了 id
         if (pictureId != null) {
             boolean exists = this
@@ -320,6 +274,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         Double picScale = adminPictureSearchRequest.getPicScale();
         String picFormat = adminPictureSearchRequest.getPicFormat();
         Long userId = adminPictureSearchRequest.getUserId();
+        Long spaceId = adminPictureSearchRequest.getSpaceId();
         Integer reviewStatus = adminPictureSearchRequest.getReviewStatus();
         String sortField = adminPictureSearchRequest.getSortField();
         String sortOrder = adminPictureSearchRequest.getSortOrder();
@@ -339,6 +294,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                 .eq(picScale != null, Picture::getPicScale, picScale)
                 .eq(picFormat != null, Picture::getPicFormat, picFormat)
                 .eq(userId != null, Picture::getUserId, userId)
+                .eq(spaceId != null, Picture::getSpaceId, spaceId)
                 .eq(reviewStatus != null, Picture::getReviewStatus, reviewStatus)
                 .orderBy(
                         StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则
