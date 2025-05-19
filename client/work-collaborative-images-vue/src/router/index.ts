@@ -28,7 +28,7 @@ const router = createRouter({
       component: () => import('../views/user/UserRegisterPage.vue'), // 懒加载页面
     },
     {
-      path: '/space/add',
+      path: '/picture/add',
       name: '提交图片',
       component: () => import('../views/picture/AddPicturePage.vue'), // 懒加载页面
     },
@@ -49,7 +49,7 @@ const router = createRouter({
       component: () => import('../views/admin/UserManagePage.vue'), // 懒加载页面
     },
     {
-      path: '/admin/space',
+      path: '/admin/picture',
       name: '图片管理',
       component: () => import('../views/admin/PictureManagePage.vue'), // 懒加载页面
     },

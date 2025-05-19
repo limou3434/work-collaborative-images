@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import PictureUpload from '@/components/PictureUpload.vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'

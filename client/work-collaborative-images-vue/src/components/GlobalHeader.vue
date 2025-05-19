@@ -46,7 +46,7 @@ const originItems = [
         label: '用户管理',
       },
       {
-        key: '/admin/space',
+        key: '/admin/picture',
         title: '图片管理',
         label: '图片管理',
       },
