@@ -212,6 +212,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         ThrowUtils.throwIf(adminSpaceSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空"));
 
         // 取得需要查询的参数
+        Long id = adminSpaceSearchRequest.getId();
         String name = adminSpaceSearchRequest.getSpaceName();
         Integer level = adminSpaceSearchRequest.getSpaceLevel();
         Long userId = adminSpaceSearchRequest.getUserId();
@@ -221,6 +222,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         // 获取包装器进行返回
         LambdaQueryWrapper<Space> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper
+                .eq(id != null, Space::getId, id)
                 .like(StringUtils.isNotBlank(name), Space::getSpaceName, name)
                 .eq(level != null, Space::getSpaceLevel, level)
                 .eq(userId != null, Space::getUserId, userId)

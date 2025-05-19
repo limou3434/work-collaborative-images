@@ -256,6 +256,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         ThrowUtils.throwIf(userSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空"));
 
         // 取得需要查询的参数
+        Long id = userSearchRequest.getId();
         String account = userSearchRequest.getAccount();
         String email = userSearchRequest.getEmail();
         String phone = userSearchRequest.getPhone();
@@ -272,6 +273,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 获取包装器进行返回
         LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper
+                .eq(id != null, User::getId, id)
                 .like(StringUtils.isNotBlank(account), User::getAccount, account)
                 .like(StringUtils.isNotBlank(email), User::getEmail, email)
                 .like(StringUtils.isNotBlank(phone), User::getPhone, phone)

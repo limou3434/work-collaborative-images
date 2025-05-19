@@ -391,6 +391,7 @@ declare namespace WorkCollaborativeImagesAPI {
     pageSize?: number
     sortField?: string
     sortOrder?: string
+    id?: number
     spaceName?: string
   }
 

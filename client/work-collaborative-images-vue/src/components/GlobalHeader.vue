@@ -22,15 +22,20 @@ const originItems = [
     icon: () => h(HomeOutlined),
   },
   {
-    key: '/space',
-    title: '图片',
-    label: '图片',
+    key: '/operate',
+    title: '添加',
+    label: '添加',
     icon: () => h(PictureOutlined),
     children: [
       {
-        key: '/space/add',
+        key: '/operate/picture/add',
         title: '添加图片',
         label: '添加图片',
+      },
+      {
+        key: '/operate/space/add',
+        title: '添加空间',
+        label: '添加空间',
       },
     ],
   },

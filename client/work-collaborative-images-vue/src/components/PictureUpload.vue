@@ -6,7 +6,7 @@ import { LoadingOutlined, PlusOutlined } from '@ant-design/icons-vue'
 
 // 接收外部传入的属性
 interface Props {
-  space?: WorkCollaborativeImagesAPI.PictureVO // 已上传的图片信息
+  picture?: WorkCollaborativeImagesAPI.PictureVO // 已上传的图片信息
   onSuccess?: (newPicture: WorkCollaborativeImagesAPI.PictureVO) => void // 成功回调，传递上传后的图片信息
   pictureId?: number // 接收父组件传递的 pictureId, 因为可能需要更新
 }
@@ -81,7 +81,7 @@ const handleUrlUpload = async () => {
       :before-upload="beforeUpload"
       :custom-request="handleUpload"
       :show-upload-list="false"
-      list-type="space-card"
+      list-type="picture-card"
     >
       <img v-if="props.picture?.url" :src="props.picture?.url" alt="avatar" />
       <div v-else>

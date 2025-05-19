@@ -35,7 +35,7 @@ onMounted(() => {
 })
 
 // 设置请求图片上传的参数
-const spaceForm = reactive<WorkCollaborativeImagesAPI.pictureUploadParams>({
+const pictureForm = reactive<WorkCollaborativeImagesAPI.pictureUploadParams>({
   pictureId: Number(route.query?.id), // 如果有id则进行更新操作，否则是添加
   pictureName: '',
   pictureCategory: '',
@@ -44,7 +44,7 @@ const spaceForm = reactive<WorkCollaborativeImagesAPI.pictureUploadParams>({
 })
 
 // 设置图片变量用于存储上传后
-const space = ref<WorkCollaborativeImagesAPI.PictureVO>()
+const picture = ref<WorkCollaborativeImagesAPI.PictureVO>()
 
 // 上传成功后更新图片信息
 const onSuccess = (newPicture: WorkCollaborativeImagesAPI.PictureVO) => {
@@ -61,12 +61,12 @@ const handleSubmit = async () => {
     return
   }
   pictureForm.pictureTags = JSON.stringify(pictureForm.pictureTags) // 序列化
-  const res = await pictureUpload(pictureForm) // 根据 spaceForm 进行上传或者更新
+  const res = await pictureUpload(pictureForm) // 根据 pictureForm 进行上传或者更新
   if (res.data.code === 20000 && res.data.data) {
     message.success('上传成功')
     // 跳转到图片详情页
     await router.push({
-      path: `/space/${pictureId}`,
+      path: `/picture/${pictureId}`,
     })
   } else {
     message.error(res.data.message)
@@ -91,7 +91,7 @@ onMounted(() => {
 <template>
   <div id="addPicturePage">
     <!-- 页面标题 -->
-    <h2 style="margin-bottom: 16px">{{ spaceForm.pictureId ? '编辑图片' : '填写信息以创建图片' }}</h2> <!-- 修改标题，根据是否有图片ID判断是编辑还是创建 -->
+    <h2 style="margin-bottom: 16px">{{ pictureForm.pictureId ? '编辑图片' : '填写信息以创建图片' }}</h2> <!-- 修改标题，根据是否有图片ID判断是编辑还是创建 -->
     <!-- 上传组件 -->
     <PictureUpload :onSuccess="onSuccess" :picture="picture" :pictureId="pictureForm.pictureId" />
     <!-- 信息表单 -->
@@ -130,7 +130,7 @@ onMounted(() => {
       </a-form-item>
       <!-- 创建 -->
       <a-form-item>
-        <a-button html-type="submit" style="width: 100%" type="primary">{{ spaceForm.pictureId ? '更新' : '创建' }}</a-button> <!-- 修改按钮文字，取决于是否有图片ID -->
+        <a-button html-type="submit" style="width: 100%" type="primary">{{ pictureForm.pictureId ? '更新' : '创建' }}</a-button> <!-- 修改按钮文字，取决于是否有图片ID -->
       </a-form-item>
     </a-form>
   </div>

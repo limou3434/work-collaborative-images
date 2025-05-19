@@ -188,7 +188,7 @@ const doDelete = async (id: string) => {
         </template>
         <!-- 具体操作 -->
         <template v-else-if="column.key === 'action'">
-          <a-button :href="`/space/add?id=${record.id}`" target="_blank" type="link">
+          <a-button :href="`/operate/space/add?id=${record.id}`" target="_blank" type="link">
             编辑
           </a-button>
           <a-button danger type="link" @click="doDelete(record.id)">删除</a-button>

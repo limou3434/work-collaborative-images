@@ -28,20 +28,20 @@ const router = createRouter({
       component: () => import('../views/user/UserRegisterPage.vue'), // 懒加载页面
     },
     {
-      path: '/picture/add',
-      name: '提交图片',
+      path: '/operate/picture/add',
+      name: '添加图片',
       component: () => import('../views/picture/AddPicturePage.vue'), // 懒加载页面
     },
     {
-      path: '/space/:id',
+      path: '/operate/space/add',
+      name: '添加空间',
+      component: () => import('../views/space/AddSpacePage.vue'), // 懒加载页面
+    },
+    {
+      path: '/picture/:id',
       name: '图片详情',
       component: () => import('../views/picture/PictureDetailPage.vue'), // 懒加载页面
       props: true,
-    },
-    {
-      path: '/space/add',
-      name: '提交空间',
-      component: () => import('../views/space/AddSpacePage.vue'), // 懒加载页面
     },
     {
       path: '/admin/user',

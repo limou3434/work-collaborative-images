@@ -13,6 +13,12 @@ import java.io.Serializable;
 public class SpaceQueryRequest extends PageRequest implements Serializable {
 
     /**
+     * id
+     */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
+    private Long id;
+
+    /**
      * 空间名称
      */
     private String spaceName;

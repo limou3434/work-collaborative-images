@@ -207,6 +207,9 @@ public class PictureController { // 通常控制层有服务层中的所有方�
             ThrowUtils.throwIf(spaceList.isEmpty(), new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的空间不存在"));
             ThrowUtils.throwIf(!userId.equals(spaceList.get(0).getUserId()), new BusinessException(CodeBindMessageEnums.NO_AUTH_ERROR, "您不是该空间的所属者, 没有权限上传图片"));
         }
+        else {
+            spaceId = 0L;
+        }
         if (pictureId != null) { // 如果用户传递的图片的标识, 并且图片原本就拥有一个所属空间, 就必须要求当前登陆用户有权限修改该空间内的图片才可以修改图片信息
             List<Picture> pictureList = pictureService.pictureSearch(new AdminPictureSearchRequest().setId(pictureId)).getRecords();
             ThrowUtils.throwIf(pictureList.isEmpty(), new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的图片不存在"));
@@ -269,7 +272,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         Space privateSpace = spaceService.spaceGetCurrentLoginUserPrivateSpace();
         request
                 .setReviewStatus(pictureId != null && apicture != null && apicture.getUserId() == userService.userGetCurrentLonginUserId() ? null : PictureReviewStatusEnum.PASS.getCode()) // 强制用户只能查看通过审核的图片, 不过用户自己除外
-                .setSpaceId(pictureId != null && privateSpace != null ? privateSpace.getId() : 0) // 强制用户只能查看属于自己私有空间的图片或公共图库的图片
+                .setSpaceId(pictureId != null && privateSpace != null && apicture.getSpaceId() != 0 ? privateSpace.getId() : 0) // 强制用户只能查看属于自己私有空间的图片或公共图库的图片
         ;
         if (pictureQueryRequest.getSpaceId() != null && pictureQueryRequest.getSpaceId() == privateSpace.getId()) {
             request

@@ -230,7 +230,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         // 构造要入库的图片信息
         Picture picture = new Picture();
         UploadPictureResult uploadPictureResult = null;
-        String uploadPathPrefix = String.format(spaceId == null ? "public/%s" : "space/%s", userId); // 构造和用户相关的图片父目录
+        String uploadPathPrefix = String.format(spaceId == 0 ? "public/%s" : "space/%s", userId); // 构造和用户相关的图片父目录
         if (multipartFile != null) { // 支持对本地文件的上传
             log.debug("支持对本地文件的上传");
             uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, multipartFile); // 执行具体的上传任务
@@ -292,6 +292,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         ThrowUtils.throwIf(adminPictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空"));
 
         // 取得需要查询的参数
+        Long id = adminPictureSearchRequest.getId();
         String name = adminPictureSearchRequest.getName();
         String introduction = adminPictureSearchRequest.getIntroduction();
         String category = adminPictureSearchRequest.getCategory();
@@ -312,6 +313,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         // 获取包装器进行返回
         LambdaQueryWrapper<Picture> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper
+                .eq(id != null, Picture::getId, id)
                 .like(StringUtils.isNotBlank(name), Picture::getName, name)
                 .like(StringUtils.isNotBlank(introduction), Picture::getIntroduction, introduction)
                 .like(StringUtils.isNotBlank(category), Picture::getCategory, category)

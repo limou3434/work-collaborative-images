@@ -25,7 +25,7 @@ const props = defineProps<{
 const searchParams = reactive<WorkCollaborativeImagesAPI.AdminPictureSearchRequest>({
   id: props.id,
 }) // 存储初始化的查询参数, 后续用来做搜索请求
-const space = ref<WorkCollaborativeImagesAPI.PictureVO>({})
+const picture = ref<WorkCollaborativeImagesAPI.PictureVO>({})
 const fetchPictureDetail = async () => {
   try {
     const res = await pictureQuery(searchParams)
@@ -69,7 +69,7 @@ const doDownload = () => {
 const shareModalRef = ref()
 const shareLink = ref<string>('')
 const doShare = () => {
-  shareLink.value = `${window.location.protocol}//${window.location.host}/space/${picture.value.id}`
+  shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.value.id}`
   if (shareModalRef.value) {
     shareModalRef.value.openModal()
   }
@@ -84,7 +84,7 @@ const doShare = () => {
 
 // 编辑图片
 const doEdit = () => {
-  router.push('/space/add?id=' + picture.value.id)
+  router.push('/picture/add?id=' + picture.value.id)
 }
 
 // 删除图片
@@ -134,35 +134,35 @@ const doDelete = async () => {
           <a-descriptions-item label="作者">
             <a-space>
               <a-avatar :size="24" :src="picture.userVO?.avatar" />
-              <div>{{ space.userVO?.name }}</div>
+              <div>{{ picture.userVO?.name }}</div>
             </a-space>
           </a-descriptions-item>
           <a-descriptions-item label="名称">
-            {{ space.name ?? '无名称' }}
+            {{ picture.name ?? '无名称' }}
           </a-descriptions-item>
           <a-descriptions-item label="简介">
-            {{ space.introduction ?? '无简介' }}
+            {{ picture.introduction ?? '无简介' }}
           </a-descriptions-item>
           <a-descriptions-item label="分类">
-            {{ space.category ?? '无分类' }}
+            {{ picture.category ?? '无分类' }}
           </a-descriptions-item>
           <a-descriptions-item label="格式">
-            {{ space.picFormat ?? '未知' }}
+            {{ picture.picFormat ?? '未知' }}
           </a-descriptions-item>
           <a-descriptions-item label="宽度">
-            {{ space.picWidth ?? '未知' }}
+            {{ picture.picWidth ?? '未知' }}
           </a-descriptions-item>
           <a-descriptions-item label="高度">
-            {{ space.picHeight ?? '未知' }}
+            {{ picture.picHeight ?? '未知' }}
           </a-descriptions-item>
           <a-descriptions-item label="宽高比">
-            {{ space.picScale ?? '未知' }}
+            {{ picture.picScale ?? '未知' }}
           </a-descriptions-item>
           <a-descriptions-item label="标签">
             <template v-if="JSON.parse(picture.tags ?? '[]').length > 3">
               <!-- 显示前三个标签 -->
               <a-tag v-for="tag in JSON.parse(picture.tags ?? '[]').slice(0, 3)" :key="tag"
-                >{{ tag }}
+              >{{ tag }}
               </a-tag>
               <!-- 如果超过三个标签，显示 "..." -->
               <a-tooltip :title="JSON.parse(picture.tags ?? '[]').join(', ')">
@@ -175,7 +175,7 @@ const doDelete = async () => {
             </template>
           </a-descriptions-item>
           <a-descriptions-item label="大小">
-            {{ formatSize(space.picSize) }}
+            {{ formatSize(picture.picSize) }}
           </a-descriptions-item>
         </a-descriptions>
         <!-- 图片操作 -->

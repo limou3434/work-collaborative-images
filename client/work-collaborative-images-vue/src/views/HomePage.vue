@@ -67,9 +67,9 @@ const doSearch = () => {
 
 // 跳转至图片详情
 const router = useRouter()
-const doClickPicture = (space: WorkCollaborativeImagesAPI.PictureVO) => {
+const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
   router.push({
-    path: `/space/${picture.id}`,
+    path: `/picture/${picture.id}`,
   })
 }
 </script>
@@ -110,7 +110,7 @@ const doClickPicture = (space: WorkCollaborativeImagesAPI.PictureVO) => {
         },
       }"
     >
-      <template #renderItem="{ item: space }">
+      <template #renderItem="{ item: picture }">
         <a-list-item>
           <a-card class="picture-card" hoverable @click="doClickPicture(picture)">
             <template #cover>
@@ -118,17 +118,17 @@ const doClickPicture = (space: WorkCollaborativeImagesAPI.PictureVO) => {
                 <img :alt="picture.name" :src="picture.url" class="image" />
                 <div class="overlay">
                   <div class="info">
-                    <div class="title">{{ space.name }}</div>
-                    <div class="introduction">{{ space.introduction || '无简介' }}</div>
+                    <div class="title">{{ picture.name }}</div>
+                    <div class="introduction">{{ picture.introduction || '无简介' }}</div>
                     <a-tag :color="picture.category ? 'green' : 'gray'"
-                      >{{ space.category || '无种类' }}
+                    >{{ picture.category || '无种类' }}
                     </a-tag>
                     <div class="tags">
                       <template v-if="JSON.parse(picture.tags ?? '[]').length > 3">
                         <a-tag
                           v-for="tag in JSON.parse(picture.tags ?? '[]').slice(0, 3)"
                           :key="tag"
-                          >{{ tag }}
+                        >{{ tag }}
                         </a-tag>
                         <a-tooltip :title="JSON.parse(picture.tags ?? '[]').join(', ')">
                           <a-tag>...</a-tag>
@@ -136,7 +136,7 @@ const doClickPicture = (space: WorkCollaborativeImagesAPI.PictureVO) => {
                       </template>
                       <template v-else-if="JSON.parse(picture.tags ?? '[]').length > 0">
                         <a-tag v-for="tag in JSON.parse(picture.tags ?? '[]')" :key="tag"
-                          >{{ tag }}
+                        >{{ tag }}
                         </a-tag>
                       </template>
                       <template v-else>
