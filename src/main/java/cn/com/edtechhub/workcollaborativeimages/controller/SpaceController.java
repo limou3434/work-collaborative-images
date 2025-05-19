@@ -100,10 +100,9 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
 
         // 处理请求
         var request = AdminSpaceAddRequest.copyProperties(spaceCreateRequest);
-        Long userId = userService.userGetCurrentLonginUserId();
-        ThrowUtils.throwIf(!spaceService.spaceSearch(new AdminSpaceSearchRequest().setUserId(userId)).getRecords().isEmpty(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个私有空间"));
+        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserPrivateSpace() != null, new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个私有空间"));
         request
-                .setUserId(userId) // 强制用户只能创建属于自己的私有空间
+                .setUserId(userService.userGetCurrentLonginUserId()) // 强制用户只能创建属于自己的私有空间
                 .setSpaceLevel(SpaceLevelEnums.COMMON.getCode()) // 强制用户只能得到普通版本私有空间
         ;
 

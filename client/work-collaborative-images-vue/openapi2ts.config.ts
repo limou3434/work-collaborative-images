@@ -11,7 +11,7 @@ export default [
 ]
 
 // 下面是一些需要自己自定义的网路接口...
-// /** 已脱敏的图片上传网络接口 POST /picture/upload/ */
+// /** 已脱敏的图片上传网络接口 POST /space/upload/ */
 // export async function pictureUpload(
 //   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
 //   params: WorkCollaborativeImagesAPI.pictureUploadParams,
@@ -34,7 +34,7 @@ export default [
 //     formData.append('pictureFile', body.file);
 //   }
 //
-//   return request<WorkCollaborativeImagesAPI.BaseResponsePictureVO>('/picture/upload', {
+//   return request<WorkCollaborativeImagesAPI.BaseResponsePictureVO>('/space/upload', {
 //     method: 'POST',
 //     headers: {
 //       // 不需要手动设置 Content-Type 为 multipart/form-data

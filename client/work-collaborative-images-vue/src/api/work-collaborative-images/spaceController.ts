@@ -107,6 +107,14 @@ export async function spaceEdit(
   })
 }
 
+/** 获取空间等级描述网络接口 POST /space/level */
+export async function spaceLevel(options?: { [key: string]: any }) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseListSpaceLevelInfo>('/space/level', {
+    method: 'POST',
+    ...(options || {}),
+  })
+}
+
 /** 查找空间网络接口 POST /space/query */
 export async function spaceQuery(
   body: WorkCollaborativeImagesAPI.SpaceQueryRequest,

@@ -9,7 +9,6 @@ import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.*;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.AdminSpaceAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.AdminSpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
@@ -220,7 +219,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
                 ThrowUtils.throwIf(!userId.equals(space.getUserId()) && ((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole() != UserRoleEnums.ADMIN_ROLE.getCode(), new BusinessException(CodeBindMessageEnums.NO_AUTH_ERROR, "该图片属于私有空间图片, 您不是该空间的所属者, 没有权限修改图片"));
             }
         }
-        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(userId, spaceId, pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl, multipartFile));
+        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(PictureReviewStatusEnum.REVIEWING.getCode(), userId, spaceId, pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl, multipartFile));
         pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetLoginInfo()));
 
         // 响应数据
@@ -248,7 +247,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         }
         ThrowUtils.throwIf(!Objects.equals(picture.getUserId(), userService.userGetCurrentLonginUserId()), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您无法销毁不是自己的空间的图片"));
         if (picture.getSpaceId() != 0) {
-            spaceService.spaceDecreaseCurrent(picture);
+            spaceService.spaceCheckAndDecreaseCurrent(picture);
         }
 
         // 响应数据
@@ -265,16 +264,25 @@ public class PictureController { // 通常控制层有服务层中的所有方�
 
         // 处理请求
         var request = AdminPictureSearchRequest.copyProperties(pictureQueryRequest);
-        List<Space> spaceList = spaceService.spaceSearch(new AdminSpaceSearchRequest().setUserId(userService.userGetCurrentLonginUserId())).getRecords();
+        Long pictureId = pictureQueryRequest.getId();
+        Picture apicture = pictureService.getById(pictureId);
+        Space privateSpace = spaceService.spaceGetCurrentLoginUserPrivateSpace();
         request
-                .setReviewStatus(pictureService.getById(pictureQueryRequest.getId()).getUserId() != userService.userGetCurrentLonginUserId() ? PictureReviewStatusEnum.PASS.getValue() : null) // 强制用户只能查看通过审核的图片, 不过用户自己除外
-                .setSpaceId(spaceList.isEmpty() ? 0 : spaceList.get(0).getId()) // 强制用户只能查看属于自己私有空间的图片或公共图库的图片
+                .setReviewStatus(pictureId != null && apicture != null && apicture.getUserId() == userService.userGetCurrentLonginUserId() ? null : PictureReviewStatusEnum.PASS.getCode()) // 强制用户只能查看通过审核的图片, 不过用户自己除外
+                .setSpaceId(pictureId != null && privateSpace != null ? privateSpace.getId() : 0) // 强制用户只能查看属于自己私有空间的图片或公共图库的图片
         ;
+        if (pictureQueryRequest.getSpaceId() != null && pictureQueryRequest.getSpaceId() == privateSpace.getId()) {
+            request
+                    .setReviewStatus(PictureReviewStatusEnum.NOTODO.getCode())
+                    .setSpaceId(privateSpace.getId());
+        }
 
         Page<Picture> picturePage = pictureService.pictureSearch(request);
         Page<User> userPage = userService.userSearch(new UserSearchRequest());
+
         List<Picture> pictureList = picturePage.getRecords();
         List<User> userList = userPage.getRecords();
+
         Map<Long, User> userMap = userList // 利用映射机制来减少多次单 SQL 后顺便做脱敏
                 .stream()
                 .collect(Collectors.toMap(

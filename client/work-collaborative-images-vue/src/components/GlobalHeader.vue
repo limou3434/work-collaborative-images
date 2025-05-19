@@ -22,13 +22,13 @@ const originItems = [
     icon: () => h(HomeOutlined),
   },
   {
-    key: '/picture',
+    key: '/space',
     title: '图片',
     label: '图片',
     icon: () => h(PictureOutlined),
     children: [
       {
-        key: '/picture/add',
+        key: '/space/add',
         title: '添加图片',
         label: '添加图片',
       },
@@ -46,9 +46,14 @@ const originItems = [
         label: '用户管理',
       },
       {
-        key: '/admin/picture',
+        key: '/admin/space',
         title: '图片管理',
         label: '图片管理',
+      },
+      {
+        key: '/admin/space',
+        title: '空间管理',
+        label: '空间管理',
       },
     ],
   },

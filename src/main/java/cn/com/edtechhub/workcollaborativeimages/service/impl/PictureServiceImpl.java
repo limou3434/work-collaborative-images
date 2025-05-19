@@ -30,6 +30,7 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -69,6 +70,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @Resource
     SpaceService spaceService;
 
+    @Transactional
     public Picture pictureAdd(AdminPictureAddRequest adminPictureAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(adminPictureAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片添加请求体为空"));
@@ -87,6 +89,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return this.getById(picture.getId());
     }
 
+    @Transactional
     public Boolean pictureDelete(AdminPictureDeleteRequest adminPictureDeleteRequest) {
         // 检查参数
         ThrowUtils.throwIf(adminPictureDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片删除请求体不能为空"));
@@ -101,6 +104,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         });
     }
 
+    @Transactional
     public Picture pictureUpdate(AdminPictureUpdateRequest adminPictureUpdateRequest) {
         // 检查参数
         ThrowUtils.throwIf(adminPictureUpdateRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片更新请求体不能为空"));
@@ -136,11 +140,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return this.page(page, queryWrapper); // 调用 MyBatis-Plus 的分页查询方法
     }
 
+    @Transactional
     public Boolean pictureReview(Long id, Integer reviewStatus, String reviewMessage) {
         // TODO: 简单使用 AI 接口来进行文本审核和图片审核
 
         // 检查参数
-        PictureReviewStatusEnum reviewStatusEnum = PictureReviewStatusEnum.getEnumByValue(reviewStatus);
+        PictureReviewStatusEnum reviewStatusEnum = PictureReviewStatusEnum.getStatusDescription(reviewStatus);
         ThrowUtils.throwIf(id == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片 id 不能为空"));
         ThrowUtils.throwIf(reviewStatusEnum == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "需要指定最终的有效审核状态"));
 
@@ -163,6 +168,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return true;
     }
 
+    @Transactional
     public Integer pictureBatch(String searchText, Integer searchCount, String namePrefix, String category) {
         // 检查参数
         ThrowUtils.throwIf(searchText == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "缺少需要爬取的关键文本"));
@@ -196,7 +202,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             }
             // 上传图片
             try {
-                Picture picture = this.pictureUpload(userService.userGetCurrentLonginUserId(), null, null, category, namePrefix + (uploadCount + 1), null, null, fileUrl, null);
+                Picture picture = this.pictureUpload(PictureReviewStatusEnum.PASS.getCode(), userService.userGetCurrentLonginUserId(), null, null, category, namePrefix + (uploadCount + 1), null, null, fileUrl, null);
                 log.debug("图片上传成功, id = {}", picture.getId());
                 uploadCount++;
             } catch (Exception e) {
@@ -210,7 +216,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return uploadCount;
     }
 
-    public Picture pictureUpload(Long userId, Long spaceId, Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
+    @Transactional
+    public Picture pictureUpload(Integer pictureStatus, Long userId, Long spaceId, Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
         // 如果有更新图片的需求, 也就是携带了 id
         if (pictureId != null) {
             boolean exists = this
@@ -235,13 +242,19 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         if (pictureId != null) {
             picture.setId(pictureId);
         }
+        picture.setReviewStatus(pictureStatus);
+        PictureReviewStatusEnum status = PictureReviewStatusEnum.getStatusDescription(pictureStatus);
+        if (status == PictureReviewStatusEnum.REVIEWING) {
+            picture.setReviewMessage("管理员正在审核");
+        }
+        else if (status == PictureReviewStatusEnum.NOTODO) {
+            picture.setReviewMessage("该图片为私有空间图片无需审核");
+        }
         picture.setSpaceId(spaceId);
         picture.setCategory(pictureCategory);
         picture.setTags(StringUtils.isNotBlank(pictureTags) ? pictureTags : null);
         picture.setIntroduction(pictureIntroduction);
         picture.setUserId(userId);
-        picture.setReviewStatus(0); // 重新设置为待审核状态 TODO: 如果当前用户为管理员状态则无需审核
-        picture.setReviewMessage("管理员正在审核");
         picture.setName(StringUtils.isNotBlank(pictureName) ? pictureName : "尚无名称");
         if (uploadPictureResult != null) {
             picture.setName(StringUtils.isNotBlank(pictureName) ? pictureName : uploadPictureResult.getPicName());
@@ -254,23 +267,17 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             picture.setPicScale(uploadPictureResult.getPicScale());
             picture.setPicFormat(uploadPictureResult.getPicFormat());
         }
+        // 校验额度并且增加存量
+        if (spaceId != 0) { // TODO: 其实应该提前截获图片的大小的
+            spaceService.spaceCheckAndIncreaseCurrent(picture);
+        }
 
-        // 开启事务
-        return transactionTemplate.execute(status -> {
-            // 校验额度并且增加存量
-            if (spaceId != 0) { // TODO: 其实应该提前截获图片的大小的
-                ThrowUtils.throwIf(!spaceService.spaceCheckSize(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "剩余空间额度大小不足"));
-                ThrowUtils.throwIf(!spaceService.spaceCheckCount(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "剩余空间额度数量不足"));
-                spaceService.spaceIncreaseCurrent(picture);
-            }
-
-            // 执行落库
-            boolean result = this.saveOrUpdate(picture);
-            ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
-            Picture newPicture = this.getById(picture.getId());
-            log.debug("检查入库后的图片 {}", newPicture);
-            return newPicture;
-        });
+        // 执行落库
+        boolean result = this.saveOrUpdate(picture);
+        ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败"));
+        Picture newPicture = this.getById(picture.getId());
+        log.debug("检查入库后的图片 {}", newPicture);
+        return newPicture;
     }
 
     public List<String> pictureGetCategorys() {

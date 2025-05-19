@@ -40,28 +40,23 @@ public interface SpaceService extends IService<Space> {
     Page<Space> spaceSearch(AdminSpaceSearchRequest adminSpaceSearchRequest);
 
     /**
-     * 空间检查额度大小是否足够服务
+     * 空间根据图片来增加图库存量服务(若图片有所属空间的话)
      */
-    Boolean spaceCheckSize();
+    void spaceCheckAndIncreaseCurrent(Picture picture);
 
     /**
-     * 空间检查额度数量是否足够服务
+     * 空间根据图片来减少图库存量服务(若图片有所属空间的话)
      */
-    Boolean spaceCheckCount();
-
-    /**
-     * 空间根据图片的大小来增加图库存量服务
-     */
-    void spaceIncreaseCurrent(Picture picture);
-
-    /**
-     * 空间根据图片的大小来减少图库存量服务
-     */
-    void spaceDecreaseCurrent(Picture picture);
+    void spaceCheckAndDecreaseCurrent(Picture picture);
 
     /**
      * 空间获取不同等级的元信息服务
      */
     List<SpaceLevelInfo> spaceGetLevelInfo();
+
+    /**
+     * 获取当前登陆用户的所有私有空间
+     */
+    Space spaceGetCurrentLoginUserPrivateSpace();
 
 }

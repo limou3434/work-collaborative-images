@@ -9,7 +9,7 @@ import lombok.Getter;
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Getter
-public class BusinessException extends RuntimeException {
+public class BusinessException extends RuntimeException { /* RuntimeException 会触发事务回滚 */
 
     /**
      * 错误-含义

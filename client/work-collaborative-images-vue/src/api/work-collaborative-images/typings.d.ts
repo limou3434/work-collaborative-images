@@ -23,6 +23,7 @@ declare namespace WorkCollaborativeImagesAPI {
 
   type AdminPictureDeleteRequest = {
     id?: number
+    spaceId?: number
   }
 
   type AdminPictureReviewRequest = {
@@ -47,6 +48,7 @@ declare namespace WorkCollaborativeImagesAPI {
     picScale?: number
     picFormat?: string
     userId?: number
+    spaceId?: number
     reviewStatus?: number
     reviewMessage?: string
     reviewerId?: number
@@ -70,6 +72,7 @@ declare namespace WorkCollaborativeImagesAPI {
   type AdminSpaceAddRequest = {
     spaceName?: string
     spaceLevel?: number
+    userId?: number
   }
 
   type AdminSpaceDeleteRequest = {
@@ -105,6 +108,12 @@ declare namespace WorkCollaborativeImagesAPI {
     code?: number
     message?: string
     data?: number
+  }
+
+  type BaseResponseListSpaceLevelInfo = {
+    code?: number
+    message?: string
+    data?: SpaceLevelInfo[]
   }
 
   type BaseResponseListString = {
@@ -294,6 +303,7 @@ declare namespace WorkCollaborativeImagesAPI {
     sortField?: string
     sortOrder?: string
     id?: number
+    spaceId?: number
     name?: string
     introduction?: string
     category?: string
@@ -367,9 +377,13 @@ declare namespace WorkCollaborativeImagesAPI {
   type SpaceEditRequest = {
     id?: number
     spaceName?: string
-    spaceLevel?: number
-    maxSize?: number
+  }
+
+  type SpaceLevelInfo = {
+    value?: number
+    text?: string
     maxCount?: number
+    maxSize?: number
   }
 
   type SpaceQueryRequest = {
@@ -377,10 +391,7 @@ declare namespace WorkCollaborativeImagesAPI {
     pageSize?: number
     sortField?: string
     sortOrder?: string
-    id?: number
-    userId?: number
     spaceName?: string
-    spaceLevel?: number
   }
 
   type SpaceVO = {

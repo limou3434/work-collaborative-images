@@ -22,12 +22,6 @@ public class AdminPictureSearchRequest extends PageRequest implements Serializab
     private Long id;
 
     /**
-     * 空间 id
-     */
-    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
-    private Long spaceId;
-
-    /**
      * 图片名称
      */
     private String name;
@@ -77,6 +71,12 @@ public class AdminPictureSearchRequest extends PageRequest implements Serializab
      */
     @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long userId;
+
+    /**
+     * 空间 id
+     */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
+    private Long spaceId;
 
     /**
      * 状态：0-待审核; 1-通过; 2-拒绝

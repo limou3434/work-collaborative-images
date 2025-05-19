@@ -28,15 +28,20 @@ const router = createRouter({
       component: () => import('../views/user/UserRegisterPage.vue'), // 懒加载页面
     },
     {
-      path: '/picture/add',
+      path: '/space/add',
       name: '提交图片',
       component: () => import('../views/picture/AddPicturePage.vue'), // 懒加载页面
     },
     {
-      path: '/picture/:id',
+      path: '/space/:id',
       name: '图片详情',
       component: () => import('../views/picture/PictureDetailPage.vue'), // 懒加载页面
       props: true,
+    },
+    {
+      path: '/space/add',
+      name: '提交空间',
+      component: () => import('../views/space/AddSpacePage.vue'), // 懒加载页面
     },
     {
       path: '/admin/user',
@@ -44,10 +49,15 @@ const router = createRouter({
       component: () => import('../views/admin/UserManagePage.vue'), // 懒加载页面
     },
     {
-      path: '/admin/picture',
+      path: '/admin/space',
       name: '图片管理',
       component: () => import('../views/admin/PictureManagePage.vue'), // 懒加载页面
     },
+    {
+      path: '/admin/space',
+      name: '空间管理',
+      component: () => import('../views/admin/SpaceManagePage.vue'), // 懒加载页面
+    }
   ],
 })
 

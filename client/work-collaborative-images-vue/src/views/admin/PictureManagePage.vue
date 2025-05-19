@@ -242,7 +242,7 @@ const handleOk = async (): Promise<void> => {
     <a-flex justify="space-between">
       <h2>图片管理</h2>
       <a-space>
-        <a-button href="/picture/add" target="_blank" type="primary">+ 创建图片</a-button>
+        <a-button href="/space/add" target="_blank" type="primary">+ 创建图片</a-button>
         <a-button ghost target="_blank" type="primary" @click="showModal = true"
           >+ 批量创建图片
         </a-button>
@@ -358,8 +358,8 @@ const handleOk = async (): Promise<void> => {
             拒绝
           </a-button>
           |
-          <a-button :href="`/picture/add?id=${record.id}`" target="_blank" type="link"
-            >编辑
+          <a-button :href="`/space/add?id=${record.id}`" target="_blank" type="link">
+            编辑
           </a-button>
           <a-button danger type="link" @click="doDelete(record.id)">删除</a-button>
         </template>

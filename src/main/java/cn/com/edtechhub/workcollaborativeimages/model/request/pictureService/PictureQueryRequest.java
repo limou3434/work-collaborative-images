@@ -21,6 +21,12 @@ public class PictureQueryRequest extends PageRequest implements Serializable {
     private Long id;
 
     /**
+     * 空间 id
+     */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
+    private Long spaceId;
+
+    /**
      * 图片名称
      */
     private String name;

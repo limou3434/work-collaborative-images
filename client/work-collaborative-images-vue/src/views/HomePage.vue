@@ -67,9 +67,9 @@ const doSearch = () => {
 
 // 跳转至图片详情
 const router = useRouter()
-const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
+const doClickPicture = (space: WorkCollaborativeImagesAPI.PictureVO) => {
   router.push({
-    path: `/picture/${picture.id}`,
+    path: `/space/${picture.id}`,
   })
 }
 </script>
@@ -110,7 +110,7 @@ const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
         },
       }"
     >
-      <template #renderItem="{ item: picture }">
+      <template #renderItem="{ item: space }">
         <a-list-item>
           <a-card class="picture-card" hoverable @click="doClickPicture(picture)">
             <template #cover>
@@ -118,10 +118,10 @@ const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
                 <img :alt="picture.name" :src="picture.url" class="image" />
                 <div class="overlay">
                   <div class="info">
-                    <div class="title">{{ picture.name }}</div>
-                    <div class="introduction">{{ picture.introduction || '无简介' }}</div>
+                    <div class="title">{{ space.name }}</div>
+                    <div class="introduction">{{ space.introduction || '无简介' }}</div>
                     <a-tag :color="picture.category ? 'green' : 'gray'"
-                      >{{ picture.category || '无种类' }}
+                      >{{ space.category || '无种类' }}
                     </a-tag>
                     <div class="tags">
                       <template v-if="JSON.parse(picture.tags ?? '[]').length > 3">

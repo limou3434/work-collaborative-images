@@ -22,11 +22,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,15 +68,17 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         synchronized (lock) { // 针对用户进行加锁 TODO: 这种加锁有可能导致字符串池膨胀(目前概率较低), 可以考虑使用 Guava Cache
             return transactionTemplate.execute(status -> { // 必须在锁内处理事务
                 // 锁内事务原理
-                // A 线程进入方法，开始事务
-                // B 线程也进入方法，开始另一个事务
-                // A 线程执行到 synchronized 加锁，拿到锁
+                // A 线程进入方法, 开始事务
+                // B 线程也进入方法, 开始另一个事务
+                // A 线程执行到 synchronized 加锁, 拿到锁
                 // A 查询数据库，此时还没有空间 → 合法 → 创建空间 → 提交事务
                 // A 释放锁
-                // B 线程获得锁，但它事务早就开始了
-                // B 线程查询数据库，此时看不到 A 的新数据（隔离级别问题）
+                // B 线程获得锁, 但它事务早就开始了
+                // B 线程查询数据库, 此时看不到 A 的新数据（隔离级别问题）
                 // B 线程也判断为合法 → 也创建了空间
                 // 若普通用户尚未存在自己的空间则允许创建多余的空间
+                boolean exists = this.lambdaQuery().eq(Space::getUserId, userId).exists();
+                ThrowUtils.throwIf(exists, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "每个用户仅能有一个私有空间"));
                 this.save(this.fillSpaceBySpaceLevel(space));
 
                 // 添加空间后最好把空间的信息也返回, 这样方便前端做实时的数据更新
@@ -85,6 +87,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         }
     }
 
+    @Transactional
     public Boolean spaceDelete(AdminSpaceDeleteRequest adminSpaceDeleteRequest) {
         // 检查参数
         ThrowUtils.throwIf(adminSpaceDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "空间删除请求体不能为空"));
@@ -97,6 +100,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         return true;
     }
 
+    @Transactional
     public Space spaceUpdate(AdminSpaceUpdateRequest adminSpaceUpdateRequest) {
         // 检查参数
         ThrowUtils.throwIf(adminSpaceUpdateRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "空间更新请求体不能为空"));
@@ -127,28 +131,6 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
         // TODO: 如果空间传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
 
-        Long spaceId = adminSpaceSearchRequest.getId();
-        if (spaceId != null) {
-            log.debug("本次查询只需要查询一条记录, 使用 id 字段来提高效率");
-            Space space = this.getById(spaceId);
-            log.debug("单条查询的图片记录为 {}", space);
-            Page<Space> resultPage = new Page<>();
-            resultPage.setSize(1);
-            resultPage.setCurrent(1);
-            // 如果空间存在就允许返回结果
-            if (space != null) {
-                resultPage.setRecords(Collections.singletonList(space));
-                resultPage.setTotal(1);
-            }
-            // 否则直接返回空页面
-            else {
-                resultPage.setRecords(Collections.emptyList());
-                resultPage.setTotal(0);
-            }
-            log.debug("检查单次查询的分页结果 {}", resultPage);
-            return resultPage;
-        }
-
         // 获取查询对象
         LambdaQueryWrapper<Space> queryWrapper = this.getQueryWrapper(adminSpaceSearchRequest); // 构造查询条件
 
@@ -159,35 +141,51 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         return this.page(page, queryWrapper); // 调用 MyBatis-Plus 的分页查询方法
     }
 
-    public Boolean spaceCheckSize() {
-        Space space = this.spaceGetCurrentLoginUserPrivateSpace();
-        Long maxSize = space.getMaxSize();
-        Long totalSize = space.getTotalSize();
-        return totalSize < maxSize;
-    }
+    @Transactional
+    public void spaceCheckAndIncreaseCurrent(Picture picture) {
+        if (picture.getSpaceId() == 0) {
+            log.debug("该图片属于公有图库无需改动额度");
+            return;
+        }
 
-    public Boolean spaceCheckCount() {
-        Space space = this.spaceGetCurrentLoginUserPrivateSpace();
-        Long maxCount = space.getMaxCount();
-        Long totalCount = space.getTotalCount();
-        return totalCount < maxCount;
-    }
+        Space space = this.getById(picture.getSpaceId());
+        ThrowUtils.throwIf(space == null, new BusinessException(CodeBindMessageEnums.SYSTEM_ERROR, "图片所属的空间发生意外错误"));
 
-    public void spaceIncreaseCurrent(Picture picture) {
-        Space space = this.spaceGetCurrentLoginUserPrivateSpace();
         space.setTotalSize(space.getTotalSize() + picture.getPicSize());
         space.setTotalCount(space.getTotalCount() + 1);
+
+        ThrowUtils.throwIf(space.getMaxSize() < space.getTotalSize(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "大小额度不够"));
+        ThrowUtils.throwIf(space.getMaxCount() < space.getTotalCount(), new BusinessException(CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "数量额度不够"));
+
         this.updateById(space);
+        log.debug("额度充足");
     }
 
-    public void spaceDecreaseCurrent(Picture picture) {
-        Space space = this.spaceGetCurrentLoginUserPrivateSpace();
+    @Transactional
+    public void spaceCheckAndDecreaseCurrent(Picture picture) {
+        if (picture.getSpaceId() == 0) {
+            log.debug("该图片属于公有图库无需改动额度");
+            return;
+        }
+
+        Space space = this.getById(picture.getSpaceId());
+        ThrowUtils.throwIf(space == null, new BusinessException(CodeBindMessageEnums.SYSTEM_ERROR, "图片所属的空间发生意外错误"));
+
         space.setTotalSize(space.getTotalSize() - picture.getPicSize());
         space.setTotalCount(space.getTotalCount() - 1);
-        if (space.getTotalSize() < 0L) {
+
+        if (space.getTotalSize() < 0) {
+            log.debug("当前大小计算误差, 予以修正");
             space.setTotalSize(0L);
         }
+
+        if (space.getTotalCount() < 0) {
+            log.debug("当前数量计算误差, 予以修正");
+            space.setTotalCount(0L);
+        }
+
         this.updateById(space);
+        log.debug("额度充足");
     }
 
     public List<SpaceLevelInfo> spaceGetLevelInfo() {
@@ -200,15 +198,10 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 .collect(Collectors.toList());
     }
 
-
-    /**
-     * 获取当前用户的私有空间
-     */
-    private Space spaceGetCurrentLoginUserPrivateSpace() {
+    public Space spaceGetCurrentLoginUserPrivateSpace() {
         Long userId = userService.userGetCurrentLonginUserId();
         List<Space> spaceList = this.spaceSearch(new AdminSpaceSearchRequest().setUserId(userId)).getRecords();
-        ThrowUtils.throwIf(spaceList.isEmpty(), new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "该用户没有私有空间"));
-        return spaceList.get(0);
+        return spaceList.isEmpty() ? null : spaceList.get(0);
     }
 
     /**

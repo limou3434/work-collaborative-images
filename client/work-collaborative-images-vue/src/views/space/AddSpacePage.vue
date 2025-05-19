@@ -11,7 +11,7 @@ import {
 
 // 这个页面作为创建页面的同时也可以作为修改页面把路径中的 id 获取到后直接显示在上传组件上
 const route = useRoute()
-const searchParams = reactive<WorkCollaborativeImagesAPI.AdminPictureSearchRequest>({
+const searchParams = reactive<WorkCollaborativeImagesAPI.SpaceQueryRequest>({
   id: -1,
 }) // 存储初始化的查询参数, 后续用来做搜索请求
 const getOldPicture = async () => {
@@ -21,12 +21,11 @@ const getOldPicture = async () => {
     const res = await pictureQuery(searchParams)
     if (res.data.code === 20000 && res.data.data && res.data.data.records) {
       const data = res.data.data.records[0]
-      picture.value = data
-      pictureForm.pictureId = data.id
-      pictureForm.pictureName = data.name
-      pictureForm.pictureIntroduction = data.introduction
-      pictureForm.pictureCategory = data.category
-      pictureForm.pictureTags = JSON.parse(data.tags || '') // 反序列化
+      space.value = data
+      spaceForm.pictureId = data.id
+      spaceForm.pictureName = data.name
+      spaceForm.pictureIntroduction = data.introduction
+      spaceForm.pictureCategory = data.category
     }
   }
 } // 获取老数据
@@ -35,7 +34,7 @@ onMounted(() => {
 })
 
 // 设置请求图片上传的参数
-const spaceForm = reactive<WorkCollaborativeImagesAPI.pictureUploadParams>({
+const spaceForm = reactive<WorkCollaborativeImagesAPI.SpaceCreateRequest>({
   pictureId: Number(route.query?.id), // 如果有id则进行更新操作，否则是添加
   pictureName: '',
   pictureCategory: '',
@@ -44,24 +43,18 @@ const spaceForm = reactive<WorkCollaborativeImagesAPI.pictureUploadParams>({
 })
 
 // 设置图片变量用于存储上传后
-const space = ref<WorkCollaborativeImagesAPI.PictureVO>()
-
-// 上传成功后更新图片信息
-const onSuccess = (newPicture: WorkCollaborativeImagesAPI.PictureVO) => {
-  picture.value = newPicture
-  pictureForm.pictureId = newPicture.id // 新上传图片后设置图片ID
-}
+const space = ref<WorkCollaborativeImagesAPI.SpaceVO>()
 
 // 提交表单回调
 const router = useRouter()
 const handleSubmit = async () => {
-  const pictureId = picture.value?.id
+  const pictureId = space.value?.id
   if (!pictureId) {
     message.error('请先上传图片')
     return
   }
-  pictureForm.pictureTags = JSON.stringify(pictureForm.pictureTags) // 序列化
-  const res = await pictureUpload(pictureForm) // 根据 spaceForm 进行上传或者更新
+  spaceForm.pictureTags = JSON.stringify(spaceForm.pictureTags) // 序列化
+  const res = await pictureUpload(spaceForm) // 根据 spaceForm 进行上传或者更新
   if (res.data.code === 20000 && res.data.data) {
     message.success('上传成功')
     // 跳转到图片详情页
@@ -91,19 +84,17 @@ onMounted(() => {
 <template>
   <div id="addPicturePage">
     <!-- 页面标题 -->
-    <h2 style="margin-bottom: 16px">{{ spaceForm.pictureId ? '编辑图片' : '填写信息以创建图片' }}</h2> <!-- 修改标题，根据是否有图片ID判断是编辑还是创建 -->
-    <!-- 上传组件 -->
-    <PictureUpload :onSuccess="onSuccess" :picture="picture" :pictureId="pictureForm.pictureId" />
+    <h2 style="margin-bottom: 16px">{{ spaceForm.pictureId ? '编辑空间' : '填写信息以创建图片' }}</h2> <!-- 修改标题，根据是否有图片ID判断是编辑还是创建 -->
     <!-- 信息表单 -->
-    <a-form :model="pictureForm" layout="vertical" @finish="handleSubmit">
+    <a-form :model="spaceForm" layout="vertical" @finish="handleSubmit">
       <!-- 名称 -->
       <a-form-item label="名称" name="name">
-        <a-input v-model:value="pictureForm.pictureName" allowClear placeholder="请输入名称" />
+        <a-input v-model:value="spaceForm.pictureName" allowClear placeholder="请输入名称" />
       </a-form-item>
       <!-- 分类 -->
       <a-form-item label="分类" name="category">
         <a-select
-          v-model:value="pictureForm.pictureCategory"
+          v-model:value="spaceForm.pictureCategory"
           allowClear
           placeholder="请选择分类"
           :options="categoryList.map(cat => ({ label: cat, value: cat }))"
@@ -112,7 +103,7 @@ onMounted(() => {
       <!-- 简介 -->
       <a-form-item label="简介" name="introduction">
         <a-textarea
-          v-model:value="pictureForm.pictureIntroduction"
+          v-model:value="spaceForm.pictureIntroduction"
           :rows="2"
           allowClear
           autoSize
@@ -122,7 +113,7 @@ onMounted(() => {
       <!-- 标签 -->
       <a-form-item label="标签" name="tags">
         <a-select
-          v-model:value="pictureForm.pictureTags"
+          v-model:value="spaceForm.pictureTags"
           allowClear
           mode="tags"
           placeholder="请输入标签"
