@@ -9,12 +9,22 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: '主页',
+      name: '公共图库',
       component: HomePage,
     },
     {
+      path: '/self',
+      name: '私有空间',
+      component: () => import('../views/SelfPage.vue'), // 懒加载页面
+    },
+    {
+      path: '/collaborative',
+      name: '协作空间',
+      component: () => import('../views/CollaborativePage.vue'), // 懒加载页面
+    },
+    {
       path: '/about',
-      name: '关于',
+      name: '关于其他',
       component: () => import('../views/AboutPage.vue'), // 懒加载页面
     },
     {
@@ -44,6 +54,12 @@ const router = createRouter({
       props: true,
     },
     {
+      path: '/space/:id',
+      name: '空间详情',
+      component: () => import('../views/space/SpaceDetailPage.vue'), // 懒加载页面
+      props: true,
+    },
+    {
       path: '/admin/user',
       name: '用户管理',
       component: () => import('../views/admin/UserManagePage.vue'), // 懒加载页面
@@ -57,7 +73,7 @@ const router = createRouter({
       path: '/admin/space',
       name: '空间管理',
       component: () => import('../views/admin/SpaceManagePage.vue'), // 懒加载页面
-    }
+    },
   ],
 })
 

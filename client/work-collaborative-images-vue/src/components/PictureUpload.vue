@@ -31,7 +31,9 @@ const loading = ref<boolean>(false)
 const handleUpload = async ({ file }: any) => {
   loading.value = true
   try {
-    const uploadParams = props.pictureId ? { pictureId: props.pictureId } : {} // 如果有 pictureId，就传递它
+    const uploadParams = props.pictureId ? {
+      pictureId: props.pictureId,
+    } : {} // 如果有 pictureId，就传递它
     const res = await pictureUpload({ ...uploadParams }, { file }) // 传递文件到后端
     if (res.data.code === 20000 && res.data.data) {
       message.success('图片上传成功')

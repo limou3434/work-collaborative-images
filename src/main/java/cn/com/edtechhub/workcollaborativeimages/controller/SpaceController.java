@@ -149,7 +149,6 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @Operation(summary = "查找空间网络接口")
     @SaCheckLogin
     @PostMapping("/query")
-    @CacheSearchOptimization(ttl = 60)
     public BaseResponse<Page<SpaceVO>> spaceQuery(@RequestBody SpaceQueryRequest SpaceQueryRequest) {
         // 检查参数
         ThrowUtils.throwIf(SpaceQueryRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "错误调用"));
@@ -172,6 +171,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         spaceVOPage.setTotal(spacePage.getTotal());
         spaceVOPage.setSize(spacePage.getSize());
         spaceVOPage.setCurrent(spacePage.getCurrent());
+        System.out.println(spaceVOPage);
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceVOPage);
     }
 

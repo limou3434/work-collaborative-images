@@ -201,8 +201,10 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         );
 
         // 处理请求
+        Integer status = PictureReviewStatusEnum.REVIEWING.getCode();
         Long userId = userService.userGetCurrentLonginUserId();
-        if (spaceId != null) { // 如果用户传递请求中指定了图片的所属空间, 则必须要求该空间属于该用户
+        if (spaceId != null && spaceId != 0) { // 如果用户传递请求中指定了图片的所属空间, 则必须要求该空间属于该用户
+            status = PictureReviewStatusEnum.PASS.getCode();
             List<Space> spaceList = spaceService.spaceSearch(new AdminSpaceSearchRequest().setId(spaceId)).getRecords();
             ThrowUtils.throwIf(spaceList.isEmpty(), new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的空间不存在"));
             ThrowUtils.throwIf(!userId.equals(spaceList.get(0).getUserId()), new BusinessException(CodeBindMessageEnums.NO_AUTH_ERROR, "您不是该空间的所属者, 没有权限上传图片"));
@@ -222,7 +224,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
                 ThrowUtils.throwIf(!userId.equals(space.getUserId()) && ((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole() != UserRoleEnums.ADMIN_ROLE.getCode(), new BusinessException(CodeBindMessageEnums.NO_AUTH_ERROR, "该图片属于私有空间图片, 您不是该空间的所属者, 没有权限修改图片"));
             }
         }
-        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(PictureReviewStatusEnum.REVIEWING.getCode(), userId, spaceId, pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl, multipartFile));
+        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(status, userId, spaceId, pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl, multipartFile));
         pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetLoginInfo()));
 
         // 响应数据
@@ -269,6 +271,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         var request = AdminPictureSearchRequest.copyProperties(pictureQueryRequest);
         Long pictureId = pictureQueryRequest.getId();
         Picture apicture = pictureService.getById(pictureId);
+        ThrowUtils.throwIf(apicture == null, new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "图片不存在"));
         Space privateSpace = spaceService.spaceGetCurrentLoginUserPrivateSpace();
         request
                 .setReviewStatus(pictureId != null && apicture != null && apicture.getUserId() == userService.userGetCurrentLonginUserId() ? null : PictureReviewStatusEnum.PASS.getCode()) // 强制用户只能查看通过审核的图片, 不过用户自己除外

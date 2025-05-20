@@ -76,6 +76,10 @@ const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
 
 <template>
   <div class="homePage">
+    <!-- 页面标题 -->
+    <a-flex justify="space-between">
+      <h2>公有图库</h2>
+    </a-flex>
     <!-- 搜索组件 -->
     <div class="search-bar">
       <a-input-search
@@ -121,14 +125,14 @@ const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
                     <div class="title">{{ picture.name }}</div>
                     <div class="introduction">{{ picture.introduction || '无简介' }}</div>
                     <a-tag :color="picture.category ? 'green' : 'gray'"
-                    >{{ picture.category || '无种类' }}
+                      >{{ picture.category || '无种类' }}
                     </a-tag>
                     <div class="tags">
                       <template v-if="JSON.parse(picture.tags ?? '[]').length > 3">
                         <a-tag
                           v-for="tag in JSON.parse(picture.tags ?? '[]').slice(0, 3)"
                           :key="tag"
-                        >{{ tag }}
+                          >{{ tag }}
                         </a-tag>
                         <a-tooltip :title="JSON.parse(picture.tags ?? '[]').join(', ')">
                           <a-tag>...</a-tag>
@@ -136,7 +140,7 @@ const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
                       </template>
                       <template v-else-if="JSON.parse(picture.tags ?? '[]').length > 0">
                         <a-tag v-for="tag in JSON.parse(picture.tags ?? '[]')" :key="tag"
-                        >{{ tag }}
+                          >{{ tag }}
                         </a-tag>
                       </template>
                       <template v-else>

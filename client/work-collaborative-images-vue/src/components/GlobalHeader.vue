@@ -5,6 +5,7 @@ import {
   HomeOutlined,
   LogoutOutlined,
   PictureOutlined,
+  UserOutlined,
   QuestionCircleOutlined,
   SnippetsOutlined,
 } from '@ant-design/icons-vue'
@@ -162,6 +163,12 @@ const doLogout = async () => {
                 <a-menu-item @click="doLogout">
                   <LogoutOutlined />
                   退出登录
+                </a-menu-item>
+                <a-menu-item>
+                  <router-link to="/self">
+                    <UserOutlined />
+                    我的空间
+                  </router-link>
                 </a-menu-item>
               </a-menu>
             </template>

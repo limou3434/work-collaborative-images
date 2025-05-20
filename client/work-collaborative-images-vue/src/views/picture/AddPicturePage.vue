@@ -36,7 +36,8 @@ onMounted(() => {
 
 // 设置请求图片上传的参数
 const pictureForm = reactive<WorkCollaborativeImagesAPI.pictureUploadParams>({
-  pictureId: Number(route.query?.id), // 如果有id则进行更新操作，否则是添加
+  pictureId: Number(route.query?.id), // 如果有 id 则进行更新操作，否则是添加
+  spaceId: Number(route.query?.spaceId) || 0, // 如果有 id 则进行更新操作，否则是添加
   pictureName: '',
   pictureCategory: '',
   pictureIntroduction: '',

@@ -224,7 +224,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         lambdaQueryWrapper
                 .eq(id != null, Space::getId, id)
                 .like(StringUtils.isNotBlank(name), Space::getSpaceName, name)
-                .eq(level != null, Space::getSpaceLevel, level)
+                .eq(level !=  null, Space::getSpaceLevel, level)
                 .eq(userId != null, Space::getUserId, userId)
                 .orderBy(
                         StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则

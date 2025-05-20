@@ -240,7 +240,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, pictureFileUrl); // 执行具体的上传任务
         }
         if (pictureId != null) {
-            picture.setId(pictureId);
+            picture = this.getById(pictureId);
         }
         picture.setReviewStatus(pictureStatus);
         PictureReviewStatusEnum status = PictureReviewStatusEnum.getStatusDescription(pictureStatus);
