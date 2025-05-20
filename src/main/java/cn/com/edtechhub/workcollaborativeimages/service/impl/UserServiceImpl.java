@@ -5,7 +5,7 @@ import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.mapper.UserMapper;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.UserStatus;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserDeleteRequest;
@@ -20,7 +20,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,16 +39,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public User userAdd(UserAddRequest userAddRequest) {
         // 检查参数
-        ThrowUtils.throwIf(userAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体为空");
+        ThrowUtils.throwIf(userAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         checkAccountAndPasswd(userAddRequest.getAccount(), userAddRequest.getPasswd());
 
         // 服务实现
-        User user = UserAddRequest.copyProperties(userAddRequest);
+        User user = UserAddRequest.copyProperties2Entity(userAddRequest);
         user.setPasswd(this.encryptedPasswd(user.getPasswd()));
         try {
-            this.save(user); // 保存实例的同时利用唯一键约束避免并发问题
+            boolean result = this.save(user); // 保存实例的同时利用唯一键约束避免并发问题
+            ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
         } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
-            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "已经存在该用户, 或者曾经被删除"));
+            ThrowUtils.throwIf(true, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "已经存在该用户, 请更换新账号");
         }
         return user;
     }
@@ -57,33 +57,32 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public Boolean userDelete(UserDeleteRequest userDeleteRequest) {
         // 检查参数
-        ThrowUtils.throwIf(userDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户删除请求体不能为空"));
+        ThrowUtils.throwIf(userDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = userDeleteRequest.getId();
-        ThrowUtils.throwIf(id <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法"));
+        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "id 不能为空");
+        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法, 必须是正整数");
 
-        // 操作数据库
+        // 服务实现
         boolean result = this.removeById(id);
-        ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "删除用户失败, 也许该用户不存在或者已经被删除"));
+        ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除用户失败, 也许该用户不存在或者已经被删除");
         return true;
     }
 
     @Override
     public User userUpdate(UserUpdateRequest userUpdateRequest) {
         // 检查参数
-        ThrowUtils.throwIf(userUpdateRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户 id 不能为空"));
-        ThrowUtils.throwIf(userUpdateRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户 id 必须是正整数"));
+        ThrowUtils.throwIf(userUpdateRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
+        Long id = userUpdateRequest.getId();
+        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "id 不能为空");
+        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法, 必须是正整数");
 
-        // 更新用户并且需要考虑密码的问题
-        User user = new User();
-        BeanUtils.copyProperties(userUpdateRequest, user);
-        if (StringUtils.isNotBlank(user.getPasswd())) {
-            user.setPasswd(this.encryptedPasswd(user.getPasswd())); // 需要加密密码(这里有个雷, 如果用户的密码被查询出来, 就会导致再次加密, 需要使用 if 解决)
-        } // 后续需要更新一个用户时, 如果密码为 null 则我们认为不更新密码
+        // 服务实现
+        User user = UserUpdateRequest.copyProperties2Entity(userUpdateRequest);
+        if (StringUtils.isNotBlank(user.getPasswd())) { // 后续需要更新一个用户时, 如果密码为 null 则我们认为不更新密码
+            user.setPasswd(this.encryptedPasswd(user.getPasswd()));
+        }
         this.updateById(user);
-
-        // 更新用户后最好把用户的信息也返回, 这样方便前端做实时的数据更新
-        Long id = user.getId();
-        User newEntity = this.getById(id);
+        User newEntity = this.getById(id); // 更新用户后最好把用户的信息也返回, 这样方便前端做实时的数据更新
         StpUtil.getSessionByLoginId(id).set(UserConstant.USER_LOGIN_STATE, newEntity); // 并且还需要把用户的会话记录修改, 才能动态修改权限
         StpUtil.kickout(id); // 踢下线确保完全更新用户的所有信息, 这是一个保守做法
         return newEntity;
@@ -92,22 +91,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public Page<User> userSearch(UserSearchRequest userSearchRequest) {
         // 检查参数
-        ThrowUtils.throwIf(userSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户查询请求不能为空"));
+        ThrowUtils.throwIf(userSearchRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
 
-        // TODO: 如果用户传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
-
-        // 获取查询对象
+        // 服务实现
         LambdaQueryWrapper<User> queryWrapper = this.getQueryWrapper(userSearchRequest); // 构造查询条件
-
-        // 获取分页对象
-        Page<User> page = new Page<>(userSearchRequest.getPageCurrent(), userSearchRequest.getPageSize()); // 这里还指定了页码和条数
-
-        // 查询用户分页后直接取得内部的列表进行返回
+        Page<User> page = new Page<>(userSearchRequest.getPageCurrent(), userSearchRequest.getPageSize()); // 获取分页对象
         return this.page(page, queryWrapper); // 返回分页结果
     }
 
     @Override
     public User userSearchById(Long id) {
+        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "请求 id 不能为空");
         return this.getById(id);
     }
 
@@ -117,45 +111,49 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         ThrowUtils.throwIf(userId == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户 id 不能为空"));
         ThrowUtils.throwIf(disableTime == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "封禁时间不能为空, 至少需要填写为 0"));
 
-        // 查询数据库
-        UserSearchRequest userSearchRequest = new UserSearchRequest();
-        userSearchRequest.setId(userId);
-        userSearchRequest.setPageCurrent(1);
-        userSearchRequest.setPageSize(1);
-        User user = this.userSearch(userSearchRequest).getRecords().get(0);
-        user.setPasswd(null); // 暂时这么做以避免密码被二次加密
-
-        // 复制用户原本的信息到更新请求实例中
-        UserUpdateRequest userUpdateRequest = new UserUpdateRequest();
-        BeanUtils.copyProperties(user, userUpdateRequest);
-
-        // 如果封禁时间为 0 则表示取消封禁, 默认解封后设置为普通用户权限, 否则封禁用户
-        if (disableTime == 0) {
-            StpUtil.untieDisable(userId);
-            userUpdateRequest.setRole(0);
+        // 服务实现
+        User user = this.userSearchById(userId); // 查询对应用户
+        user.setPasswd(null); // 设置密码为 null 避免密码在解封更新后被二次加密
+        UserUpdateRequest userUpdateRequest = UserUpdateRequest.copyProperties2Request(user);
+        if (disableTime == 0) { // 如果封禁时间为 0 则表示取消封禁, 默认解封后设置为普通用户权限, 否则封禁用户
+            StpUtil.untieDisable(userId); // 解除封禁
+            userUpdateRequest.setRole(0); // 持久到数据库中方便调试
         } else {
             StpUtil.kickout(userId); // 先踢下线
             StpUtil.disable(userId, disableTime); // 然后再进行封禁
-            userUpdateRequest.setRole(-1);
+            userUpdateRequest.setRole(-1); // 持久到数据库中方便调试
         }
-
-        // 把封禁体现到数据库中方便维护
         this.userUpdate(userUpdateRequest);
         return true;
+    }
+
+    @Override
+    public User userValidation(String account, String passwd) {
+        // 参数检查
+        ThrowUtils.throwIf(StringUtils.isBlank(account), CodeBindMessageEnums.PARAMS_ERROR, "账户为空");
+        ThrowUtils.throwIf(StringUtils.isBlank(passwd), CodeBindMessageEnums.PARAMS_ERROR, "密码为空");
+
+        // 服务实现
+        LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper
+                .eq(User::getAccount, account)
+                .eq(User::getPasswd, encryptedPasswd(passwd));
+        User user = this.getOne(lambdaQueryWrapper);
+        log.debug("当前请求登录的用户 {}", user);
+        return user;
     }
 
     @Override
     public Boolean userRegister(String account, String passwd, String checkPasswd) {
         // 检查参数
         checkAccountAndPasswd(account, passwd);
-        ThrowUtils.throwIf(!passwd.equals(checkPasswd), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "两次输入的密码不一致"));
+        ThrowUtils.throwIf(!passwd.equals(checkPasswd), CodeBindMessageEnums.PARAMS_ERROR, "两次输入的密码不一致");
 
-        // 注册一个新的用户
-        UserAddRequest userAddRequest = new UserAddRequest();
-        userAddRequest.setAccount(account);
-        userAddRequest.setPasswd(passwd);
-        this.userAdd(userAddRequest); // 这里内部添加出错会自己出异常来解决
-
+        // 服务实现
+        var userAddRequest = new UserAddRequest()
+                .setAccount(account)
+                .setPasswd(passwd);
+        this.userAdd(userAddRequest); // 默认根据账号来识别
         return true;
     }
 
@@ -163,26 +161,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public User userLogin(String account, String passwd, String device) {
         // 检查参数
         checkAccountAndPasswd(account, passwd);
-        ThrowUtils.throwIf(StringUtils.isAllBlank(device), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "缺失必要的登录设备类型"));
+        ThrowUtils.throwIf(StringUtils.isAllBlank(device), CodeBindMessageEnums.PARAMS_ERROR, "缺失必要的登录设备类型");
 
-        // 查询是否存在该用户
-        LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper
-                .eq(User::getAccount, account)
-                .eq(User::getPasswd, encryptedPasswd(passwd));
-        User user = this.getOne(lambdaQueryWrapper);
-
-        log.debug("当前请求登录的用户 {}", user);
-
-        ThrowUtils.throwIf(user == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "该用户可能不存在, 也可能是密码错误"));
-
-        // 先检查是否被封号再来登录
-        try {
+        // 服务实现
+        User user = this.userValidation(account, passwd);
+        ThrowUtils.throwIf(user == null, CodeBindMessageEnums.NO_LOGIN_ERROR, "不存在该用户或者密码不正确");
+        try { // 先检查是否被封号再来登录
             StpUtil.checkDisable(user.getId()); // 这个方法检测到封号就会抛出异常
         } catch (DisableServiceException e) {
-            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "该用户已经被封号, 请联系管理员 898738804@qq.com"));
+            ThrowUtils.throwIf(true, CodeBindMessageEnums.OPERATION_ERROR, "该用户已经被封号, 请联系管理员 898738804@qq.com");
         }
-        StpUtil.login(user.getId(), device);
+        StpUtil.login(user.getId(), device); // 允许登录
         StpUtil.getSession().set(UserConstant.USER_LOGIN_STATE, user); // 把用户的信息存储到 Sa-Token 的会话中, 这样后续的用权限判断就不需要一直查询 SQL 才能得到, 缺点是更新权限的时候需要把用户踢下线否则会话无法更新
         log.debug("检测一次设备类型真的被设置为: {}", StpUtil.getLoginDevice());
         return user;
@@ -200,27 +189,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public UserStatus userCurrentLonginUserStatus() {
-        UserStatus userStatus = new UserStatus();
-        userStatus.setIsLogin(StpUtil.isLogin());
-        if (!userStatus.getIsLogin()) {
-            return userStatus;
-        }
-        userStatus.setTokenName(StpUtil.getTokenName());
-        userStatus.setTokenTimeout(String.valueOf(StpUtil.getTokenTimeout()));
-        userStatus.setUserId(String.valueOf(StpUtil.getLoginId()));
-        userStatus.setUserRole(((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole()); // 获取登陆用户会话中的权限
-        return userStatus;
-    }
-
-    @Override
-    public User userCurrentLonginUserInfo() {
-        return (User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE);
-    }
-
-    @Override
     public User userCurrentLonginUserSession() {
-        return (User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE);
+        return (User) StpUtil.getSessionByLoginId(this.userGetCurrentLonginUserId()).get(UserConstant.USER_LOGIN_STATE);
+    }
+
+    @Override
+    public UserTokenStatus userCurrentLonginUserStatus() {
+        UserTokenStatus userTokenStatus = new UserTokenStatus();
+        boolean isLogin = userTokenStatus.getIsLogin();
+        if (!isLogin) {
+            return userTokenStatus;
+        }
+        userTokenStatus
+                .setIsLogin(StpUtil.isLogin())
+                .setTokenName(StpUtil.getTokenName())
+                .setTokenTimeout(String.valueOf(StpUtil.getTokenTimeout()))
+                .setUserId(String.valueOf(StpUtil.getLoginId()))
+                .setUserRole(this.userCurrentLonginUserSession().getRole());
+        return userTokenStatus;
     }
 
     @Override

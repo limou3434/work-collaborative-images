@@ -1,12 +1,11 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
-import cn.com.edtechhub.workcollaborativeimages.model.dto.UserStatus;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserUpdateRequest;
-import cn.dev33.satoken.session.SaSession;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -39,25 +38,33 @@ public interface UserService extends IService<User> {
     Page<User> userSearch(UserSearchRequest userSearchRequest);
 
     /// 其他服务 ///
+    /**
+     * 根据标识查询单个用户服务
+     */
     User userSearchById(Long id);
 
     /**
-     * 用户封禁服务
+     * 对指定进行封禁/解禁服务
      */
     Boolean userDisable(Long userId, Long disableTime);
 
     /**
-     * 用户注册服务
+     * 注册账户服务
      */
     Boolean userRegister(String account, String password, String checkPassword);
 
     /**
-     * 用户登入服务
+     * 验证账户服务
+     */
+    User userValidation(String account, String passwd);
+
+    /**
+     * 登入账户服务
      */
     User userLogin(String account, String passwd, String device);
 
     /**
-     * 用户登出服务
+     * 登出账户服务
      */
     Boolean userLogout(String device);
 
@@ -67,19 +74,14 @@ public interface UserService extends IService<User> {
     Long userGetCurrentLonginUserId();
 
     /**
-     * 获取当前登录用户状态服务
-     */
-    UserStatus userCurrentLonginUserStatus();
-
-    /**
-     * 获取当前登录用户信息服务
-     */
-    User userCurrentLonginUserInfo();
-
-    /**
      * 获取当前登录用户会话服务
      */
     User userCurrentLonginUserSession();
+
+    /**
+     * 获取当前登录用户状态服务
+     */
+    UserTokenStatus userCurrentLonginUserStatus();
 
     /**
      * 确认当前用户是否为管理员服务

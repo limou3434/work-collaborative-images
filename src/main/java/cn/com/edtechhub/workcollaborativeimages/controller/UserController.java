@@ -1,7 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.controller;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.UserStatus;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.*;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.UserVO;
@@ -9,7 +9,6 @@ import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.DeviceUtils;
-import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.annotation.SaIgnore;
@@ -42,8 +41,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/add")
-//    @SentinelResource(value = "userAdd")
-    public BaseResponse<User> userAdd(@RequestBody UserAddRequest userAddRequest) {
+    public BaseResponse<User> adminUserAdd(@RequestBody UserAddRequest userAddRequest) {
         User user = userService.userAdd(userAddRequest);
         return TheResult.success(CodeBindMessageEnums.SUCCESS, user);
     }
@@ -52,7 +50,6 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/delete")
-//    @SentinelResource(value = "userDelete")
     public BaseResponse<Boolean> adminUserDelete(@RequestBody UserDeleteRequest userDeleteRequest) {
         Boolean result = userService.userDelete(userDeleteRequest);
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
@@ -62,7 +59,6 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/update")
-//    @SentinelResource(value = "userUpdate")
     public BaseResponse<User> adminUserUpdate(@RequestBody UserUpdateRequest userUpdateRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userUpdate(userUpdateRequest));
     }
@@ -71,7 +67,6 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/search")
-//    @SentinelResource(value = "userSearch")
     public BaseResponse<Page<User>> adminUserSearch(@RequestBody UserSearchRequest userSearchRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userSearch(userSearchRequest));
     }
@@ -80,7 +75,6 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/disable")
-//    @SentinelResource(value = "userDisable")
     public BaseResponse<Boolean> adminUserDisable(@RequestBody UserDisableRequest userDisableRequest) {
         Boolean result = userService.userDisable(userDisableRequest.getId(), userDisableRequest.getDisableTime());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
@@ -90,7 +84,6 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @Operation(summary = "用户注册网络接口")
     @SaIgnore
     @PostMapping("/register")
-//    @SentinelResource(value = "userRegister")
     public BaseResponse<Boolean> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         Boolean result = userService.userRegister(userRegisterRequest.getAccount(), userRegisterRequest.getPasswd(), userRegisterRequest.getCheckPasswd());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
@@ -99,7 +92,6 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @Operation(summary = "用户登入网络接口")
     @SaIgnore
     @PostMapping("/login")
-//    @SentinelResource(value = "userLogin")
     public BaseResponse<UserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         User user = userService.userLogin(userLoginRequest.getAccount(), userLoginRequest.getPasswd(), DeviceUtils.getRequestDevice(request)); // 这里同时解析用户的设备, 以支持同端互斥
         UserVO userVO = UserVO.removeSensitiveData(user);
@@ -108,7 +100,6 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
 
     @Operation(summary = "用户登出网络接口")
     @SaCheckLogin
-//    @SentinelResource(value = "userLogout")
     @PostMapping("/logout")
     public BaseResponse<Boolean> userLogout(HttpServletRequest request) {
         Boolean result = userService.userLogout(DeviceUtils.getRequestDevice(request));
@@ -117,19 +108,17 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
 
     @Operation(summary = "获取登录状态网络接口")
     @SaIgnore
-//    @SentinelResource(value = "userStatus", blockHandler = "userStatusBlockHandler", blockHandlerClass = SentinelConfig.class)
     @GetMapping("/status")
-    public BaseResponse<UserStatus> userStatus() {
-        UserStatus userStatus = userService.userCurrentLonginUserStatus();
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, userStatus);
+    public BaseResponse<UserTokenStatus> userStatus() {
+        UserTokenStatus userTokenStatus = userService.userCurrentLonginUserStatus();
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, userTokenStatus);
     }
 
     @Operation(summary = "获取登录信息网络接口")
     @SaIgnore
-//    @SentinelResource(value = "userInfo", blockHandler = "userStatusBlockHandler", blockHandlerClass = SentinelConfig.class)
     @GetMapping("/info")
     public BaseResponse<UserVO> userInfo() {
-        User user = userService.userCurrentLonginUserInfo();
+        User user = userService.userCurrentLonginUserSession();
         return TheResult.success(CodeBindMessageEnums.SUCCESS, UserVO.removeSensitiveData(user));
     }
 

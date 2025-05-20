@@ -4,6 +4,7 @@ package cn.com.edtechhub.workcollaborativeimages.model.request.userService;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
@@ -13,6 +14,7 @@ import java.io.Serializable;
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Data
+@Accessors(chain = true) // 实现链式调用
 public class UserDeleteRequest implements Serializable {
 
     /**

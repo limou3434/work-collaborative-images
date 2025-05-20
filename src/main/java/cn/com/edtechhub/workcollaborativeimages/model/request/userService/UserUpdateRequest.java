@@ -1,8 +1,11 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.userService;
 
+import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
+import lombok.experimental.Accessors;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 
@@ -12,6 +15,7 @@ import java.io.Serializable;
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Data
+@Accessors(chain = true) // 实现链式调用
 public class UserUpdateRequest implements Serializable {
 
     /**
@@ -111,5 +115,23 @@ public class UserUpdateRequest implements Serializable {
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 请求转换为实体方法
+     */
+    public static User copyProperties2Entity(UserUpdateRequest request) {
+        var entity = new User();
+        BeanUtils.copyProperties(request, entity);
+        return entity;
+    }
+
+    /**
+     * 实体转化为请求方法
+     */
+    public static UserUpdateRequest copyProperties2Request(User entity) {
+        var request = new UserUpdateRequest();
+        BeanUtils.copyProperties(entity, request);
+        return request;
+    }
 
 }

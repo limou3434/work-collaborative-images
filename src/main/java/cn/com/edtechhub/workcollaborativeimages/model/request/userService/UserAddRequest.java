@@ -1,9 +1,8 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.userService;
 
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.AdminSpaceUpdateRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceEditRequest;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
@@ -14,6 +13,7 @@ import java.io.Serializable;
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Data
+@Accessors(chain = true) // 实现链式调用
 public class UserAddRequest implements Serializable {
 
     /**
@@ -110,12 +110,21 @@ public class UserAddRequest implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 转换方法
+     * 请求转换为实体方法
      */
-    public static User copyProperties(UserAddRequest userAddRequest) {
+    public static User copyProperties2Entity(UserAddRequest request) {
         var user = new User();
-        BeanUtils.copyProperties(userAddRequest, user);
+        BeanUtils.copyProperties(request, request);
         return user;
+    }
+
+    /**
+     * 实体转化为请求方法
+     */
+    public static UserAddRequest copyProperties2Request(User user) {
+        var request = new UserAddRequest();
+        BeanUtils.copyProperties(user, request);
+        return request;
     }
 
 }

@@ -3,6 +3,7 @@ package cn.com.edtechhub.workcollaborativeimages.model.dto;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * 描述用户状态
@@ -10,7 +11,8 @@ import lombok.Data;
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Data
-public class UserStatus {
+@Accessors(chain = true) // 实现链式调用
+public class UserTokenStatus {
 
     /**
      * 是否登录
