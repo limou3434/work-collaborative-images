@@ -1,6 +1,10 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.userService;
 
+import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.AdminSpaceUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceEditRequest;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 
@@ -45,7 +49,7 @@ public class UserAddRequest implements Serializable {
     /**
      * 用户密码(业务层强制刚刚注册的用户重新设置密码, 交给用户时默认密码为 123456, 并且加盐密码)
      */
-    private String passwd;
+    private String passwd = "123456";
 
     /**
      * 用户头像(业务层需要考虑默认头像使用 cos 对象存储)
@@ -104,5 +108,14 @@ public class UserAddRequest implements Serializable {
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 转换方法
+     */
+    public static User copyProperties(UserAddRequest userAddRequest) {
+        var user = new User();
+        BeanUtils.copyProperties(userAddRequest, user);
+        return user;
+    }
 
 }

@@ -2,6 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.mapper.UserMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserStatus;
@@ -25,8 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
-import java.util.Collections;
-
 /**
  * @author Limou
  * @description 针对表【user(用户信息表)】的数据库操作Service实现
@@ -41,18 +40,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public User userAdd(UserAddRequest userAddRequest) {
         // 检查参数
-        ThrowUtils.throwIf(userAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户添加请求体为空"));
+        ThrowUtils.throwIf(userAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体为空");
         checkAccountAndPasswd(userAddRequest.getAccount(), userAddRequest.getPasswd());
 
-        // 创建用户实例的同时加密密码
-        var user = new User();
-        BeanUtils.copyProperties(userAddRequest, user);
-        String passwd = user.getPasswd().isEmpty() ? UserConstant.DEFAULT_PASSWD : user.getPasswd(); // 如果密码为空则需要设置默认密码
-        user.setPasswd(this.encryptedPasswd(passwd));
-
-        // 保存实例的同时利用唯一键约束避免并发问题
+        // 服务实现
+        User user = UserAddRequest.copyProperties(userAddRequest);
+        user.setPasswd(this.encryptedPasswd(user.getPasswd()));
         try {
-            this.save(user);
+            this.save(user); // 保存实例的同时利用唯一键约束避免并发问题
         } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
             ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "已经存在该用户, 或者曾经被删除"));
         }
@@ -109,6 +104,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 查询用户分页后直接取得内部的列表进行返回
         return this.page(page, queryWrapper); // 返回分页结果
+    }
+
+    @Override
+    public User userSearchById(Long id) {
+        return this.getById(id);
     }
 
     @Override
@@ -200,7 +200,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public UserStatus userGetLoginStatus() {
+    public UserStatus userCurrentLonginUserStatus() {
         UserStatus userStatus = new UserStatus();
         userStatus.setIsLogin(StpUtil.isLogin());
         if (!userStatus.getIsLogin()) {
@@ -214,13 +214,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public User userGetLoginInfo() {
+    public User userCurrentLonginUserInfo() {
         return (User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE);
     }
 
     @Override
-    public Integer userIsAdmin() {
-        return ((User) StpUtil.getSessionByLoginId(this.userGetCurrentLonginUserId()).get(UserConstant.USER_LOGIN_STATE)).getRole();
+    public User userCurrentLonginUserSession() {
+        return (User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE);
+    }
+
+    @Override
+    public Boolean userIsAdmin() {
+        return UserRoleEnums.getEnums(this.userCurrentLonginUserSession().getRole()) == UserRoleEnums.ADMIN_ROLE;
     }
 
     /**
@@ -245,7 +250,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     private String encryptedPasswd(String passwd) {
         ThrowUtils.throwIf(StringUtils.isAnyBlank(passwd), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "需要加密的密码不能为空"));
-        return DigestUtils.md5DigestAsHex((UserConstant.SALT + passwd).getBytes());
+        return DigestUtils.md5DigestAsHex((UserConstant.SALT + passwd).getBytes()); // TODO: 使用 Sa-token 的加密工具
     }
 
     /**

@@ -6,6 +6,7 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserAd
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserUpdateRequest;
+import cn.dev33.satoken.session.SaSession;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -16,6 +17,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface UserService extends IService<User> {
 
+    /// 实体服务 ///
     /**
      * 用户添加服务
      */
@@ -35,6 +37,9 @@ public interface UserService extends IService<User> {
      * 用户查询服务
      */
     Page<User> userSearch(UserSearchRequest userSearchRequest);
+
+    /// 其他服务 ///
+    User userSearchById(Long id);
 
     /**
      * 用户封禁服务
@@ -57,23 +62,28 @@ public interface UserService extends IService<User> {
     Boolean userLogout(String device);
 
     /**
-     * 用户获取标识服务
+     * 获取当前登录用户标识服务
      */
     Long userGetCurrentLonginUserId();
 
     /**
-     * 用户获取状态服务
+     * 获取当前登录用户状态服务
      */
-    UserStatus userGetLoginStatus();
+    UserStatus userCurrentLonginUserStatus();
 
     /**
-     * 用户获取信息服务
+     * 获取当前登录用户信息服务
      */
-    User userGetLoginInfo();
+    User userCurrentLonginUserInfo();
 
     /**
-     * 用户确认为管理员服务
+     * 获取当前登录用户会话服务
      */
-    Integer userIsAdmin();
+    User userCurrentLonginUserSession();
+
+    /**
+     * 确认当前用户是否为管理员服务
+     */
+    Boolean userIsAdmin();
 
 }

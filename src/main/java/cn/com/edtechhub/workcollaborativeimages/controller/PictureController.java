@@ -225,7 +225,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
             }
         }
         PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(status, userId, spaceId, pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl, multipartFile));
-        pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetLoginInfo()));
+        pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userCurrentLonginUserInfo()));
 
         // 响应数据
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);

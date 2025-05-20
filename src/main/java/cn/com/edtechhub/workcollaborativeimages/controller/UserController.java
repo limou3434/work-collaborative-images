@@ -9,6 +9,7 @@ import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.DeviceUtils;
+import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.annotation.SaIgnore;
@@ -119,7 +120,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
 //    @SentinelResource(value = "userStatus", blockHandler = "userStatusBlockHandler", blockHandlerClass = SentinelConfig.class)
     @GetMapping("/status")
     public BaseResponse<UserStatus> userStatus() {
-        UserStatus userStatus = userService.userGetLoginStatus();
+        UserStatus userStatus = userService.userCurrentLonginUserStatus();
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userStatus);
     }
 
@@ -128,7 +129,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
 //    @SentinelResource(value = "userInfo", blockHandler = "userStatusBlockHandler", blockHandlerClass = SentinelConfig.class)
     @GetMapping("/info")
     public BaseResponse<UserVO> userInfo() {
-        User user = userService.userGetLoginInfo();
+        User user = userService.userCurrentLonginUserInfo();
         return TheResult.success(CodeBindMessageEnums.SUCCESS, UserVO.removeSensitiveData(user));
     }
 

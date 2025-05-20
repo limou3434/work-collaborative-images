@@ -30,10 +30,10 @@ public class GlobalExceptionHandler {
     /**
      * 全局所有异常处理方法(兜底把所有运行时异常拦截后进行处理)
      */
-    @ExceptionHandler // 直接拦截 Throwable
+    @ExceptionHandler // 直接拦截控制层及其内部调用的所有 Throwable
     public BaseResponse<String> exceptionHandler(Exception e) {
-        log.debug("触发全局所有异常处理方法");
-        log.error(e.getMessage());
+        log.debug("触发全局所有异常处理方法, {}", e.getMessage());
+        printStackTraceStatus(e, 0);
         return TheResult.error(CodeBindMessageEnums.SYSTEM_ERROR, "请联系管理员");
     }
 
@@ -42,7 +42,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public BaseResponse<?> businessExceptionHandler(BusinessException e) {
-        log.debug("触发业务内部异常处理方法");
+        log.debug("触发业务内部异常处理方法, {}", e.getMessage());
+        printStackTraceStatus(e, 1);
         return TheResult.error(e.getCodeBindMessageEnums(), e.exceptionMessage);
     }
 
@@ -51,36 +52,49 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(NotLoginException.class)
     public BaseResponse<?> notLoginExceptionHandler(NotLoginException e) {
-        log.debug("触发登录认证异常处理方法");
+        log.debug("触发登录认证异常处理方法, {}", e.getMessage());
         return TheResult.error(CodeBindMessageEnums.NO_LOGIN_ERROR, "请先进行登录");
     }
 
     /**
-     * 权限认证异常处理方法(权限码值认证)
+     * 权限认证异常处理方法(权限码值认证, 由 Sa-token 框架自己来触发)
      */
-
     @ExceptionHandler(NotPermissionException.class)
     public BaseResponse<?> notPermissionExceptionHandler(NotPermissionException e) {
-        log.debug("触发权限认证异常处理方法(权限码值认证)");
+        log.debug("触发权限认证异常处理方法(权限码值认证), {}", e.getMessage());
         return TheResult.error(CodeBindMessageEnums.NO_AUTH_ERROR, "用户当前权限不允许使用该功能");
     }
 
     /**
-     * 权限认证异常处理方法(角色标识认证)
+     * 权限认证异常处理方法(角色标识认证, 由 Sa-token 框架自己来触发)
      */
     @ExceptionHandler(NotRoleException.class)
     public BaseResponse<?> notRoleExceptionHandler(NotRoleException e) {
-        log.debug("触发权限认证异常处理方法(角色标识认证)");
+        log.debug("触发权限认证异常处理方法(角色标识认证) {}", e.getMessage());
         return TheResult.error(CodeBindMessageEnums.NO_ROLE_ERROR, "用户当前角色不允许使用该功能");
     }
 
     /**
-     * 用户封禁异常处理方法
+     * 用户封禁异常处理方法(由 Sa-token 框架自己来触发)
      */
     @ExceptionHandler(DisableServiceException.class)
     public BaseResponse<?> disableServiceExceptionHandler(DisableServiceException e) {
-        log.debug("触发用户封禁异常处理方法");
+        log.debug("触发用户封禁异常处理方法 {}", e.getMessage());
         return TheResult.error(CodeBindMessageEnums.USER_DISABLE_ERROR, "当前用户因为违规被封禁"); // TODO: 可以考虑告知用户封禁时间
+    }
+
+    /**
+     * 打印异常定位
+     */
+    private void printStackTraceStatus(Exception e, int tier) {
+        StackTraceElement element = e.getStackTrace()[tier];
+        // 获取异常抛出位置(第一个堆栈元素)
+        log.debug("异常位置: {} -> 文件: {}, 方法: {}, 码行: {}",
+                element.getFileName(),
+                element.getClassName(),
+                element.getMethodName(),
+                element.getLineNumber()
+        );
     }
 
 }
