@@ -2,6 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.aop;
 
 import cn.com.edtechhub.workcollaborativeimages.utils.IpUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -21,7 +22,7 @@ public class RequestLogAOP implements HandlerInterceptor {
      * 每次网络接口被调用都会执行这个方法
      */
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {
         log.debug("拦截到请求: {}", "来自 " + IpUtils.getIpAddress(request) + " - " + request.getMethod() + " " + request.getRequestURI());
         return true; // 返回 false 会终止请求, 可以利用这一点进行 IP 屏蔽
     }
