@@ -4,7 +4,6 @@ import cn.com.edtechhub.workcollaborativeimages.config.CosClientConfig;
 import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.constant.ServerConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
-import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.hutool.core.collection.CollUtil;
@@ -70,32 +69,32 @@ public class CosManager {
      */
     public void validPicture(MultipartFile multipartFile) {
         // 检查参数
-        ThrowUtils.throwIf(multipartFile == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "文件不能为空"));
+        ThrowUtils.throwIf(multipartFile == null, CodeBindMessageEnums.PARAMS_ERROR, "文件不能为空");
 
         // 检查文件限制
         long fileSize = multipartFile.getSize(); // 获取文件大小
-        ThrowUtils.throwIf(fileSize > 2 * PictureConstant.ONE_M, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "文件大小不能超过 2M"));
+        ThrowUtils.throwIf(fileSize > 2 * PictureConstant.ONE_M, CodeBindMessageEnums.PARAMS_ERROR, "文件大小不能超过 2M");
 
         // 检查文件后缀
         String fileSuffix = FileUtil.getSuffix(multipartFile.getOriginalFilename());
-        ThrowUtils.throwIf(!PictureConstant.ALLOW_FORMAT_LIST.contains(fileSuffix), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "该文件的类型不允许上传"));
+        ThrowUtils.throwIf(!PictureConstant.ALLOW_FORMAT_LIST.contains(fileSuffix), CodeBindMessageEnums.PARAMS_ERROR, "该文件的类型不允许上传");
     }
 
     /**
      * 校验图片对象资源(远程校验)
      */
     private void validPicture(String fileUrl) {
-        ThrowUtils.throwIf(StrUtil.isBlank(fileUrl), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "文件地址不能为空"));
+        ThrowUtils.throwIf(StrUtil.isBlank(fileUrl), CodeBindMessageEnums.PARAMS_ERROR, "文件地址不能为空");
 
         // 验证 URL 格式
         try {
             new URL(fileUrl); // 验证是否是合法的 URL
         } catch (MalformedURLException e) {
-            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "文件地址格式不正确"));
+            ThrowUtils.throwIf(true, CodeBindMessageEnums.PARAMS_ERROR, "文件地址格式不正确");
         }
 
         // 校验 URL 协议
-        ThrowUtils.throwIf(!(fileUrl.startsWith("http://") || fileUrl.startsWith("https://")), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "仅支持 HTTP 或 HTTPS 协议的文件地址"));
+        ThrowUtils.throwIf(!(fileUrl.startsWith("http://") || fileUrl.startsWith("https://")), CodeBindMessageEnums.PARAMS_ERROR, "仅支持 HTTP 或 HTTPS 协议的文件地址");
 
         // 发送 HEAD 请求以验证文件是否存在
         HttpResponse response = null;
@@ -109,16 +108,16 @@ public class CosManager {
             String contentType = response.header("Content-Type");
             if (StrUtil.isNotBlank(contentType)) {
                 final List<String> ALLOW_CONTENT_TYPES = Arrays.asList("image/jpeg", "image/jpg", "image/png", "image/webp"); // 允许的图片类型
-                ThrowUtils.throwIf(!ALLOW_CONTENT_TYPES.contains(contentType.toLowerCase()), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "文件类型错误"));
+                ThrowUtils.throwIf(!ALLOW_CONTENT_TYPES.contains(contentType.toLowerCase()), CodeBindMessageEnums.PARAMS_ERROR, "文件类型错误");
             }
             // 校验文件大小
             String contentLengthStr = response.header("Content-Length");
             if (StrUtil.isNotBlank(contentLengthStr)) {
                 try {
                     long contentLength = Long.parseLong(contentLengthStr);
-                    ThrowUtils.throwIf(contentLength > PictureConstant.ONE_M * 2, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "文件大小不能超过 2M"));
+                    ThrowUtils.throwIf(contentLength > PictureConstant.ONE_M * 2, CodeBindMessageEnums.PARAMS_ERROR, "文件大小不能超过 2M");
                 } catch (NumberFormatException e) {
-                    ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "文件大小格式化错误"));
+                    ThrowUtils.throwIf(true, CodeBindMessageEnums.PARAMS_ERROR, "文件大小格式化错误");
                 }
             }
         } finally {
@@ -224,7 +223,7 @@ public class CosManager {
             uploadPictureResult.setThumbnailUrl(res ? cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey() : null);
         } catch (Exception e) {
             log.debug("图片上传到对象存储失败 {}", e.getMessage());
-            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.SYSTEM_ERROR, "上传失败"));
+            ThrowUtils.throwIf(true, CodeBindMessageEnums.SYSTEM_ERROR, "上传失败");
         } finally {
             this.deleteTempFile(file); // 无论是哪一种结果最终都会把临时文件删除
         }
@@ -280,7 +279,7 @@ public class CosManager {
             uploadPictureResult.setThumbnailUrl(res ? cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey() : null);
         } catch (Exception e) {
             log.debug("图片上传到对象存储失败 {}", e.getMessage());
-            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.SYSTEM_ERROR, "上传失败"));
+            ThrowUtils.throwIf(true, CodeBindMessageEnums.SYSTEM_ERROR, "上传失败");
         } finally {
             this.deleteTempFile(file);
         }
@@ -292,11 +291,11 @@ public class CosManager {
      * 删除临时对象资源
      */
     public void deleteTempFile(File file) {
-        ThrowUtils.throwIf(file == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "错误使用删除临时对象资源的方法, 主要是因为要删除的文件为空"));
+        ThrowUtils.throwIf(file == null, CodeBindMessageEnums.PARAMS_ERROR, "错误使用删除临时对象资源的方法, 主要是因为要删除的文件为空");
 
         // 删除临时文件
         boolean deleteResult = file.delete();
-        ThrowUtils.throwIf(!deleteResult, new BusinessException(CodeBindMessageEnums.SYSTEM_ERROR, "无法删除临时文件"));
+        ThrowUtils.throwIf(!deleteResult, CodeBindMessageEnums.SYSTEM_ERROR, "无法删除临时文件");
     }
 
 }

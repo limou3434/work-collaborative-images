@@ -6,6 +6,7 @@
 
     <resultMap id="BaseResultMap" type="cn.com.edtechhub.workcollaborativeimages.model.entity.Space">
             <id property="id" column="id" />
+            <result property="type" column="type" />
             <result property="spaceName" column="space_name" />
             <result property="spaceLevel" column="space_level" />
             <result property="maxSize" column="max_size" />
@@ -19,7 +20,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,space_name,space_level,max_size,max_count,total_size,
+        id,type,space_name,space_level,max_size,max_count,total_size,
         total_count,user_id,deleted,create_time,update_time
     </sql>
 </mapper>

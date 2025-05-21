@@ -1,6 +1,9 @@
 package cn.com.edtechhub.workcollaborativeimages.model.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
@@ -23,6 +26,11 @@ public class Space implements Serializable {
     @TableId(type = IdType.AUTO)
     @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long id;
+
+    /**
+     * 空间类型: 0-公有 1-私有 2-协作
+     */
+    private Integer type;
 
     /**
      * 空间名称
@@ -91,6 +99,7 @@ public class Space implements Serializable {
         }
         Space other = (Space) that;
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
+                && (this.getType() == null ? other.getType() == null : this.getType().equals(other.getType()))
                 && (this.getSpaceName() == null ? other.getSpaceName() == null : this.getSpaceName().equals(other.getSpaceName()))
                 && (this.getSpaceLevel() == null ? other.getSpaceLevel() == null : this.getSpaceLevel().equals(other.getSpaceLevel()))
                 && (this.getMaxSize() == null ? other.getMaxSize() == null : this.getMaxSize().equals(other.getMaxSize()))
@@ -108,6 +117,7 @@ public class Space implements Serializable {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
+        result = prime * result + ((getType() == null) ? 0 : getType().hashCode());
         result = prime * result + ((getSpaceName() == null) ? 0 : getSpaceName().hashCode());
         result = prime * result + ((getSpaceLevel() == null) ? 0 : getSpaceLevel().hashCode());
         result = prime * result + ((getMaxSize() == null) ? 0 : getMaxSize().hashCode());
@@ -123,24 +133,24 @@ public class Space implements Serializable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", id=").append(id);
-        sb.append(", spaceName=").append(spaceName);
-        sb.append(", spaceLevel=").append(spaceLevel);
-        sb.append(", maxSize=").append(maxSize);
-        sb.append(", maxCount=").append(maxCount);
-        sb.append(", totalSize=").append(totalSize);
-        sb.append(", totalCount=").append(totalCount);
-        sb.append(", userId=").append(userId);
-        sb.append(", deleted=").append(deleted);
-        sb.append(", createTime=").append(createTime);
-        sb.append(", updateTime=").append(updateTime);
-        sb.append(", serialVersionUID=").append(serialVersionUID);
-        sb.append("]");
-        return sb.toString();
+        String sb = getClass().getSimpleName() +
+                " [" +
+                "Hash = " + hashCode() +
+                ", id=" + id +
+                ", type=" + type +
+                ", spaceName=" + spaceName +
+                ", spaceLevel=" + spaceLevel +
+                ", maxSize=" + maxSize +
+                ", maxCount=" + maxCount +
+                ", totalSize=" + totalSize +
+                ", totalCount=" + totalCount +
+                ", userId=" + userId +
+                ", deleted=" + deleted +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
+                ", serialVersionUID=" + serialVersionUID +
+                "]";
+        return sb;
     }
 
 }

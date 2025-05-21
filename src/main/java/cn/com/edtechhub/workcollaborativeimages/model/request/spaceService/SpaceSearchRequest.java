@@ -13,7 +13,7 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true) // 实现链式调用
-public class AdminSpaceSearchRequest extends PageRequest implements Serializable {
+public class SpaceSearchRequest extends PageRequest implements Serializable {
 
     /**
      * id
@@ -43,8 +43,8 @@ public class AdminSpaceSearchRequest extends PageRequest implements Serializable
     /**
      * 转换方法
      */
-    public static AdminSpaceSearchRequest copyProperties(SpaceQueryRequest spaceQueryRequest) {
-        var adminSpaceSearchRequest = new AdminSpaceSearchRequest();
+    public static SpaceSearchRequest copyProperties(SpaceQueryRequest spaceQueryRequest) {
+        var adminSpaceSearchRequest = new SpaceSearchRequest();
         BeanUtils.copyProperties(spaceQueryRequest, adminSpaceSearchRequest);
         return adminSpaceSearchRequest;
     }

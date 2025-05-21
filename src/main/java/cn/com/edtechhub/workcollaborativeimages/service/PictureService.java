@@ -43,6 +43,11 @@ public interface PictureService extends IService<Picture> {
     /// 其他服务 ///
 
     /**
+     * 根据标识查询单个图片服务
+     */
+    Picture pictureSearchById(Long id);
+
+    /**
      * 获取图片所属的空间
      */
     Long pictureGetSpace(Picture picture);

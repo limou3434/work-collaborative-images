@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.spaceService;
 
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
@@ -10,7 +11,7 @@ import java.io.Serializable;
 
 @Data
 @Accessors(chain = true) // 实现链式调用
-public class AdminSpaceUpdateRequest implements Serializable {
+public class SpaceUpdateRequest implements Serializable {
 
     /**
      * id
@@ -44,10 +45,29 @@ public class AdminSpaceUpdateRequest implements Serializable {
     /**
      * 转换方法
      */
-    public static AdminSpaceUpdateRequest copyProperties(SpaceEditRequest spaceEditRequest) {
-        var adminSpaceUpdateRequest = new AdminSpaceUpdateRequest();
+    public static SpaceUpdateRequest copyProperties(SpaceEditRequest spaceEditRequest) {
+        // TODO: 等待删除
+        var adminSpaceUpdateRequest = new SpaceUpdateRequest();
         BeanUtils.copyProperties(spaceEditRequest, adminSpaceUpdateRequest);
         return adminSpaceUpdateRequest;
+    }
+
+    /**
+     * 请求转换为实体方法
+     */
+    public static Space copyProperties2Entity(SpaceUpdateRequest request) {
+        var entity = new Space();
+        BeanUtils.copyProperties(request, entity);
+        return entity;
+    }
+
+    /**
+     * 实体转化为请求方法
+     */
+    public static SpaceUpdateRequest copyProperties2Request(Space entity) {
+        var request = new SpaceUpdateRequest();
+        BeanUtils.copyProperties(entity, request);
+        return request;
     }
 
 }

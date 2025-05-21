@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 @Data
 @Accessors(chain = true) // 实现链式调用
-public class AdminSpaceDeleteRequest implements Serializable {
+public class SpaceDeleteRequest implements Serializable {
 
     /**
      * id
@@ -24,8 +24,8 @@ public class AdminSpaceDeleteRequest implements Serializable {
     /**
      * 转换方法
      */
-    public static AdminSpaceDeleteRequest copyProperties(SpaceDestroyRequest spaceDestroyRequest) {
-        var adminSpaceDeleteRequest = new AdminSpaceDeleteRequest();
+    public static SpaceDeleteRequest copyProperties(SpaceDestroyRequest spaceDestroyRequest) {
+        var adminSpaceDeleteRequest = new SpaceDeleteRequest();
         BeanUtils.copyProperties(spaceDestroyRequest, adminSpaceDeleteRequest);
         return adminSpaceDeleteRequest;
     }

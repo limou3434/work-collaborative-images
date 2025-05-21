@@ -1,10 +1,9 @@
-package cn.com.edtechhub.workcollaborativeimages.service.impl;
+ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
-import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.mapper.UserMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
@@ -118,7 +117,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Long id = userSearchRequest.getId();
         String account = userSearchRequest.getAccount();
         ThrowUtils.throwIf(id != null && id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法");
-        ThrowUtils.throwIf(StrUtil.isNotBlank(account) && account.length() > UserConstant.ACCOUNT_LENGTH, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.ACCOUNT_LENGTH + "位"));
+        ThrowUtils.throwIf(StrUtil.isNotBlank(account) && account.length() > UserConstant.ACCOUNT_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.ACCOUNT_LENGTH + "位字符");
 
         // 服务实现
         LambdaQueryWrapper<User> queryWrapper = this.getQueryWrapper(userSearchRequest); // 构造查询条件
@@ -137,8 +136,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @LogParams
     public Boolean userDisable(Long userId, Long disableTime, UserRoleEnums userRoleEnums) {
         // 参数检查
-        ThrowUtils.throwIf(userId == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户 id 不能为空"));
-        ThrowUtils.throwIf(disableTime == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "封禁时间不能为空, 至少需要填写为 0"));
+        ThrowUtils.throwIf(userId == null, CodeBindMessageEnums.PARAMS_ERROR, "用户 id 不能为空");
+        ThrowUtils.throwIf(disableTime == null, CodeBindMessageEnums.PARAMS_ERROR, "封禁时间不能为空, 至少需要填写为 0");
 
         // 服务实现
         User user = this.userSearchById(userId); // 查询对应用户
@@ -259,7 +258,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     private LambdaQueryWrapper<User> getQueryWrapper(UserSearchRequest userSearchRequest) {
         // 查询请求不能为空
-        ThrowUtils.throwIf(userSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空"));
+        ThrowUtils.throwIf(userSearchRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空");
 
         // 取得需要查询的参数
         Long id = userSearchRequest.getId();
@@ -303,10 +302,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     private void checkParameters(String checkAccount, String checkPasswd) {
         ThrowUtils.throwIf(StringUtils.isBlank(checkAccount), CodeBindMessageEnums.PARAMS_ERROR, "账户为空");
-        ThrowUtils.throwIf(checkAccount.length() < UserConstant.ACCOUNT_LENGTH, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.ACCOUNT_LENGTH + "位字符"));
+        ThrowUtils.throwIf(checkAccount.length() < UserConstant.ACCOUNT_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.ACCOUNT_LENGTH + "位字符");
 
         ThrowUtils.throwIf(StringUtils.isBlank(checkPasswd), CodeBindMessageEnums.PARAMS_ERROR, "密码为空");
-        ThrowUtils.throwIf(checkPasswd.length() < UserConstant.PASSWD_LENGTH, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "密码不得小于" + UserConstant.PASSWD_LENGTH + "位字符"));
+        ThrowUtils.throwIf(checkPasswd.length() < UserConstant.PASSWD_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "密码不得小于" + UserConstant.PASSWD_LENGTH + "位字符");
 
         String validPattern = "^[$_-]+$";
         ThrowUtils.throwIf(checkAccount.matches(validPattern), CodeBindMessageEnums.PARAMS_ERROR, "账号不能包含特殊字符");
@@ -316,7 +315,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * 获取加密后的密码
      */
     private String encryptedPasswd(String passwd) {
-        ThrowUtils.throwIf(StringUtils.isAnyBlank(passwd), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "需要加密的密码不能为空"));
+        ThrowUtils.throwIf(StringUtils.isAnyBlank(passwd), CodeBindMessageEnums.PARAMS_ERROR, "需要加密的密码不能为空");
         return DigestUtils.md5DigestAsHex((UserConstant.SALT + passwd).getBytes()); // TODO: 使用 Sa-token 的加密工具
     }
 
