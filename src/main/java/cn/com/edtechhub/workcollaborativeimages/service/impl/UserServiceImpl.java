@@ -24,9 +24,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.DigestUtils;
 import org.springframework.validation.annotation.Validated;
+
+import javax.annotation.Resource;
 
 /**
  * @author Limou
@@ -35,30 +37,39 @@ import org.springframework.validation.annotation.Validated;
  */
 @SuppressWarnings("deprecation")
 @Service
-@Transactional
 @Validated
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
+    /**
+     * 注入事务管理依赖
+     */
+    @Resource
+    TransactionTemplate transactionTemplate;
+
     @Override
+    @LogParams
     public User userAdd(UserAddRequest userAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(userAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         checkAccountAndPasswd(userAddRequest.getAccount(), userAddRequest.getPasswd());
 
         // 服务实现
-        User user = UserAddRequest.copyProperties2Entity(userAddRequest);
-        user.setPasswd(this.encryptedPasswd(user.getPasswd()));
-        try {
-            boolean result = this.save(user); // 保存实例的同时利用唯一键约束避免并发问题
-            ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
-        } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
-            ThrowUtils.throwIf(true, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "已经存在该用户, 请更换新账号");
-        }
-        return user;
+        return transactionTemplate.execute(status -> {
+            User user = UserAddRequest.copyProperties2Entity(userAddRequest);
+            user.setPasswd(this.encryptedPasswd(user.getPasswd()));
+            try {
+                boolean result = this.save(user); // 保存实例的同时利用唯一键约束避免并发问题
+                ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
+            } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
+                ThrowUtils.throwIf(true, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "已经存在该用户, 请更换新账号");
+            }
+            return user;
+        });
     }
 
     @Override
+    @LogParams
     public Boolean userDelete(UserDeleteRequest userDeleteRequest) {
         // 检查参数
         ThrowUtils.throwIf(userDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
@@ -67,12 +78,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法, 必须是正整数");
 
         // 服务实现
-        boolean result = this.removeById(id);
-        ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除用户失败, 也许该用户不存在或者已经被删除");
-        return true;
+        return transactionTemplate.execute(status -> {
+            boolean result = this.removeById(id);
+            ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除用户失败, 也许该用户不存在或者已经被删除");
+            return true;
+        });
     }
 
     @Override
+    @LogParams
     public User userUpdate(UserUpdateRequest userUpdateRequest) {
         // 检查参数
         ThrowUtils.throwIf(userUpdateRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
@@ -81,18 +95,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法, 必须是正整数");
 
         // 服务实现
-        User user = UserUpdateRequest.copyProperties2Entity(userUpdateRequest);
-        if (StringUtils.isNotBlank(user.getPasswd())) { // 后续需要更新一个用户时, 如果密码为 null 则我们认为不更新密码
-            user.setPasswd(this.encryptedPasswd(user.getPasswd()));
-        }
-        this.updateById(user);
-        User newEntity = this.getById(id); // 更新用户后最好把用户的信息也返回, 这样方便前端做实时的数据更新
-        StpUtil.getSessionByLoginId(id).set(UserConstant.USER_LOGIN_STATE, newEntity); // 并且还需要把用户的会话记录修改, 才能动态修改权限
-        StpUtil.kickout(id); // 踢下线确保完全更新用户的所有信息, 这是一个保守做法
-        return newEntity;
+        return transactionTemplate.execute(status -> {
+            User user = UserUpdateRequest.copyProperties2Entity(userUpdateRequest);
+            if (StringUtils.isNotBlank(user.getPasswd())) { // 后续需要更新一个用户时, 如果密码为 null 则我们认为不更新密码
+                user.setPasswd(this.encryptedPasswd(user.getPasswd()));
+            }
+            this.updateById(user);
+            User newEntity = this.getById(id); // 更新用户后最好把用户的信息也返回, 这样方便前端做实时的数据更新
+            StpUtil.getSessionByLoginId(id).set(UserConstant.USER_LOGIN_STATE, newEntity); // 并且还需要把用户的会话记录修改, 才能动态修改权限
+            StpUtil.kickout(id); // 踢下线确保完全更新用户的所有信息, 这是一个保守做法
+            return newEntity;
+        });
     }
 
     @Override
+    @LogParams
     public Page<User> userSearch(UserSearchRequest userSearchRequest) {
         // 检查参数
         ThrowUtils.throwIf(userSearchRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
@@ -104,12 +121,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @LogParams
     public User userSearchById(Long id) {
         ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "请求 id 不能为空");
         return this.getById(id);
     }
 
     @Override
+    @LogParams
     public Boolean userDisable(Long userId, Long disableTime, UserRoleEnums userRoleEnums) {
         // 参数检查
         ThrowUtils.throwIf(userId == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户 id 不能为空"));
@@ -132,6 +151,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @LogParams
     public User userValidation(String account, String passwd) {
         // 参数检查
         ThrowUtils.throwIf(StringUtils.isBlank(account), CodeBindMessageEnums.PARAMS_ERROR, "账户为空");
@@ -148,9 +168,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @LogParams
     public Boolean userRegister(String account, String passwd, String checkPasswd) {
         // 检查参数
-        checkAccountAndPasswd(account, passwd);
         ThrowUtils.throwIf(!passwd.equals(checkPasswd), CodeBindMessageEnums.PARAMS_ERROR, "两次输入的密码不一致");
 
         // 服务实现
@@ -162,6 +182,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @LogParams
     public User userLogin(String account, String passwd, String device) {
         // 检查参数
         checkAccountAndPasswd(account, passwd);
@@ -182,12 +203,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @LogParams
     public Boolean userLogout(String device) {
         StpUtil.logout(); // 默认所有设备都被登出
         return true;
     }
 
     @Override
+    @LogParams
     public Long userGetCurrentLonginUserId() {
         return Long.valueOf(StpUtil.getLoginId().toString());
     }
@@ -203,6 +226,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @LogParams
     public UserTokenStatus userGetTokenById(Long id) {
         UserTokenStatus userTokenStatus = new UserTokenStatus();
         boolean isLogin = StpUtil.isLogin();
@@ -219,6 +243,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @LogParams
     public Boolean userIsAdmin(Long id) {
         return UserRoleEnums.getEnums(this.userGetSessionById(id).getRole()) == UserRoleEnums.ADMIN_ROLE;
     }

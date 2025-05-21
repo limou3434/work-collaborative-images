@@ -113,17 +113,17 @@ public class UserAddRequest implements Serializable {
      * 请求转换为实体方法
      */
     public static User copyProperties2Entity(UserAddRequest request) {
-        var user = new User();
-        BeanUtils.copyProperties(request, user);
-        return user;
+        var entity = new User();
+        BeanUtils.copyProperties(request, entity);
+        return entity;
     }
 
     /**
      * 实体转化为请求方法
      */
-    public static UserAddRequest copyProperties2Request(User user) {
+    public static UserAddRequest copyProperties2Request(User entity) {
         var request = new UserAddRequest();
-        BeanUtils.copyProperties(user, request);
+        BeanUtils.copyProperties(entity, request);
         return request;
     }
 

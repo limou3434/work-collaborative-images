@@ -11,6 +11,7 @@ import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.DeviceUtils;
+import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.annotation.SaIgnore;
@@ -99,8 +100,20 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaIgnore
     @PostMapping("/register")
     public BaseResponse<Boolean> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
-        Boolean result = userService.userRegister(userRegisterRequest.getAccount(), userRegisterRequest.getPasswd(), userRegisterRequest.getCheckPasswd());
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
+        // 检查参数
+        ThrowUtils.throwIf(userRegisterRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
+        String account = userRegisterRequest.getAccount();
+        String passwd = userRegisterRequest.getPasswd();
+        String checkPasswd = userRegisterRequest.getCheckPasswd();
+        ThrowUtils.throwIf(!passwd.equals(checkPasswd), CodeBindMessageEnums.PARAMS_ERROR, "两次输入的密码不一致");
+
+        // 接口实现
+        userService.userAdd(
+                new UserAddRequest()
+                        .setAccount(account)
+                        .setPasswd(passwd)
+        );
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, true);
     }
 
     @Operation(summary = "用户登入网络接口")
