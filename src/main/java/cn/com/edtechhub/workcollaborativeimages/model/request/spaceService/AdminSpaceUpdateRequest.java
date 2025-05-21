@@ -1,7 +1,5 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.spaceService;
 
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureUpdateRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureEditRequest;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;

@@ -1,6 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
 
-import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
@@ -11,7 +12,7 @@ import java.io.Serializable;
 
 @Data
 @Accessors(chain = true) // 实现链式调用
-public class AdminPictureAddRequest implements Serializable {
+public class PictureAddRequest implements Serializable {
 
     /**
      * 图片 url
@@ -32,7 +33,7 @@ public class AdminPictureAddRequest implements Serializable {
     /**
      * 简介
      */
-    private String introduction = "暂无介绍...";
+    private String introduction = "默认简介";
 
     /**
      * 分类
@@ -79,10 +80,29 @@ public class AdminPictureAddRequest implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
+     * 请求转换为实体方法
+     */
+    public static Picture copyProperties2Entity(PictureAddRequest request) {
+        var entity = new Picture();
+        BeanUtils.copyProperties(request, entity);
+        return entity;
+    }
+
+    /**
+     * 实体转化为请求方法
+     */
+    public static PictureAddRequest copyProperties2Request(User entity) {
+        var request = new PictureAddRequest();
+        BeanUtils.copyProperties(entity, request);
+        return request;
+    }
+
+    /**
      * 转换方法
      */
-    public static AdminPictureAddRequest copyProperties(PictureCreateRequest pictureCreateRequest) {
-        var adminPictureAddRequest = new AdminPictureAddRequest();
+    public static PictureAddRequest copyProperties(PictureCreateRequest pictureCreateRequest) {
+        // TODO: 待删除
+        var adminPictureAddRequest = new PictureAddRequest();
         BeanUtils.copyProperties(pictureCreateRequest, adminPictureAddRequest);
         return adminPictureAddRequest;
     }

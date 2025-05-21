@@ -130,32 +130,32 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/add")
-    public BaseResponse<Picture> adminPictureAdd(@RequestBody AdminPictureAddRequest adminPictureAddRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureAdd(adminPictureAddRequest)); // 可以直接绕过 COS 进行添加落库
+    public BaseResponse<Picture> adminPictureAdd(@RequestBody PictureAddRequest pictureAddRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureAdd(pictureAddRequest)); // 可以直接绕过 COS 进行添加落库
     }
 
     @Operation(summary = "图片删除网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/delete")
-    public BaseResponse<Boolean> adminPictureDelete(@RequestBody AdminPictureDeleteRequest adminPictureDeleteRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(adminPictureDeleteRequest)); // TODO: 实际上管理员删除接口最重要的一点就是可以直接清理 COS 上的图片, 但是普通用户只是去除数据库中的关联而已
+    public BaseResponse<Boolean> adminPictureDelete(@RequestBody PictureDeleteRequest pictureDeleteRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(pictureDeleteRequest)); // TODO: 实际上管理员删除接口最重要的一点就是可以直接清理 COS 上的图片, 但是普通用户只是去除数据库中的关联而已
     }
 
     @Operation(summary = "图片更新网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/update")
-    public BaseResponse<Picture> adminPictureUpdate(@RequestBody AdminPictureUpdateRequest adminPictureUpdateRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpdate(adminPictureUpdateRequest)); // 可以直接绕过 COS 进行更新落库
+    public BaseResponse<Picture> adminPictureUpdate(@RequestBody PictureUpdateRequest pictureUpdateRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpdate(pictureUpdateRequest)); // 可以直接绕过 COS 进行更新落库
     }
 
     @Operation(summary = "图片查询网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/search")
-    public BaseResponse<Page<Picture>> adminPictureSearch(@RequestBody AdminPictureSearchRequest adminPictureSearchRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(adminPictureSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息, 同时这个接口也是实时的, 对于管理员修改状态后实时刷新更加友好
+    public BaseResponse<Page<Picture>> adminPictureSearch(@RequestBody PictureSearchRequest pictureSearchRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息, 同时这个接口也是实时的, 对于管理员修改状态后实时刷新更加友好
     }
 
     @Operation(summary = "图片审核网络接口(管理)")
@@ -213,7 +213,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
             spaceId = 0L;
         }
         if (pictureId != null) { // 如果用户传递的图片的标识, 并且图片原本就拥有一个所属空间, 就必须要求当前登陆用户有权限修改该空间内的图片才可以修改图片信息
-            List<Picture> pictureList = pictureService.pictureSearch(new AdminPictureSearchRequest().setId(pictureId)).getRecords();
+            List<Picture> pictureList = pictureService.pictureSearch(new PictureSearchRequest().setId(pictureId)).getRecords();
             ThrowUtils.throwIf(pictureList.isEmpty(), new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的图片不存在"));
             Picture picture = pictureList.get(0);
             Long pictureOfSpaceId = picture.getSpaceId();
@@ -240,7 +240,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
 
         // 处理请求
         Long userId = userService.userGetCurrentLonginUserId();
-        List<Picture> pictureList = pictureService.pictureSearch(new AdminPictureSearchRequest().setId(pictureDestroyRequest.getId())).getRecords();
+        List<Picture> pictureList = pictureService.pictureSearch(new PictureSearchRequest().setId(pictureDestroyRequest.getId())).getRecords();
         ThrowUtils.throwIf(pictureList.isEmpty(), new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的图片不存在"));
         Picture picture = pictureList.get(0);
         Long pictureOfSpaceId = picture.getSpaceId();
@@ -256,7 +256,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         }
 
         // 响应数据
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(AdminPictureDeleteRequest.copyProperties(pictureDestroyRequest)));
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(PictureDeleteRequest.copyProperties(pictureDestroyRequest)));
     }
 
     @Operation(summary = "查找图片网络接口")
@@ -268,7 +268,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         ThrowUtils.throwIf(pictureQueryRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "错误调用"));
 
         // 处理请求
-        var request = AdminPictureSearchRequest.copyProperties(pictureQueryRequest);
+        var request = PictureSearchRequest.copyProperties(pictureQueryRequest);
         Long pictureId = pictureQueryRequest.getId();
         Picture apicture = pictureService.getById(pictureId);
         ThrowUtils.throwIf(apicture == null, new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "图片不存在"));

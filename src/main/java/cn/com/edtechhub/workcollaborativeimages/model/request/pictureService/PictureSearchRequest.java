@@ -13,7 +13,7 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true) // 实现链式调用
-public class AdminPictureSearchRequest extends PageRequest implements Serializable {
+public class PictureSearchRequest extends PageRequest implements Serializable {
 
     /**
      * id
@@ -100,8 +100,9 @@ public class AdminPictureSearchRequest extends PageRequest implements Serializab
     /**
      * 转换方法
      */
-    public static AdminPictureSearchRequest copyProperties(PictureQueryRequest pictureQueryRequest) {
-        var adminPictureSearchRequest = new AdminPictureSearchRequest();
+    public static PictureSearchRequest copyProperties(PictureQueryRequest pictureQueryRequest) {
+        // TODO: 待删除
+        var adminPictureSearchRequest = new PictureSearchRequest();
         BeanUtils.copyProperties(pictureQueryRequest, adminPictureSearchRequest);
         return adminPictureSearchRequest;
     }

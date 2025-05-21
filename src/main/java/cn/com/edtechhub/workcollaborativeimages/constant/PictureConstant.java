@@ -25,5 +25,9 @@ public interface PictureConstant {
      */
     List<String> ALLOW_FORMAT_LIST = Arrays.asList("jpeg", "jpg", "png", "webp", "svg", "ico");
 
+    /**
+     * 默认名字最大长度
+     */
+    Integer NAME_LENGTH = 30;
 
 }

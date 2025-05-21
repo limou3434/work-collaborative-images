@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.userService;
 
+import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -49,7 +50,7 @@ public class UserAddRequest implements Serializable {
     /**
      * 用户密码(业务层强制刚刚注册的用户重新设置密码, 交给用户时默认密码为 123456, 并且加盐密码)
      */
-    private String passwd = "123456";
+    private String passwd = UserConstant.DEFAULT_PASSWD;
 
     /**
      * 用户头像(业务层需要考虑默认头像使用 cos 对象存储)

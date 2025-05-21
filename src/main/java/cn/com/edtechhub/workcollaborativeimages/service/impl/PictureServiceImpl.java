@@ -1,5 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
+import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
+import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
@@ -7,10 +9,10 @@ import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureDeleteRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureSearchRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.AdminPictureUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
@@ -27,10 +29,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -67,80 +67,91 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @Resource
     UserService userService;
 
+    /**
+     * 注入空间服务依赖
+     */
     @Resource
     SpaceService spaceService;
 
-    @Transactional
-    public Picture pictureAdd(AdminPictureAddRequest adminPictureAddRequest) {
+    @Override
+    @LogParams
+    public Picture pictureAdd(PictureAddRequest pictureAddRequest) {
         // 检查参数
-        ThrowUtils.throwIf(adminPictureAddRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片添加请求体为空"));
-        ThrowUtils.throwIf(StrUtil.isNotBlank(adminPictureAddRequest.getName()) && adminPictureAddRequest.getName().length() > 30, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片名称不能大于 30 个字符"));
+        ThrowUtils.throwIf(pictureAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
+        this.checkParameters(pictureAddRequest.getName());
 
-        // 创建图片实例
-        var picture = new Picture();
-        BeanUtils.copyProperties(adminPictureAddRequest, picture);
-
-        // 保存实例的同时利用唯一键约束避免并发问题
-        try {
-            this.save(picture);
-        } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
-            ThrowUtils.throwIf(true, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "已经存在该图片, 或者曾经被删除"));
-        }
-        return this.getById(picture.getId());
+        // 服务实现
+        return transactionTemplate.execute(status -> {
+            var picture = PictureAddRequest.copyProperties2Entity(pictureAddRequest); // 创建实例
+            try {
+                boolean result = this.save(picture); // 保存实例的同时利用唯一键约束避免并发问题
+                ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
+            } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
+                ThrowUtils.throwIf(true, CodeBindMessageEnums.OPERATION_ERROR, "已经存在该图片, 或者曾经被删除");
+            }
+            return this.getById(picture.getId());
+        });
     }
 
-    @Transactional
-    public Boolean pictureDelete(AdminPictureDeleteRequest adminPictureDeleteRequest) {
+    @Override
+    @LogParams
+    public Boolean pictureDelete(PictureDeleteRequest pictureDeleteRequest) {
         // 检查参数
-        ThrowUtils.throwIf(adminPictureDeleteRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片删除请求体不能为空"));
-        ThrowUtils.throwIf(adminPictureDeleteRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识不能为空"));
-        ThrowUtils.throwIf(adminPictureDeleteRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法"));
+        ThrowUtils.throwIf(pictureDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "图片删除请求体不能为空");
+        Long id = pictureDeleteRequest.getId();
+        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不能为空");
+        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法, 必须是正整数");
 
         // 操作数据库
         return transactionTemplate.execute(status -> {
-            boolean result = this.removeById(adminPictureDeleteRequest.getId());
-            ThrowUtils.throwIf(!result, new BusinessException(CodeBindMessageEnums.OPERATION_ERROR, "删除图片失败, 也许该图片不存在或者已经被删除"));
+            boolean result = this.removeById(id);
+            ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "删除图片失败, 也许该图片不存在或者已经被删除");
             return true;
         });
     }
 
-    @Transactional
-    public Picture pictureUpdate(AdminPictureUpdateRequest adminPictureUpdateRequest) {
+    @Override
+    @LogParams
+    public Picture pictureUpdate(PictureUpdateRequest pictureUpdateRequest) {
         // 检查参数
-        ThrowUtils.throwIf(adminPictureUpdateRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片更新请求体不能为空"));
-        ThrowUtils.throwIf(adminPictureUpdateRequest.getId() == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识不能为空"));
-        ThrowUtils.throwIf(adminPictureUpdateRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识必须是正整数"));
-        ThrowUtils.throwIf(StrUtil.isNotBlank(adminPictureUpdateRequest.getName()) && adminPictureUpdateRequest.getName().length() > 30, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片名称不能大于 30 个字符"));
+        ThrowUtils.throwIf(pictureUpdateRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
+        Long id = pictureUpdateRequest.getId();
+        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不能为空");
+        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不合法, 必须是正整数");
+        this.checkParameters(pictureUpdateRequest.getName());
 
-        // 更新图片
-        Picture picture = new Picture();
-        BeanUtils.copyProperties(adminPictureUpdateRequest, picture);
-        this.updateById(picture);
-
-        // 更新用户后最好把用户的信息也返回, 这样方便前端做实时的数据更新
-        Long id = picture.getId();
-        return this.getById(id);
+        // 服务实现
+        return transactionTemplate.execute(status -> {
+            Picture picture = PictureUpdateRequest.copyProperties2Entity(pictureUpdateRequest);
+            this.updateById(picture);
+            return this.getById(id);
+        });
     }
 
-    public Page<Picture> pictureSearch(AdminPictureSearchRequest adminPictureSearchRequest) {
+    @Override
+    @LogParams
+    public Page<Picture> pictureSearch(PictureSearchRequest pictureSearchRequest) {
         // 检查参数
-        ThrowUtils.throwIf(adminPictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片查询请求不能为空"));
-        ThrowUtils.throwIf(adminPictureSearchRequest.getId() != null && adminPictureSearchRequest.getId() <= 0, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法"));
-        ThrowUtils.throwIf(StrUtil.isNotBlank(adminPictureSearchRequest.getName()) && adminPictureSearchRequest.getName().length() > 30, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "图片名称不能大于 30 个字符"));
+        ThrowUtils.throwIf(pictureSearchRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
+        Long id = pictureSearchRequest.getId();
+        String name = pictureSearchRequest.getName();
+        ThrowUtils.throwIf(id != null && id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法");
+        ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > PictureConstant.NAME_LENGTH, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "名字不得小于" + PictureConstant.NAME_LENGTH + "位"));
 
-        // TODO: 如果用户传递了 id 选项, 则必然是查询一条记录, 为了提高效率直接查询一条数据
-
-        // 获取查询对象
-        LambdaQueryWrapper<Picture> queryWrapper = this.getQueryWrapper(adminPictureSearchRequest); // 构造查询条件
-
-        // 获取分页对象
-        Page<Picture> page = new Page<>(adminPictureSearchRequest.getPageCurrent(), adminPictureSearchRequest.getPageSize()); // 这里还指定了页码和条数
-
-        // 查询用户分页后直接取得内部的列表进行返回
-        return this.page(page, queryWrapper); // 调用 MyBatis-Plus 的分页查询方法
+        // 服务实现
+        LambdaQueryWrapper<Picture> queryWrapper = this.getQueryWrapper(pictureSearchRequest); // 构造查询条件
+        Page<Picture> page = new Page<>(pictureSearchRequest.getPageCurrent(), pictureSearchRequest.getPageSize()); // 获取分页对象
+        return this.page(page, queryWrapper); // 返回分页结果
     }
 
-    @Transactional
+    @Override
+    @LogParams
+    public Long pictureGetSpace(Picture picture) {
+        return picture.getSpaceId();
+    }
+
+    @Override
+    @LogParams
     public Boolean pictureReview(Long id, Integer reviewStatus, String reviewMessage) {
         // TODO: 简单使用 AI 接口来进行文本审核和图片审核
 
@@ -168,7 +179,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return true;
     }
 
-    @Transactional
+    @Override
+    @LogParams
     public Integer pictureBatch(String searchText, Integer searchCount, String namePrefix, String category) {
         // 检查参数
         ThrowUtils.throwIf(searchText == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "缺少需要爬取的关键文本"));
@@ -216,7 +228,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return uploadCount;
     }
 
-    @Transactional
+    @Override
+    @LogParams
     public Picture pictureUpload(Integer pictureStatus, Long userId, Long spaceId, Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
         // 如果有更新图片的需求, 也就是携带了 id
         if (pictureId != null) {
@@ -246,8 +259,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         PictureReviewStatusEnum status = PictureReviewStatusEnum.getStatusDescription(pictureStatus);
         if (status == PictureReviewStatusEnum.REVIEWING) {
             picture.setReviewMessage("管理员正在审核");
-        }
-        else if (status == PictureReviewStatusEnum.NOTODO) {
+        } else if (status == PictureReviewStatusEnum.NOTODO) {
             picture.setReviewMessage("该图片为私有空间图片无需审核");
         }
         picture.setSpaceId(spaceId);
@@ -280,6 +292,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return newPicture;
     }
 
+    @Override
+    @LogParams
     public List<String> pictureGetCategorys() {
         return Arrays.asList("动漫", "艺术", "表情", "素材", "海报");
     }
@@ -287,26 +301,26 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     /**
      * 获取查询封装器的方法
      */
-    private LambdaQueryWrapper<Picture> getQueryWrapper(AdminPictureSearchRequest adminPictureSearchRequest) {
+    private LambdaQueryWrapper<Picture> getQueryWrapper(PictureSearchRequest pictureSearchRequest) {
         // 查询请求不能为空
-        ThrowUtils.throwIf(adminPictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空"));
+        ThrowUtils.throwIf(pictureSearchRequest == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "查询请求不能为空"));
 
         // 取得需要查询的参数
-        Long id = adminPictureSearchRequest.getId();
-        String name = adminPictureSearchRequest.getName();
-        String introduction = adminPictureSearchRequest.getIntroduction();
-        String category = adminPictureSearchRequest.getCategory();
-        String tags = adminPictureSearchRequest.getTags();
-        Long picSize = adminPictureSearchRequest.getPicSize();
-        Integer picWidth = adminPictureSearchRequest.getPicWidth();
-        Integer picHeight = adminPictureSearchRequest.getPicHeight();
-        Double picScale = adminPictureSearchRequest.getPicScale();
-        String picFormat = adminPictureSearchRequest.getPicFormat();
-        Long userId = adminPictureSearchRequest.getUserId();
-        Long spaceId = adminPictureSearchRequest.getSpaceId();
-        Integer reviewStatus = adminPictureSearchRequest.getReviewStatus();
-        String sortField = adminPictureSearchRequest.getSortField();
-        String sortOrder = adminPictureSearchRequest.getSortOrder();
+        Long id = pictureSearchRequest.getId();
+        String name = pictureSearchRequest.getName();
+        String introduction = pictureSearchRequest.getIntroduction();
+        String category = pictureSearchRequest.getCategory();
+        String tags = pictureSearchRequest.getTags();
+        Long picSize = pictureSearchRequest.getPicSize();
+        Integer picWidth = pictureSearchRequest.getPicWidth();
+        Integer picHeight = pictureSearchRequest.getPicHeight();
+        Double picScale = pictureSearchRequest.getPicScale();
+        String picFormat = pictureSearchRequest.getPicFormat();
+        Long userId = pictureSearchRequest.getUserId();
+        Long spaceId = pictureSearchRequest.getSpaceId();
+        Integer reviewStatus = pictureSearchRequest.getReviewStatus();
+        String sortField = pictureSearchRequest.getSortField();
+        String sortOrder = pictureSearchRequest.getSortOrder();
 
         log.debug("用户需要查询的审核状态 {}", reviewStatus);
 
@@ -333,6 +347,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                 )
         ;
         return lambdaQueryWrapper;
+    }
+
+    /**
+     * 检查添加或更新的参数
+     */
+    private void checkParameters(String name) {
+        ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > 30, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "名字不得大于" + PictureConstant.NAME_LENGTH + "位字符"));
     }
 
 }

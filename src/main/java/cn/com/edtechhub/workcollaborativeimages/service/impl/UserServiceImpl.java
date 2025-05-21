@@ -17,6 +17,7 @@ import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.exception.DisableServiceException;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -52,19 +53,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public User userAdd(UserAddRequest userAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(userAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
-        checkAccountAndPasswd(userAddRequest.getAccount(), userAddRequest.getPasswd());
+        this.checkParameters(userAddRequest.getAccount(), userAddRequest.getPasswd());
 
         // 服务实现
         return transactionTemplate.execute(status -> {
-            User user = UserAddRequest.copyProperties2Entity(userAddRequest);
+            User user = UserAddRequest.copyProperties2Entity(userAddRequest); // 创建实例
             user.setPasswd(this.encryptedPasswd(user.getPasswd()));
             try {
                 boolean result = this.save(user); // 保存实例的同时利用唯一键约束避免并发问题
                 ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
             } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
-                ThrowUtils.throwIf(true, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "已经存在该用户, 请更换新账号");
+                ThrowUtils.throwIf(true, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "已经存在该用户, 或者曾经被删除");
             }
-            return user;
+            return this.getById(user.getId());
         });
     }
 
@@ -74,8 +75,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 检查参数
         ThrowUtils.throwIf(userDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = userDeleteRequest.getId();
-        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "id 不能为空");
-        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法, 必须是正整数");
+        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不能为空");
+        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不合法, 必须是正整数");
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -91,8 +92,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 检查参数
         ThrowUtils.throwIf(userUpdateRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = userUpdateRequest.getId();
-        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "id 不能为空");
-        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "请求中的 id 不合法, 必须是正整数");
+        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不能为空");
+        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不合法, 必须是正整数");
+        this.checkParameters(userUpdateRequest.getAccount(), userUpdateRequest.getPasswd());
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -113,6 +115,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public Page<User> userSearch(UserSearchRequest userSearchRequest) {
         // 检查参数
         ThrowUtils.throwIf(userSearchRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
+        Long id = userSearchRequest.getId();
+        String account = userSearchRequest.getAccount();
+        ThrowUtils.throwIf(id != null && id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法");
+        ThrowUtils.throwIf(StrUtil.isNotBlank(account) && account.length() > UserConstant.ACCOUNT_LENGTH, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.ACCOUNT_LENGTH + "位"));
 
         // 服务实现
         LambdaQueryWrapper<User> queryWrapper = this.getQueryWrapper(userSearchRequest); // 构造查询条件
@@ -185,11 +191,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @LogParams
     public User userLogin(String account, String passwd, String device) {
         // 检查参数
-        checkAccountAndPasswd(account, passwd);
+        this.checkParameters(account, passwd);
         ThrowUtils.throwIf(StringUtils.isAllBlank(device), CodeBindMessageEnums.PARAMS_ERROR, "缺失必要的登录设备类型");
 
         // 服务实现
-        User user = this.userValidation(account, passwd);
+        User user = this.userValidation(account, passwd); // 创建实例
         ThrowUtils.throwIf(user == null, CodeBindMessageEnums.NO_LOGIN_ERROR, "不存在该用户或者密码不正确");
         try { // 先检查是否被封号再来登录
             StpUtil.checkDisable(user.getId()); // 这个方法检测到封号就会抛出异常
@@ -249,31 +255,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     /**
-     * 检查账户和密码是否合规的方法
-     */
-    private void checkAccountAndPasswd(String checkAccount, String checkPasswd) {
-        // 账户和密码都不能为空
-        ThrowUtils.throwIf(StringUtils.isAnyBlank(checkAccount), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "账户为空"));
-        ThrowUtils.throwIf(StringUtils.isAnyBlank(checkPasswd), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "密码为空"));
-
-        // 判断账户和密码的长度是否符合要求
-        ThrowUtils.throwIf(checkAccount.length() < UserConstant.ACCOUNT_LENGTH, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.ACCOUNT_LENGTH + "位"));
-        ThrowUtils.throwIf(checkPasswd.length() < UserConstant.PASSWD_LENGTH, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "密码不得小于" + UserConstant.PASSWD_LENGTH + "位"));
-
-        // 避免账户和密码中的非法字符
-        String validPattern = "^[$_-]+$";
-        ThrowUtils.throwIf(checkAccount.matches(validPattern), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "账号不能包含特殊字符"));
-    }
-
-    /**
-     * 获取加密后的密码
-     */
-    private String encryptedPasswd(String passwd) {
-        ThrowUtils.throwIf(StringUtils.isAnyBlank(passwd), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "需要加密的密码不能为空"));
-        return DigestUtils.md5DigestAsHex((UserConstant.SALT + passwd).getBytes()); // TODO: 使用 Sa-token 的加密工具
-    }
-
-    /**
      * 获取查询封装器的方法
      */
     private LambdaQueryWrapper<User> getQueryWrapper(UserSearchRequest userSearchRequest) {
@@ -315,6 +296,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         User::getId // 默认按照标识排序
                 );
         return lambdaQueryWrapper;
+    }
+
+    /**
+     * 检查添加或更新的参数
+     */
+    private void checkParameters(String checkAccount, String checkPasswd) {
+        ThrowUtils.throwIf(StringUtils.isBlank(checkAccount), CodeBindMessageEnums.PARAMS_ERROR, "账户为空");
+        ThrowUtils.throwIf(checkAccount.length() < UserConstant.ACCOUNT_LENGTH, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.ACCOUNT_LENGTH + "位字符"));
+
+        ThrowUtils.throwIf(StringUtils.isBlank(checkPasswd), CodeBindMessageEnums.PARAMS_ERROR, "密码为空");
+        ThrowUtils.throwIf(checkPasswd.length() < UserConstant.PASSWD_LENGTH, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "密码不得小于" + UserConstant.PASSWD_LENGTH + "位字符"));
+
+        String validPattern = "^[$_-]+$";
+        ThrowUtils.throwIf(checkAccount.matches(validPattern), CodeBindMessageEnums.PARAMS_ERROR, "账号不能包含特殊字符");
+    }
+
+    /**
+     * 获取加密后的密码
+     */
+    private String encryptedPasswd(String passwd) {
+        ThrowUtils.throwIf(StringUtils.isAnyBlank(passwd), new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "需要加密的密码不能为空"));
+        return DigestUtils.md5DigestAsHex((UserConstant.SALT + passwd).getBytes()); // TODO: 使用 Sa-token 的加密工具
     }
 
 }

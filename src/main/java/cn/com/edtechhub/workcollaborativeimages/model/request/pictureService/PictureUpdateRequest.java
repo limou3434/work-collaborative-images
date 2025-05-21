@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
 
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
@@ -10,7 +11,7 @@ import java.io.Serializable;
 
 @Data
 @Accessors(chain = true) // 实现链式调用
-public class AdminPictureUpdateRequest implements Serializable {
+public class PictureUpdateRequest implements Serializable {
 
     /**
      * id
@@ -80,10 +81,29 @@ public class AdminPictureUpdateRequest implements Serializable {
     /**
      * 转换方法
      */
-    public static AdminPictureUpdateRequest copyProperties(PictureEditRequest pictureEditRequest) {
-        var adminPictureUpdateRequest = new AdminPictureUpdateRequest();
+    public static PictureUpdateRequest copyProperties(PictureEditRequest pictureEditRequest) {
+        // TODO: 待删除
+        var adminPictureUpdateRequest = new PictureUpdateRequest();
         BeanUtils.copyProperties(pictureEditRequest, adminPictureUpdateRequest);
         return adminPictureUpdateRequest;
+    }
+
+    /**
+     * 请求转换为实体方法
+     */
+    public static Picture copyProperties2Entity(PictureUpdateRequest request) {
+        var entity = new Picture();
+        BeanUtils.copyProperties(request, entity);
+        return entity;
+    }
+
+    /**
+     * 实体转化为请求方法
+     */
+    public static PictureUpdateRequest copyProperties2Request(Picture entity) {
+        var request = new PictureUpdateRequest();
+        BeanUtils.copyProperties(entity, request);
+        return request;
     }
 
 }

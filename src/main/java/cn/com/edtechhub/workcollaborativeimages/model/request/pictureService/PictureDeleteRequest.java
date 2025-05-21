@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 @Data
 @Accessors(chain = true) // 实现链式调用
-public class AdminPictureDeleteRequest implements Serializable {
+public class PictureDeleteRequest implements Serializable {
 
     /**
      * id
@@ -29,8 +29,9 @@ public class AdminPictureDeleteRequest implements Serializable {
     /**
      * 转换方法
      */
-    public static AdminPictureDeleteRequest copyProperties(PictureDestroyRequest pictureDestroyRequest) {
-        var adminPictureDeleteRequest = new AdminPictureDeleteRequest();
+    public static PictureDeleteRequest copyProperties(PictureDestroyRequest pictureDestroyRequest) {
+        // TODO: 待删除
+        var adminPictureDeleteRequest = new PictureDeleteRequest();
         BeanUtils.copyProperties(pictureDestroyRequest, adminPictureDeleteRequest);
         return adminPictureDeleteRequest;
     }
