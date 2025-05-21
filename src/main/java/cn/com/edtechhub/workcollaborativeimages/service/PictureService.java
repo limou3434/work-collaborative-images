@@ -18,6 +18,8 @@ import java.util.List;
  */
 public interface PictureService extends IService<Picture> {
 
+    /// 基础服务(添加/更新请求具有转化方法, 删除只依赖 id 进行删除, 查询依赖构造查询对象) ///
+
     /**
      * 图片添加服务
      */
@@ -37,6 +39,8 @@ public interface PictureService extends IService<Picture> {
      * 图片查询服务
      */
     Page<Picture> pictureSearch(AdminPictureSearchRequest adminPictureSearchRequest);
+
+    /// 其他服务 ///
 
     /**
      * 图片审核服务

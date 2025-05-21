@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
+import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
@@ -192,6 +193,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @LogParams
     public User userGetSessionById(Long id) {
         SaSession session = StpUtil.getSessionByLoginId(id);
         ThrowUtils.throwIf(session == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "无法获取会话");
