@@ -14,6 +14,7 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserUp
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.exception.DisableServiceException;
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -24,6 +25,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * @author Limou
@@ -33,6 +35,7 @@ import org.springframework.util.DigestUtils;
 @SuppressWarnings("deprecation")
 @Service
 @Transactional
+@Validated
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
@@ -106,7 +109,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public Boolean userDisable(Long userId, Long disableTime) {
+    public Boolean userDisable(Long userId, Long disableTime, UserRoleEnums userRoleEnums) {
         // 参数检查
         ThrowUtils.throwIf(userId == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "用户 id 不能为空"));
         ThrowUtils.throwIf(disableTime == null, new BusinessException(CodeBindMessageEnums.PARAMS_ERROR, "封禁时间不能为空, 至少需要填写为 0"));
@@ -117,11 +120,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         UserUpdateRequest userUpdateRequest = UserUpdateRequest.copyProperties2Request(user);
         if (disableTime == 0) { // 如果封禁时间为 0 则表示取消封禁, 默认解封后设置为普通用户权限, 否则封禁用户
             StpUtil.untieDisable(userId); // 解除封禁
-            userUpdateRequest.setRole(0); // 持久到数据库中方便调试
+            userUpdateRequest.setRole(userRoleEnums.getCode()); // 持久到数据库中方便调试
         } else {
             StpUtil.kickout(userId); // 先踢下线
             StpUtil.disable(userId, disableTime); // 然后再进行封禁
-            userUpdateRequest.setRole(-1); // 持久到数据库中方便调试
+            userUpdateRequest.setRole(UserRoleEnums.BAN_ROLE.getCode()); // 持久到数据库中方便调试
         }
         this.userUpdate(userUpdateRequest);
         return true;
@@ -189,29 +192,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public User userCurrentLonginUserSession() {
-        return (User) StpUtil.getSessionByLoginId(this.userGetCurrentLonginUserId()).get(UserConstant.USER_LOGIN_STATE);
+    public User userGetSessionById(Long id) {
+        SaSession session = StpUtil.getSessionByLoginId(id);
+        ThrowUtils.throwIf(session == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "无法获取会话");
+        User user = (User) session.get(UserConstant.USER_LOGIN_STATE);
+        ThrowUtils.throwIf(user == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该用户尚未登录没有会话资源");
+        return user;
     }
 
     @Override
-    public UserTokenStatus userCurrentLonginUserStatus() {
+    public UserTokenStatus userGetTokenById(Long id) {
         UserTokenStatus userTokenStatus = new UserTokenStatus();
-        boolean isLogin = userTokenStatus.getIsLogin();
+        boolean isLogin = StpUtil.isLogin();
+        userTokenStatus.setIsLogin(isLogin);
         if (!isLogin) {
             return userTokenStatus;
         }
         userTokenStatus
-                .setIsLogin(StpUtil.isLogin())
                 .setTokenName(StpUtil.getTokenName())
                 .setTokenTimeout(String.valueOf(StpUtil.getTokenTimeout()))
-                .setUserId(String.valueOf(StpUtil.getLoginId()))
-                .setUserRole(this.userCurrentLonginUserSession().getRole());
+                .setUserId(id.toString())
+                .setUserRole(this.userGetSessionById(id).getRole());
         return userTokenStatus;
     }
 
     @Override
-    public Boolean userIsAdmin() {
-        return UserRoleEnums.getEnums(this.userCurrentLonginUserSession().getRole()) == UserRoleEnums.ADMIN_ROLE;
+    public Boolean userIsAdmin(Long id) {
+        return UserRoleEnums.getEnums(this.userGetSessionById(id).getRole()) == UserRoleEnums.ADMIN_ROLE;
     }
 
     /**

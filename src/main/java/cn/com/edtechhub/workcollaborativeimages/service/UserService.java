@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
+import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserAddRequest;
@@ -16,7 +17,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface UserService extends IService<User> {
 
-    /// 实体服务 ///
+    /// 基础服务(添加/更新请求具有转化方法, 删除只依赖 id 进行删除, 查询依赖构造查询对象) ///
+
     /**
      * 用户添加服务
      */
@@ -38,6 +40,7 @@ public interface UserService extends IService<User> {
     Page<User> userSearch(UserSearchRequest userSearchRequest);
 
     /// 其他服务 ///
+
     /**
      * 根据标识查询单个用户服务
      */
@@ -46,7 +49,7 @@ public interface UserService extends IService<User> {
     /**
      * 对指定进行封禁/解禁服务
      */
-    Boolean userDisable(Long userId, Long disableTime);
+    Boolean userDisable(Long userId, Long disableTime, UserRoleEnums userRoleEnums);
 
     /**
      * 注册账户服务
@@ -74,18 +77,18 @@ public interface UserService extends IService<User> {
     Long userGetCurrentLonginUserId();
 
     /**
-     * 获取当前登录用户会话服务
+     * 获取指定用户会话服务
      */
-    User userCurrentLonginUserSession();
+    User userGetSessionById(Long id);
 
     /**
-     * 获取当前登录用户状态服务
+     * 获取指定用户凭证服务
      */
-    UserTokenStatus userCurrentLonginUserStatus();
+    UserTokenStatus userGetTokenById(Long id);
 
     /**
-     * 确认当前用户是否为管理员服务
+     * 获取指定用户是否为管理服务
      */
-    Boolean userIsAdmin();
+    Boolean userIsAdmin(Long id);
 
 }

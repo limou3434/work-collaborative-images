@@ -1,6 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.controller;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.*;
@@ -37,7 +38,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     private UserService userService;
 
     /// 管理接口 ///
-    @Operation(summary = "添加用户网络接口(管理)")
+    @Operation(summary = "👑添加用户网络接口")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/add")
@@ -46,7 +47,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, user);
     }
 
-    @Operation(summary = "删除用户网络接口(管理)")
+    @Operation(summary = "👑删除用户网络接口")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/delete")
@@ -55,7 +56,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
 
-    @Operation(summary = "修改用户网络接口(管理)")
+    @Operation(summary = "👑修改用户网络接口")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/update")
@@ -63,7 +64,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userUpdate(userUpdateRequest));
     }
 
-    @Operation(summary = "查询用户网络接口(管理)")
+    @Operation(summary = "👑查询用户网络接口")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/search")
@@ -71,13 +72,22 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userSearch(userSearchRequest));
     }
 
-    @Operation(summary = "封禁用户网络接口(管理)")
+    @Operation(summary = "👑封禁用户网络接口")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/disable")
     public BaseResponse<Boolean> adminUserDisable(@RequestBody UserDisableRequest userDisableRequest) {
-        Boolean result = userService.userDisable(userDisableRequest.getId(), userDisableRequest.getDisableTime());
+        Boolean result = userService.userDisable(userDisableRequest.getId(), userDisableRequest.getDisableTime(), UserRoleEnums.USER_ROLE);
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
+    }
+
+    @Operation(summary = "👑获取指定用户凭证网络接口")
+    @SaCheckLogin
+    @SaCheckRole("admin")
+    @GetMapping("/admin/token")
+    public BaseResponse<UserTokenStatus> adminGetUserToken(Long id) {
+        UserTokenStatus userTokenStatus = userService.userGetTokenById(id);
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, userTokenStatus);
     }
 
     /// 普通接口 ///
@@ -106,19 +116,19 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
 
-    @Operation(summary = "获取登录状态网络接口")
+    @Operation(summary = "获取登录凭证网络接口")
     @SaIgnore
-    @GetMapping("/status")
-    public BaseResponse<UserTokenStatus> userStatus() {
-        UserTokenStatus userTokenStatus = userService.userCurrentLonginUserStatus();
+    @GetMapping("/token")
+    public BaseResponse<UserTokenStatus> userGetToken() {
+        UserTokenStatus userTokenStatus = userService.userGetTokenById(userService.userGetCurrentLonginUserId());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userTokenStatus);
     }
 
-    @Operation(summary = "获取登录信息网络接口")
+    @Operation(summary = "获取登录会话网络接口")
     @SaIgnore
-    @GetMapping("/info")
-    public BaseResponse<UserVO> userInfo() {
-        User user = userService.userCurrentLonginUserSession();
+    @GetMapping("/session")
+    public BaseResponse<UserVO> userSession() {
+        User user = userService.userGetSessionById(this.userService.userGetCurrentLonginUserId());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, UserVO.removeSensitiveData(user));
     }
 

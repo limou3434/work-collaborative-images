@@ -9,6 +9,7 @@ import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.exception.NotRoleException;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -34,7 +35,7 @@ public class GlobalExceptionHandler {
     public BaseResponse<String> exceptionHandler(Exception e) {
         log.debug("触发全局所有异常处理方法, {}", e.getMessage());
         printStackTraceStatus(e, 0);
-        return TheResult.error(CodeBindMessageEnums.SYSTEM_ERROR, "请联系管理员");
+        return TheResult.error(CodeBindMessageEnums.SYSTEM_ERROR, "请联系管理员 89838804@qq.com");
     }
 
     /**
