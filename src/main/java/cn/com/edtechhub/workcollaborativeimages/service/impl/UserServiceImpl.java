@@ -1,4 +1,4 @@
- package cn.com.edtechhub.workcollaborativeimages.service.impl;
+package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
@@ -52,12 +52,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public User userAdd(UserAddRequest userAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(userAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
-        this.checkParameters(userAddRequest.getAccount(), userAddRequest.getPasswd());
+        String account = userAddRequest.getAccount();
+        String passwd = userAddRequest.getPasswd();
+        this.checkParameters(account, passwd);
 
         // 服务实现
         return transactionTemplate.execute(status -> {
-            User user = UserAddRequest.copyProperties2Entity(userAddRequest); // 创建实例
+            // 创建实例
+            User user = UserAddRequest.copyProperties2Entity(userAddRequest);
+            // 预处理
             user.setPasswd(this.encryptedPasswd(user.getPasswd()));
+            // 操作数据库
             try {
                 boolean result = this.save(user); // 保存实例的同时利用唯一键约束避免并发问题
                 ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
@@ -91,21 +96,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 检查参数
         ThrowUtils.throwIf(userUpdateRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = userUpdateRequest.getId();
+        String account = userUpdateRequest.getAccount();
+        String passwd = userUpdateRequest.getPasswd();
         ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不能为空");
         ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不合法, 必须是正整数");
-        this.checkParameters(userUpdateRequest.getAccount(), userUpdateRequest.getPasswd());
+        this.checkParameters(account, passwd);
 
         // 服务实现
         return transactionTemplate.execute(status -> {
+            // 创建实例
             User user = UserUpdateRequest.copyProperties2Entity(userUpdateRequest);
+            // 预处理
             if (StringUtils.isNotBlank(user.getPasswd())) { // 后续需要更新一个用户时, 如果密码为 null 则我们认为不更新密码
                 user.setPasswd(this.encryptedPasswd(user.getPasswd()));
             }
-            this.updateById(user);
-            User newEntity = this.getById(id); // 更新用户后最好把用户的信息也返回, 这样方便前端做实时的数据更新
-            StpUtil.getSessionByLoginId(id).set(UserConstant.USER_LOGIN_STATE, newEntity); // 并且还需要把用户的会话记录修改, 才能动态修改权限
+            StpUtil.getSessionByLoginId(id).set(UserConstant.USER_LOGIN_STATE, null); // 并且还需要把用户的会话记录清除, 才能动态修改权限
             StpUtil.kickout(id); // 踢下线确保完全更新用户的所有信息, 这是一个保守做法
-            return newEntity;
+            // 操作数据库
+            this.updateById(user);
+            return this.getById(id);
         });
     }
 
@@ -116,7 +125,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         ThrowUtils.throwIf(userSearchRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = userSearchRequest.getId();
         String account = userSearchRequest.getAccount();
-        ThrowUtils.throwIf(id != null && id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法");
+        ThrowUtils.throwIf(id != null && id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不合法");
         ThrowUtils.throwIf(StrUtil.isNotBlank(account) && account.length() > UserConstant.ACCOUNT_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.ACCOUNT_LENGTH + "位字符");
 
         // 服务实现

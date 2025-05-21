@@ -135,7 +135,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
 
     @Operation(summary = "获取登录凭证网络接口")
     @SaIgnore
-    @GetMapping("/token")
+    @GetMapping("/get/token")
     public BaseResponse<UserTokenStatus> userGetToken() {
         UserTokenStatus userTokenStatus = userService.userGetTokenById(userService.userGetCurrentLonginUserId());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userTokenStatus);
@@ -143,8 +143,8 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
 
     @Operation(summary = "获取登录会话网络接口")
     @SaIgnore
-    @GetMapping("/session")
-    public BaseResponse<UserVO> userSession() {
+    @GetMapping("/get/session")
+    public BaseResponse<UserVO> userGetSession() {
         User user = userService.userGetSessionById(this.userService.userGetCurrentLonginUserId());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, UserVO.removeSensitiveData(user));
     }
