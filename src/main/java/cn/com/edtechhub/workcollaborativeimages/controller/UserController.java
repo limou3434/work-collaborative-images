@@ -38,6 +38,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     private UserService userService;
 
     /// 管理接口 ///
+
     @Operation(summary = "👑添加用户网络接口")
     @SaCheckLogin
     @SaCheckRole("admin")
@@ -91,6 +92,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     }
 
     /// 普通接口 ///
+
     @Operation(summary = "用户注册网络接口")
     @SaIgnore
     @PostMapping("/register")
