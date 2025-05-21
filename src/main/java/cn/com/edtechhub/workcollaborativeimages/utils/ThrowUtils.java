@@ -12,6 +12,7 @@ public class ThrowUtils {
      * 条件成立则抛异常
      */
     public static void throwIf(boolean condition, RuntimeException runtimeException) {
+        // TODO: 待删除
         if (condition) {
             throw runtimeException;
         }
