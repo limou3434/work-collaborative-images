@@ -114,7 +114,7 @@ public class UserAddRequest implements Serializable {
      */
     public static User copyProperties2Entity(UserAddRequest request) {
         var user = new User();
-        BeanUtils.copyProperties(request, request);
+        BeanUtils.copyProperties(request, user);
         return user;
     }
 

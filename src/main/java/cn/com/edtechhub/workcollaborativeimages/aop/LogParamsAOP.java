@@ -7,6 +7,9 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
+/**
+ * 检查服务调用前的参数情况切面
+ */
 @Aspect
 @Component
 @Slf4j

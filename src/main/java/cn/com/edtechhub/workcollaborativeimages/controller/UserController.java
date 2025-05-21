@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.controller;
 
+import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
@@ -43,6 +44,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/add")
+    @LogParams
     public BaseResponse<User> adminUserAdd(@RequestBody UserAddRequest userAddRequest) {
         User user = userService.userAdd(userAddRequest);
         return TheResult.success(CodeBindMessageEnums.SUCCESS, user);
