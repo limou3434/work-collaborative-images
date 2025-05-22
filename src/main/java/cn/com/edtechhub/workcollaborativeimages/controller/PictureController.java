@@ -1,8 +1,8 @@
 package cn.com.edtechhub.workcollaborativeimages.controller;
 
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
-import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
+import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
@@ -125,7 +125,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     private SpaceService spaceService;
 
     /// 管理接口 ///
-    @Operation(summary = "图片添加网络接口(管理)")
+    @Operation(summary = "👑图片添加网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/add")
@@ -133,7 +133,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureAdd(pictureAddRequest)); // 可以直接绕过 COS 进行添加落库
     }
 
-    @Operation(summary = "图片删除网络接口(管理)")
+    @Operation(summary = "👑图片删除网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/delete")
@@ -141,7 +141,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(pictureDeleteRequest)); // TODO: 实际上管理员删除接口最重要的一点就是可以直接清理 COS 上的图片, 但是普通用户只是去除数据库中的关联而已
     }
 
-    @Operation(summary = "图片更新网络接口(管理)")
+    @Operation(summary = "👑图片更新网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/update")
@@ -149,7 +149,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpdate(pictureUpdateRequest)); // 可以直接绕过 COS 进行更新落库
     }
 
-    @Operation(summary = "图片查询网络接口(管理)")
+    @Operation(summary = "👑图片查询网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/search")
@@ -200,10 +200,10 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         );
 
         // 处理请求
-        Integer status = PictureReviewStatusEnum.REVIEWING.getCode();
+        Integer status = PictureReviewStatusEnums.REVIEWING.getCode();
         Long userId = userService.userGetCurrentLonginUserId();
         if (spaceId != null && spaceId != 0) { // 如果用户传递请求中指定了图片的所属空间, 则必须要求该空间属于该用户
-            status = PictureReviewStatusEnum.PASS.getCode();
+            status = PictureReviewStatusEnums.PASS.getCode();
             List<Space> spaceList = spaceService.spaceSearch(new SpaceSearchRequest().setId(spaceId)).getRecords();
             ThrowUtils.throwIf(spaceList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的空间不存在");
             ThrowUtils.throwIf(!userId.equals(spaceList.get(0).getUserId()), CodeBindMessageEnums.NO_AUTH_ERROR, "您不是该空间的所属者, 没有权限上传图片");
@@ -272,12 +272,12 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         ThrowUtils.throwIf(apicture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "图片不存在");
         Space privateSpace = spaceService.spaceGetCurrentLoginUserPrivateSpace();
         request
-                .setReviewStatus(pictureId != null && apicture != null && apicture.getUserId() == userService.userGetCurrentLonginUserId() ? null : PictureReviewStatusEnum.PASS.getCode()) // 强制用户只能查看通过审核的图片, 不过用户自己除外
+                .setReviewStatus(pictureId != null && apicture != null && apicture.getUserId() == userService.userGetCurrentLonginUserId() ? null : PictureReviewStatusEnums.PASS.getCode()) // 强制用户只能查看通过审核的图片, 不过用户自己除外
                 .setSpaceId(pictureId != null && privateSpace != null && apicture.getSpaceId() != 0 ? privateSpace.getId() : 0) // 强制用户只能查看属于自己私有空间的图片或公共图库的图片
         ;
         if (pictureQueryRequest.getSpaceId() != null && pictureQueryRequest.getSpaceId() == privateSpace.getId()) {
             request
-                    .setReviewStatus(PictureReviewStatusEnum.NOTODO.getCode())
+                    .setReviewStatus(PictureReviewStatusEnums.NOTODO.getCode())
                     .setSpaceId(privateSpace.getId());
         }
 

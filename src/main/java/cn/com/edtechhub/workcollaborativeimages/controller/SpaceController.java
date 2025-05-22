@@ -1,6 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.controller;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
@@ -56,7 +56,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     private SpaceService spaceService;
 
     /// 管理接口 ///
-    @Operation(summary = "空间添加网络接口(管理)")
+    @Operation(summary = "👑空间添加网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/add")
@@ -64,7 +64,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceAdd(spaceAddRequest)); // 可以直接绕过 COS 进行添加落库
     }
 
-    @Operation(summary = "空间删除网络接口(管理)")
+    @Operation(summary = "👑空间删除网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/delete")
@@ -72,7 +72,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceDelete(spaceDeleteRequest)); // TODO: 实际上管理员删除接口最重要的一点就是可以直接清理 COS 上的空间, 但是普通用户只是去除数据库中的关联而已
     }
 
-    @Operation(summary = "空间更新网络接口(管理)")
+    @Operation(summary = "👑空间更新网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/update")
@@ -80,7 +80,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceUpdate(spaceUpdateRequest)); // 可以直接绕过 COS 进行更新落库
     }
 
-    @Operation(summary = "空间查询网络接口(管理)")
+    @Operation(summary = "👑空间查询网络接口(管理)")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/search")

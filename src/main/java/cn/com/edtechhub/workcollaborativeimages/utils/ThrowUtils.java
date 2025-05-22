@@ -1,6 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.utils;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 
 /**

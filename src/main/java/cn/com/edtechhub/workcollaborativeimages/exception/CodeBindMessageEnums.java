@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.enums;
+package cn.com.edtechhub.workcollaborativeimages.exception;
 
 import lombok.Getter;
 

@@ -2,7 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
-import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.mapper.UserMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
@@ -54,13 +54,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         ThrowUtils.throwIf(userAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         String account = userAddRequest.getAccount();
         String passwd = userAddRequest.getPasswd();
-        this.checkParameters(account, passwd);
+        this.checkAccount(account);
+        this.checkPasswd(passwd);
 
         // 服务实现
         return transactionTemplate.execute(status -> {
             // 创建实例
             User user = UserAddRequest.copyProperties2Entity(userAddRequest);
-            // 预处理
             user.setPasswd(this.encryptedPasswd(user.getPasswd()));
             // 操作数据库
             try {
@@ -100,13 +100,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String passwd = userUpdateRequest.getPasswd();
         ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不能为空");
         ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不合法, 必须是正整数");
-        this.checkParameters(account, passwd);
+        if (StringUtils.isNotBlank(account)) this.checkAccount(account);
+        if (StringUtils.isNotBlank(passwd)) this.checkPasswd(passwd);
 
         // 服务实现
         return transactionTemplate.execute(status -> {
             // 创建实例
             User user = UserUpdateRequest.copyProperties2Entity(userUpdateRequest);
-            // 预处理
             if (StringUtils.isNotBlank(user.getPasswd())) { // 后续需要更新一个用户时, 如果密码为 null 则我们认为不更新密码
                 user.setPasswd(this.encryptedPasswd(user.getPasswd()));
             }
@@ -199,8 +199,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @LogParams
     public User userLogin(String account, String passwd, String device) {
         // 检查参数
-        this.checkParameters(account, passwd);
-        ThrowUtils.throwIf(StringUtils.isAllBlank(device), CodeBindMessageEnums.PARAMS_ERROR, "缺失必要的登录设备类型");
+        ThrowUtils.throwIf(StringUtils.isBlank(account), CodeBindMessageEnums.PARAMS_ERROR, "缺失必要的登录账号");
+        ThrowUtils.throwIf(StringUtils.isBlank(passwd), CodeBindMessageEnums.PARAMS_ERROR, "缺失必要的登录密码");
+        ThrowUtils.throwIf(StringUtils.isBlank(device), CodeBindMessageEnums.PARAMS_ERROR, "缺失必要的登录设备类型");
+        this.checkAccount(account);
+        this.checkAccount(passwd);
 
         // 服务实现
         User user = this.userValidation(account, passwd); // 创建实例
@@ -307,17 +310,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     /**
-     * 检查添加或更新的参数
+     * 检查账号是否符合要求
      */
-    private void checkParameters(String checkAccount, String checkPasswd) {
+    private void checkAccount(String checkAccount) {
         ThrowUtils.throwIf(StringUtils.isBlank(checkAccount), CodeBindMessageEnums.PARAMS_ERROR, "账户为空");
         ThrowUtils.throwIf(checkAccount.length() < UserConstant.ACCOUNT_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.ACCOUNT_LENGTH + "位字符");
-
-        ThrowUtils.throwIf(StringUtils.isBlank(checkPasswd), CodeBindMessageEnums.PARAMS_ERROR, "密码为空");
-        ThrowUtils.throwIf(checkPasswd.length() < UserConstant.PASSWD_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "密码不得小于" + UserConstant.PASSWD_LENGTH + "位字符");
-
         String validPattern = "^[$_-]+$";
         ThrowUtils.throwIf(checkAccount.matches(validPattern), CodeBindMessageEnums.PARAMS_ERROR, "账号不能包含特殊字符");
+    }
+
+    /**
+     * 检查密码是否符合要求
+     */
+    private void checkPasswd(String checkPasswd) {
+        ThrowUtils.throwIf(StringUtils.isBlank(checkPasswd), CodeBindMessageEnums.PARAMS_ERROR, "密码为空");
+        ThrowUtils.throwIf(checkPasswd.length() < UserConstant.PASSWD_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "密码不得小于" + UserConstant.PASSWD_LENGTH + "位字符");
     }
 
     /**

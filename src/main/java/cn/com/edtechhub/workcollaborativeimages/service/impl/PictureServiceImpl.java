@@ -2,8 +2,8 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
-import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
+import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
 import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
@@ -77,16 +77,19 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     public Picture pictureAdd(PictureAddRequest pictureAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(pictureAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
-        this.checkParameters(pictureAddRequest.getName());
+        String name = pictureAddRequest.getName();
+        this.checkParameters(name);
 
         // 服务实现
         return transactionTemplate.execute(status -> {
+            // 创建实例
             var picture = PictureAddRequest.copyProperties2Entity(pictureAddRequest); // 创建实例
+            // 操作数据库
             try {
                 boolean result = this.save(picture); // 保存实例的同时利用唯一键约束避免并发问题
                 ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
             } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
-                ThrowUtils.throwIf(true, CodeBindMessageEnums.OPERATION_ERROR, "已经存在该图片, 或者曾经被删除");
+                ThrowUtils.throwIf(true, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "已经存在该图片, 或者曾经被删除");
             }
             return this.getById(picture.getId());
         });
@@ -96,7 +99,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @LogParams
     public Boolean pictureDelete(PictureDeleteRequest pictureDeleteRequest) {
         // 检查参数
-        ThrowUtils.throwIf(pictureDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "图片删除请求体不能为空");
+        ThrowUtils.throwIf(pictureDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = pictureDeleteRequest.getId();
         ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不能为空");
         ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法, 必须是正整数");
@@ -115,13 +118,15 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         // 检查参数
         ThrowUtils.throwIf(pictureUpdateRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = pictureUpdateRequest.getId();
-        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不能为空");
-        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不合法, 必须是正整数");
+        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不能为空");
+        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法, 必须是正整数");
         this.checkParameters(pictureUpdateRequest.getName());
 
         // 服务实现
         return transactionTemplate.execute(status -> {
+            // 创建实例
             Picture picture = PictureUpdateRequest.copyProperties2Entity(pictureUpdateRequest);
+            // 操作数据库
             this.updateById(picture);
             return this.getById(id);
         });
@@ -162,7 +167,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         // TODO: 简单使用 AI 接口来进行文本审核和图片审核
 
         // 检查参数
-        PictureReviewStatusEnum reviewStatusEnum = PictureReviewStatusEnum.getStatusDescription(reviewStatus);
+        PictureReviewStatusEnums reviewStatusEnum = PictureReviewStatusEnums.getStatusDescription(reviewStatus);
         ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "图片 id 不能为空");
         ThrowUtils.throwIf(reviewStatusEnum == null, CodeBindMessageEnums.PARAMS_ERROR, "需要指定最终的有效审核状态");
 
@@ -220,7 +225,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             }
             // 上传图片
             try {
-                Picture picture = this.pictureUpload(PictureReviewStatusEnum.PASS.getCode(), userService.userGetCurrentLonginUserId(), null, null, category, namePrefix + (uploadCount + 1), null, null, fileUrl, null);
+                Picture picture = this.pictureUpload(PictureReviewStatusEnums.PASS.getCode(), userService.userGetCurrentLonginUserId(), null, null, category, namePrefix + (uploadCount + 1), null, null, fileUrl, null);
                 log.debug("图片上传成功, id = {}", picture.getId());
                 uploadCount++;
             } catch (Exception e) {
@@ -262,10 +267,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             picture = this.getById(pictureId);
         }
         picture.setReviewStatus(pictureStatus);
-        PictureReviewStatusEnum status = PictureReviewStatusEnum.getStatusDescription(pictureStatus);
-        if (status == PictureReviewStatusEnum.REVIEWING) {
+        PictureReviewStatusEnums status = PictureReviewStatusEnums.getStatusDescription(pictureStatus);
+        if (status == PictureReviewStatusEnums.REVIEWING) {
             picture.setReviewMessage("管理员正在审核");
-        } else if (status == PictureReviewStatusEnum.NOTODO) {
+        } else if (status == PictureReviewStatusEnums.NOTODO) {
             picture.setReviewMessage("该图片为私有空间图片无需审核");
         }
         picture.setSpaceId(spaceId);

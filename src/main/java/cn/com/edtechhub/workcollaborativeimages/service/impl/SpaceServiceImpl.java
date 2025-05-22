@@ -2,7 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.SpaceConstant;
-import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
 import cn.com.edtechhub.workcollaborativeimages.mapper.SpaceMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;

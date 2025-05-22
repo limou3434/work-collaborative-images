@@ -1,6 +1,5 @@
 package cn.com.edtechhub.workcollaborativeimages.exception;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
 import lombok.Getter;
 
 /**

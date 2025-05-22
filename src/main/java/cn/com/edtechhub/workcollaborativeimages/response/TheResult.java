@@ -1,6 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.response;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 
 /**
  * 便捷响应体工具类
