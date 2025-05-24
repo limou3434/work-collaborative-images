@@ -52,11 +52,6 @@ public interface UserService extends IService<User> {
     Boolean userDisable(Long userId, Long disableTime, UserRoleEnums userRoleEnums);
 
     /**
-     * 注册账户服务
-     */
-    Boolean userRegister(String account, String password, String checkPassword);
-
-    /**
      * 验证账户服务
      */
     User userValidation(String account, String passwd);
