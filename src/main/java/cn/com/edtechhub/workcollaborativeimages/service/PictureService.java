@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
+import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
@@ -48,11 +49,6 @@ public interface PictureService extends IService<Picture> {
     Picture pictureSearchById(Long id);
 
     /**
-     * 获取图片所属的空间
-     */
-    Long pictureGetSpace(Picture picture);
-
-    /**
      * 审核图片服务
      */
     Boolean pictureReview(Long id, Integer reviewStatus, String reviewMessage);
@@ -60,12 +56,22 @@ public interface PictureService extends IService<Picture> {
     /**
      * 批量爬取图片服务
      */
-    Integer pictureBatch(String searchText, Integer searchCount, String namePrefix, String category);
+    Integer pictureBatch(String searchText, Integer searchCount, String namePrefix, String category, String introduction, String tags);
 
     /**
      * 图片转化链接服务
      */
-    Picture pictureUpload(Integer pictureStatus, Long userId, Long spaceId, Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureUrl, MultipartFile multipartFile);
+    Picture pictureUpload(Long pictureId, Long spaceId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile);
+
+    /**
+     * 获取图片所属的空间服务
+     */
+    Long pictureGetSpace(Picture picture);
+
+    /**
+     * 获取图片的审核状态服务
+     */
+    PictureReviewStatusEnums pictureGetReviewStatus(Picture picture);
 
     /**
      * 获取图片种类服务

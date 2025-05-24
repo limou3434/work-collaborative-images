@@ -2,8 +2,8 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
-import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
+import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
@@ -16,7 +16,6 @@ import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -48,6 +47,8 @@ import java.util.List;
 @Slf4j
 public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> implements PictureService {
 
+    /// 依赖注入 ///
+
     /**
      * 注入事务管理依赖
      */
@@ -72,13 +73,15 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @Resource
     SpaceService spaceService;
 
+    /// 服务实现 ///
+
     @Override
     @LogParams
     public Picture pictureAdd(PictureAddRequest pictureAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(pictureAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         String name = pictureAddRequest.getName();
-        this.checkParameters(name);
+        this.checkName(name);
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -118,9 +121,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         // 检查参数
         ThrowUtils.throwIf(pictureUpdateRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = pictureUpdateRequest.getId();
+        String name = pictureUpdateRequest.getName();
         ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不能为空");
         ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法, 必须是正整数");
-        this.checkParameters(pictureUpdateRequest.getName());
+        if (StringUtils.isNotBlank(name)) this.checkName(name);
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -140,7 +144,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         Long id = pictureSearchRequest.getId();
         String name = pictureSearchRequest.getName();
         ThrowUtils.throwIf(id != null && id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法");
-        ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > PictureConstant.NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "名字不得小于" + PictureConstant.NAME_LENGTH + "位字符");
+        if (StringUtils.isNotBlank(name)) this.checkName(name);
 
         // 服务实现
         LambdaQueryWrapper<Picture> queryWrapper = this.getQueryWrapper(pictureSearchRequest); // 构造查询条件
@@ -151,52 +155,46 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @Override
     @LogParams
     public Picture pictureSearchById(Long id) {
-        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "请求 id 不能为空");
+        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "请求标识不能为空");
         return this.getById(id);
     }
 
     @Override
     @LogParams
-    public Long pictureGetSpace(Picture picture) {
-        return picture.getSpaceId();
-    }
-
-    @Override
-    @LogParams
     public Boolean pictureReview(Long id, Integer reviewStatus, String reviewMessage) {
-        // TODO: 简单使用 AI 接口来进行文本审核和图片审核
-
         // 检查参数
-        PictureReviewStatusEnums reviewStatusEnum = PictureReviewStatusEnums.getStatusDescription(reviewStatus);
+        PictureReviewStatusEnums reviewStatusEnum = PictureReviewStatusEnums.getEnums(reviewStatus);
         ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "图片 id 不能为空");
         ThrowUtils.throwIf(reviewStatusEnum == null, CodeBindMessageEnums.PARAMS_ERROR, "需要指定最终的有效审核状态");
 
         // 判断图片是否存在
-        Picture oldPicture = this.getById(id);
-        ThrowUtils.throwIf(oldPicture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "id 所对应的图片不存在");
+        Picture oldPicture = this.pictureSearchById(id);
+        ThrowUtils.throwIf(oldPicture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "标识所对应的图片不存在");
 
         // 已是该状态
         ThrowUtils.throwIf(oldPicture.getReviewStatus().equals(reviewStatus), CodeBindMessageEnums.PARAMS_ERROR, "该图片已经处于本次请求的指定状态, 请勿重复审核");
 
+        // TODO: 简单使用 AI 接口来进行文本审核和图片审核
+
         // 更新审核状态(注意数据库默认设置为待审状态)
-        Picture updatePicture = new Picture();
-        updatePicture.setId(id);
-        updatePicture.setReviewStatus(reviewStatus);
-        updatePicture.setReviewMessage(reviewMessage);
-        updatePicture.setReviewerId(Long.valueOf(StpUtil.getLoginId().toString()));
-        updatePicture.setReviewTime(LocalDateTime.now());
-        boolean result = this.updateById(updatePicture);
-        ThrowUtils.throwIf(!result, CodeBindMessageEnums.SYSTEM_ERROR, "审核失败, 无法更新");
+        Picture newPicture = new Picture();
+        newPicture.setId(id);
+        newPicture.setReviewStatus(reviewStatus);
+        newPicture.setReviewMessage(reviewMessage);
+        newPicture.setReviewerId(userService.userGetCurrentLonginUserId());
+        newPicture.setReviewTime(LocalDateTime.now());
+        boolean result = this.updateById(newPicture);
+        ThrowUtils.throwIf(!result, CodeBindMessageEnums.SYSTEM_ERROR, "审核失败, 无法更新图片状态");
         return true;
     }
 
     @Override
     @LogParams
-    public Integer pictureBatch(String searchText, Integer searchCount, String namePrefix, String category) {
+    public Integer pictureBatch(String searchText, Integer searchCount, String namePrefix, String category, String introduction, String tags) {
         // 检查参数
         ThrowUtils.throwIf(searchText == null, CodeBindMessageEnums.PARAMS_ERROR, "缺少需要爬取的关键文本");
         ThrowUtils.throwIf(searchCount == null, CodeBindMessageEnums.PARAMS_ERROR, "缺少需要爬取的图片个数");
-        ThrowUtils.throwIf(searchCount > PictureConstant.NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "最多" + PictureConstant.NAME_LENGTH + "位字符");
+        ThrowUtils.throwIf(searchCount > PictureConstant.MAX_NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "最多" + PictureConstant.MAX_NAME_LENGTH + "位字符");
 
         // 要抓取的地址
         String fetchUrl = String.format("https://cn.bing.com/images/async?q=%s&mmasync=1", searchText);
@@ -225,7 +223,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             }
             // 上传图片
             try {
-                Picture picture = this.pictureUpload(PictureReviewStatusEnums.PASS.getCode(), userService.userGetCurrentLonginUserId(), null, null, category, namePrefix + (uploadCount + 1), null, null, fileUrl, null);
+                Picture picture = this.pictureUpload(null, null, category, namePrefix + (uploadCount + 1), introduction, tags, fileUrl, null);
                 log.debug("图片上传成功, id = {}", picture.getId());
                 uploadCount++;
             } catch (Exception e) {
@@ -241,66 +239,75 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
     @Override
     @LogParams
-    public Picture pictureUpload(Integer pictureStatus, Long userId, Long spaceId, Long pictureId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
-        // 如果有更新图片的需求, 也就是携带了 id
-        if (pictureId != null) {
-            boolean exists = this
-                    .lambdaQuery()
-                    .eq(Picture::getId, pictureId)
-                    .exists();
-            ThrowUtils.throwIf(!exists, CodeBindMessageEnums.NOT_FOUND_ERROR, "指定 id 所对应的图片不存在所以无法更新");
-        }
+    public Picture pictureUpload(Long pictureId, Long spaceId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
+        return transactionTemplate.execute(status -> {
+            // 准备可能需要的参数
+            Long userId = userService.userGetCurrentLonginUserId();
+            String uploadPathPrefix = String.format(spaceId == 0 ? "public/%s" : "space/%s", userId); // 构造和用户相关的图片父目录
 
-        // 构造要入库的图片信息
-        Picture picture = new Picture();
-        UploadPictureResult uploadPictureResult = null;
-        String uploadPathPrefix = String.format(spaceId == 0 ? "public/%s" : "space/%s", userId); // 构造和用户相关的图片父目录
-        if (multipartFile != null) { // 支持对本地文件的上传
-            log.debug("支持对本地文件的上传");
-            uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, multipartFile); // 执行具体的上传任务
-        }
-        if (pictureFileUrl != null) { // 支持对远端文件的上传
-            log.debug("支持对远端文件的上传");
-            uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, pictureFileUrl); // 执行具体的上传任务
-        }
-        if (pictureId != null) {
-            picture = this.getById(pictureId);
-        }
-        picture.setReviewStatus(pictureStatus);
-        PictureReviewStatusEnums status = PictureReviewStatusEnums.getStatusDescription(pictureStatus);
-        if (status == PictureReviewStatusEnums.REVIEWING) {
-            picture.setReviewMessage("管理员正在审核");
-        } else if (status == PictureReviewStatusEnums.NOTODO) {
-            picture.setReviewMessage("该图片为私有空间图片无需审核");
-        }
-        picture.setSpaceId(spaceId);
-        picture.setCategory(pictureCategory);
-        picture.setTags(StringUtils.isNotBlank(pictureTags) ? pictureTags : null);
-        picture.setIntroduction(pictureIntroduction);
-        picture.setUserId(userId);
-        picture.setName(StringUtils.isNotBlank(pictureName) ? pictureName : "尚无名称");
-        if (uploadPictureResult != null) {
-            picture.setName(StringUtils.isNotBlank(pictureName) ? pictureName : uploadPictureResult.getPicName());
-            log.debug("测试这里的图片名字 {}", picture.getName());
-            picture.setUrl(uploadPictureResult.getUrl());
-            picture.setThumbnailUrl(uploadPictureResult.getThumbnailUrl());
-            picture.setPicSize(uploadPictureResult.getPicSize());
-            picture.setPicWidth(uploadPictureResult.getPicWidth());
-            picture.setPicHeight(uploadPictureResult.getPicHeight());
-            picture.setPicScale(uploadPictureResult.getPicScale());
-            picture.setPicFormat(uploadPictureResult.getPicFormat());
-        }
-        // 校验额度并且增加存量
-        if (spaceId != 0) { // TODO: 其实应该提前截获图片的大小的
-            spaceService.spaceCheckAndIncreaseCurrent(picture);
-        }
+            // 如果携带图片先进行上传
+            var uploadPictureResult = new UploadPictureResult();
+            if (multipartFile != null) { // 支持对本地文件的上传
+                log.debug("支持对本地文件的上传");
+                uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, multipartFile); // 执行具体的上传任务
+            }
+            if (pictureFileUrl != null) { // 支持对远端文件的上传
+                log.debug("支持对远端文件的上传");
+                uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, pictureFileUrl); // 执行具体的上传任务
+            }
 
-        // 执行落库
-        boolean result = this.saveOrUpdate(picture);
-        ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败");
-        Picture newPicture = this.getById(picture.getId());
-        log.debug("检查入库后的图片 {}", newPicture);
-        return newPicture;
+            // 这个上传逻辑即可以作为添加也可以作为修改
+            var picture = new Picture();
+            if (pictureId == null) { // 添加逻辑
+                boolean res = pictureFileUrl == null && multipartFile == null;
+                ThrowUtils.throwIf(res, CodeBindMessageEnums.PARAMS_ERROR, "上传图片需要附带图片地址或图片文件");
+            } else {
+                picture = this.pictureSearchById(pictureId);
+                ThrowUtils.throwIf(picture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "指定 id 所对应的图片不存在所以无法更新");
+            }
+
+            // 无论是添加还是更新都需要填写实例参数
+            picture.setId(pictureId);
+            picture.setSpaceId(spaceId);
+            picture.setCategory(pictureCategory);
+            picture.setName(pictureName);
+            picture.setIntroduction(pictureIntroduction);
+            picture.setTags(pictureTags);
+            picture.setUserId(userId);
+            if (uploadPictureResult != null) {
+                picture.setUrl(uploadPictureResult.getUrl());
+                picture.setThumbnailUrl(uploadPictureResult.getThumbnailUrl());
+                picture.setPicSize(uploadPictureResult.getPicSize());
+                picture.setPicWidth(uploadPictureResult.getPicWidth());
+                picture.setPicHeight(uploadPictureResult.getPicHeight());
+                picture.setPicScale(uploadPictureResult.getPicScale());
+                picture.setPicFormat(uploadPictureResult.getPicFormat());
+            }
+
+            // 无论是添加还是更新只要不是公共图库的图片都需要增加存量
+            if (picture.getSpaceId() != null) {
+                spaceService.spaceCheckAndIncreaseCurrent(picture);
+            }
+
+            // 无论是添加还是更新都需要执行落库
+            boolean result = this.saveOrUpdate(picture);
+            ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败");
+            return this.getById(picture.getId());
+        });
+    }
+
+    @Override
+    @LogParams
+    public Long pictureGetSpace(Picture picture) {
+        Long spaceId = picture.getSpaceId();
+        ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该图片属于公有空间的图片, 没有所属空间, 无法获取对应标识");
+        return spaceId;
+    }
+
+    @Override
+    @LogParams
+    public PictureReviewStatusEnums pictureGetReviewStatus(Picture picture) {
+        return PictureReviewStatusEnums.getEnums(picture.getReviewStatus());
     }
 
     @Override
@@ -308,6 +315,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     public List<String> pictureGetCategorys() {
         return Arrays.asList("动漫", "艺术", "表情", "素材", "海报");
     }
+
+    /// 私有方法 ///
 
     /**
      * 获取查询封装器的方法
@@ -363,8 +372,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     /**
      * 检查添加或更新的参数
      */
-    private void checkParameters(String name) {
-        ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > PictureConstant.NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "名字不得大于" + PictureConstant.NAME_LENGTH + "位字符");
+    private void checkName(String name) {
+        ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > PictureConstant.MAX_NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "名字不得大于" + PictureConstant.MAX_NAME_LENGTH + "位字符");
     }
 
 }

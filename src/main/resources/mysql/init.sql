@@ -76,7 +76,7 @@ CREATE TABLE `picture`
     `pic_scale`      DOUBLE          NULL COMMENT '图片宽高比例',
     `pic_format`     VARCHAR(32)     NULL COMMENT '图片格式',
     `user_id`        BIGINT UNSIGNED NOT NULL COMMENT '创建用户 id',
-    `space_id`       BIGINT               DEFAULT 0 COMMENT '空间 id(为 0 表示公共空间)',
+    `space_id`       BIGINT               DEFAULT NULL COMMENT '空间 id(为 null 表示公共空间)',
     `review_status`  INT                  DEFAULT 0 NOT NULL COMMENT '审核状态: 0-待审; 1-通过; 2-拒绝',
     `review_message` VARCHAR(512)    NULL COMMENT '审核信息',
     `review_time`    DATETIME        NULL COMMENT '审核时间',
@@ -101,8 +101,8 @@ CREATE TABLE IF NOT EXISTS `space`
 (
     `id`          BIGINT UNSIGNED AUTO_INCREMENT COMMENT '本空间唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)',
     `type`        INT     DEFAULT 0 NOT NULL COMMENT '空间类型: 0-公有 1-私有 2-协作',
-    `space_name`  VARCHAR(128)      NULL COMMENT '空间名称',
-    `space_level` INT     DEFAULT 0 NULL COMMENT '空间级别: 0-普通版 1-专业版 2-旗舰版',
+    `name`        VARCHAR(128)      NULL COMMENT '空间名称',
+    `level`       INT     DEFAULT 0 NULL COMMENT '空间级别: 0-普通版 1-专业版 2-旗舰版',
     `max_size`    BIGINT  DEFAULT 0 NULL COMMENT '空间图片的最大总大小',
     `max_count`   BIGINT  DEFAULT 0 NULL COMMENT '空间图片的最大数量',
     `total_size`  BIGINT  DEFAULT 0 NULL COMMENT '当前空间下图片的总大小',
@@ -114,8 +114,8 @@ CREATE TABLE IF NOT EXISTS `space`
     PRIMARY KEY (`id`) COMMENT '主键',
     INDEX `idx_type` (`type`),
     INDEX `idx_user_id` (`user_id`),
-    INDEX `idx_space_name` (`space_name`),
-    INDEX `idx_space_level` (`space_level`)
+    INDEX `idx_space_name` (`name`),
+    INDEX `idx_space_level` (`level`)
 ) COLLATE = `utf8mb4_unicode_ci` COMMENT '空间表'
 ;
 

@@ -60,7 +60,7 @@ public enum SpaceLevelEnums {
     /**
      * 根据等级码值获取等级枚举
      */
-    public static SpaceLevelEnums getLevelDescription(Integer value) {
+    public static SpaceLevelEnums getEnums(Integer value) {
         if (ObjUtil.isEmpty(value)) {
             return null;
         }

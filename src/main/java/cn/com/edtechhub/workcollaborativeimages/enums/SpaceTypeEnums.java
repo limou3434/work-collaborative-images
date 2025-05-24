@@ -42,7 +42,7 @@ public enum SpaceTypeEnums {
     /**
      * 根据类型码值获取类型枚举
      */
-    public static SpaceTypeEnums getTypeDescription(Integer code) {
+    public static SpaceTypeEnums getEnums(Integer code) {
         if (ObjUtil.isEmpty(code)) {
             return null;
         }

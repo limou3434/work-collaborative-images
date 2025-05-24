@@ -33,7 +33,7 @@ public enum PictureReviewStatusEnums {
     /**
      * 根据 value 获取枚举
      */
-    public static PictureReviewStatusEnums getStatusDescription(Integer value) {
+    public static PictureReviewStatusEnums getEnums(Integer value) {
         if (ObjUtil.isEmpty(value)) {
             return null;
         }

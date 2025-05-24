@@ -35,12 +35,12 @@ public class Space implements Serializable {
     /**
      * 空间名称
      */
-    private String spaceName;
+    private String name;
 
     /**
      * 空间级别: 0-普通版 1-专业版 2-旗舰版
      */
-    private Integer spaceLevel;
+    private Integer level;
 
     /**
      * 空间图片的最大总大小
@@ -100,8 +100,8 @@ public class Space implements Serializable {
         Space other = (Space) that;
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
                 && (this.getType() == null ? other.getType() == null : this.getType().equals(other.getType()))
-                && (this.getSpaceName() == null ? other.getSpaceName() == null : this.getSpaceName().equals(other.getSpaceName()))
-                && (this.getSpaceLevel() == null ? other.getSpaceLevel() == null : this.getSpaceLevel().equals(other.getSpaceLevel()))
+                && (this.getName() == null ? other.getName() == null : this.getName().equals(other.getName()))
+                && (this.getLevel() == null ? other.getLevel() == null : this.getLevel().equals(other.getLevel()))
                 && (this.getMaxSize() == null ? other.getMaxSize() == null : this.getMaxSize().equals(other.getMaxSize()))
                 && (this.getMaxCount() == null ? other.getMaxCount() == null : this.getMaxCount().equals(other.getMaxCount()))
                 && (this.getTotalSize() == null ? other.getTotalSize() == null : this.getTotalSize().equals(other.getTotalSize()))
@@ -118,8 +118,8 @@ public class Space implements Serializable {
         int result = 1;
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
         result = prime * result + ((getType() == null) ? 0 : getType().hashCode());
-        result = prime * result + ((getSpaceName() == null) ? 0 : getSpaceName().hashCode());
-        result = prime * result + ((getSpaceLevel() == null) ? 0 : getSpaceLevel().hashCode());
+        result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
+        result = prime * result + ((getLevel() == null) ? 0 : getLevel().hashCode());
         result = prime * result + ((getMaxSize() == null) ? 0 : getMaxSize().hashCode());
         result = prime * result + ((getMaxCount() == null) ? 0 : getMaxCount().hashCode());
         result = prime * result + ((getTotalSize() == null) ? 0 : getTotalSize().hashCode());
@@ -138,8 +138,8 @@ public class Space implements Serializable {
                 "Hash = " + hashCode() +
                 ", id=" + id +
                 ", type=" + type +
-                ", spaceName=" + spaceName +
-                ", spaceLevel=" + spaceLevel +
+                ", spaceName=" + name +
+                ", spaceLevel=" + level +
                 ", maxSize=" + maxSize +
                 ", maxCount=" + maxCount +
                 ", totalSize=" + totalSize +

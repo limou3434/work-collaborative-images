@@ -41,11 +41,15 @@ import javax.annotation.Resource;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
+    /// 依赖注入 ///
+
     /**
      * 注入事务管理依赖
      */
     @Resource
     TransactionTemplate transactionTemplate;
+
+    /// 服务实现 ///
 
     @Override
     @LogParams
@@ -126,7 +130,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Long id = userSearchRequest.getId();
         String account = userSearchRequest.getAccount();
         ThrowUtils.throwIf(id != null && id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不合法");
-        ThrowUtils.throwIf(StrUtil.isNotBlank(account) && account.length() > UserConstant.ACCOUNT_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.ACCOUNT_LENGTH + "位字符");
+        if (StringUtils.isNotBlank(account)) this.checkAccount(account);
 
         // 服务实现
         LambdaQueryWrapper<User> queryWrapper = this.getQueryWrapper(userSearchRequest); // 构造查询条件
@@ -179,20 +183,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = this.getOne(lambdaQueryWrapper);
         log.debug("当前请求登录的用户 {}", user);
         return user;
-    }
-
-    @Override
-    @LogParams
-    public Boolean userRegister(String account, String passwd, String checkPasswd) {
-        // 检查参数
-        ThrowUtils.throwIf(!passwd.equals(checkPasswd), CodeBindMessageEnums.PARAMS_ERROR, "两次输入的密码不一致");
-
-        // 服务实现
-        var userAddRequest = new UserAddRequest()
-                .setAccount(account)
-                .setPasswd(passwd);
-        this.userAdd(userAddRequest); // 默认根据账号来识别
-        return true;
     }
 
     @Override
@@ -265,6 +255,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return UserRoleEnums.getEnums(this.userGetSessionById(id).getRole()) == UserRoleEnums.ADMIN_ROLE;
     }
 
+    /// 私有方法 ///
+
     /**
      * 获取查询封装器的方法
      */
@@ -314,7 +306,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     private void checkAccount(String checkAccount) {
         ThrowUtils.throwIf(StringUtils.isBlank(checkAccount), CodeBindMessageEnums.PARAMS_ERROR, "账户为空");
-        ThrowUtils.throwIf(checkAccount.length() < UserConstant.ACCOUNT_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.ACCOUNT_LENGTH + "位字符");
+        ThrowUtils.throwIf(checkAccount.length() < UserConstant.MIN_ACCOUNT_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.MIN_ACCOUNT_LENGTH + "位字符");
         String validPattern = "^[$_-]+$";
         ThrowUtils.throwIf(checkAccount.matches(validPattern), CodeBindMessageEnums.PARAMS_ERROR, "账号不能包含特殊字符");
     }
@@ -324,7 +316,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     private void checkPasswd(String checkPasswd) {
         ThrowUtils.throwIf(StringUtils.isBlank(checkPasswd), CodeBindMessageEnums.PARAMS_ERROR, "密码为空");
-        ThrowUtils.throwIf(checkPasswd.length() < UserConstant.PASSWD_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "密码不得小于" + UserConstant.PASSWD_LENGTH + "位字符");
+        ThrowUtils.throwIf(checkPasswd.length() < UserConstant.MIN_PASSWD_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "密码不得小于" + UserConstant.MIN_PASSWD_LENGTH + "位字符");
     }
 
     /**

@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
 
+import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -20,25 +21,19 @@ public class PictureAddRequest implements Serializable {
     private String url;
 
     /**
-     * 空间标识
-     */
-    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
-    private String spaceId;
-
-    /**
      * 图片名称
      */
-    private String name = "默认名称";
+    private String name = PictureConstant.DEFAULT_NAME;
 
     /**
      * 简介
      */
-    private String introduction = "默认简介";
+    private String introduction = PictureConstant.DEFAULT_INTRODUCTION;
 
     /**
      * 分类
      */
-    private String category = "默认类别";
+    private String category = PictureConstant.DEFAULT_CATEGORT;
 
     /**
      * 标签(JSON 数组)
@@ -76,6 +71,22 @@ public class PictureAddRequest implements Serializable {
     @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long userId;
 
+    /**
+     * 空间 id(为空表示公共空间)
+     */
+    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
+    private Long spaceId;
+
+    /**
+     * 状态: 0-待审; 1-通过; 2-拒绝
+     */
+    private Integer reviewStatus = PictureConstant.DEFAULT_REVIEW_STATUS;
+
+    /**
+     * 审核信息
+     */
+    private String reviewMessage = PictureConstant.DEFAULT_REVIEW_MESSAGE;
+
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
 
@@ -91,7 +102,7 @@ public class PictureAddRequest implements Serializable {
     /**
      * 实体转化为请求方法
      */
-    public static PictureAddRequest copyProperties2Request(User entity) {
+    public static PictureAddRequest copyProperties2Request(Picture entity) {
         var request = new PictureAddRequest();
         BeanUtils.copyProperties(entity, request);
         return request;

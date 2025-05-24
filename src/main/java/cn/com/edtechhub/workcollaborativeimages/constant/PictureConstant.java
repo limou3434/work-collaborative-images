@@ -26,8 +26,33 @@ public interface PictureConstant {
     List<String> ALLOW_FORMAT_LIST = Arrays.asList("jpeg", "jpg", "png", "webp", "svg", "ico");
 
     /**
-     * 默认名字最大长度
+     * 图片名字最大长度
      */
-    Integer NAME_LENGTH = 30;
+    Integer MAX_NAME_LENGTH = 30;
+
+    /**
+     * 默认图片名字
+     */
+    String DEFAULT_NAME = "默认图片";
+
+    /**
+     * 默认简介
+     */
+    String DEFAULT_INTRODUCTION = "默认简介";
+
+    /**
+     * 默认分类
+     */
+    String DEFAULT_CATEGORT = "默认分类";
+
+    /**
+     * 默认图片状态
+     */
+    Integer DEFAULT_REVIEW_STATUS = 0;
+
+    /**
+     * 审核信息
+     */
+    String DEFAULT_REVIEW_MESSAGE = "待管理员审核";
 
 }

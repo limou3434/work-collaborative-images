@@ -139,7 +139,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         String name = spaceSearchRequest.getSpaceName();
         ThrowUtils.throwIf(id != null && id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不合法");
         ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > SpaceConstant.NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "空间名称不能大于" + SpaceConstant.NAME_LENGTH + "位字符");
-        ThrowUtils.throwIf(spaceSearchRequest.getSpaceLevel() != null && SpaceLevelEnums.getLevelDescription(spaceSearchRequest.getSpaceLevel()) == null, CodeBindMessageEnums.PARAMS_ERROR, "空间等级非法");
+        ThrowUtils.throwIf(spaceSearchRequest.getSpaceLevel() != null && SpaceLevelEnums.getEnums(spaceSearchRequest.getSpaceLevel()) == null, CodeBindMessageEnums.PARAMS_ERROR, "空间等级非法");
 
         // 服务实现
         LambdaQueryWrapper<Space> queryWrapper = this.getQueryWrapper(spaceSearchRequest); // 构造查询条件
@@ -234,8 +234,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         LambdaQueryWrapper<Space> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper
                 .eq(id != null, Space::getId, id)
-                .like(StringUtils.isNotBlank(name), Space::getSpaceName, name)
-                .eq(level != null, Space::getSpaceLevel, level)
+                .like(StringUtils.isNotBlank(name), Space::getName, name)
+                .eq(level != null, Space::getLevel, level)
                 .eq(userId != null, Space::getUserId, userId)
                 .orderBy(
                         StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则
@@ -250,7 +250,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
      * 根据空间的等级填充空间图片的最大总大小和最大图片数量
      */
     private Space fillSpaceBySpaceLevel(Space space) {
-        SpaceLevelEnums spaceLevelEnums = SpaceLevelEnums.getLevelDescription(space.getSpaceLevel());
+        SpaceLevelEnums spaceLevelEnums = SpaceLevelEnums.getEnums(space.getLevel());
         ThrowUtils.throwIf(spaceLevelEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "空间等级非法, 必须设置一个合法的等级, 否则无法设置额度");
         space.setMaxSize(spaceLevelEnums.getMaxSize());
         space.setMaxCount(spaceLevelEnums.getMaxCount());
@@ -263,7 +263,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     private void checkParameters(String name, Integer level) {
         ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > SpaceConstant.NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "空间名称不能大于 SpaceConstant.NAME_LENGTH 个字符");
         ThrowUtils.throwIf(level == null, CodeBindMessageEnums.PARAMS_ERROR, "空间等级不能为空");
-        ThrowUtils.throwIf(SpaceLevelEnums.getLevelDescription(level) == null, CodeBindMessageEnums.PARAMS_ERROR, "空间等级不合法");
+        ThrowUtils.throwIf(SpaceLevelEnums.getEnums(level) == null, CodeBindMessageEnums.PARAMS_ERROR, "空间等级不合法");
     }
 
 }

@@ -106,229 +106,229 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PictureController { // 通常控制层有服务层中的所有方法, 并且还有组合而成的方法, 如果组合的方法开始变得复杂就会封装到服务层内部
 
-    /**
-     * 注入图片服务依赖
-     */
-    @Resource
-    private PictureService pictureService;
-
-    /**
-     * 注入用户服务依赖
-     */
-    @Resource
-    private UserService userService;
-
-    /**
-     * 注入空间服务依赖
-     */
-    @Resource
-    private SpaceService spaceService;
-
-    /// 管理接口 ///
-    @Operation(summary = "👑图片添加网络接口(管理)")
-    @SaCheckLogin
-    @SaCheckRole("admin")
-    @PostMapping("/admin/add")
-    public BaseResponse<Picture> adminPictureAdd(@RequestBody PictureAddRequest pictureAddRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureAdd(pictureAddRequest)); // 可以直接绕过 COS 进行添加落库
-    }
-
-    @Operation(summary = "👑图片删除网络接口(管理)")
-    @SaCheckLogin
-    @SaCheckRole("admin")
-    @PostMapping("/admin/delete")
-    public BaseResponse<Boolean> adminPictureDelete(@RequestBody PictureDeleteRequest pictureDeleteRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(pictureDeleteRequest)); // TODO: 实际上管理员删除接口最重要的一点就是可以直接清理 COS 上的图片, 但是普通用户只是去除数据库中的关联而已
-    }
-
-    @Operation(summary = "👑图片更新网络接口(管理)")
-    @SaCheckLogin
-    @SaCheckRole("admin")
-    @PostMapping("/admin/update")
-    public BaseResponse<Picture> adminPictureUpdate(@RequestBody PictureUpdateRequest pictureUpdateRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpdate(pictureUpdateRequest)); // 可以直接绕过 COS 进行更新落库
-    }
-
-    @Operation(summary = "👑图片查询网络接口(管理)")
-    @SaCheckLogin
-    @SaCheckRole("admin")
-    @PostMapping("/admin/search")
-    public BaseResponse<Page<Picture>> adminPictureSearch(@RequestBody PictureSearchRequest pictureSearchRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息, 同时这个接口也是实时的, 对于管理员修改状态后实时刷新更加友好
-    }
-
-    @Operation(summary = "图片审核网络接口(管理)")
-    @SaCheckLogin
-    @SaCheckRole("admin")
-    @PostMapping("/review")
-    public BaseResponse<Boolean> adminPictureReview(@RequestBody AdminPictureReviewRequest adminPictureReviewRequest) {
-        log.debug("本次需要审核的报文 {}", adminPictureReviewRequest);
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureReview(adminPictureReviewRequest.getId(), adminPictureReviewRequest.getReviewStatus(), adminPictureReviewRequest.getReviewMessage())); // 这个接口只是获取用户 id 不用获取详细的用户信息
-    }
-
-    @Operation(summary = "图片批量网络接口(管理)")
-    @SaCheckLogin
-    @SaCheckRole("admin")
-    @PostMapping("/batch")
-    public BaseResponse<Integer> adminPictureBatch(@RequestBody AdminPictureBatchRequest adminPictureBatchRequest) {
-        int uploadCount = pictureService.pictureBatch(adminPictureBatchRequest.getSearchText(), adminPictureBatchRequest.getSearchCount(), adminPictureBatchRequest.getNamePrefix(), adminPictureBatchRequest.getCategory());
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, uploadCount);
-    }
-
-    /// 普通接口 ///
-    @Operation(summary = "上传图片网络接口")
-    @SaCheckLogin
-    @PostMapping("/upload")
-    public BaseResponse<PictureVO> pictureUpload(
-            @RequestParam(value = "spaceId", required = false) Long spaceId,
-            @RequestParam(value = "pictureId", required = false) Long pictureId,
-            @RequestParam(value = "pictureCategory", required = false) String pictureCategory,
-            @RequestParam(value = "pictureName", required = false) String pictureName,
-            @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction,
-            @RequestParam(value = "pictureTags", required = false) String pictureTags,
-            @RequestParam(value = "pictureFileUrl", required = false) String pictureFileUrl,
-            @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile
-    ) {
-        // 检查参数
-        ThrowUtils.throwIf(
-                spaceId == null &&
-                        pictureId == null &&
-                        StringUtils.isAllBlank(pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl) &&
-                        multipartFile == null
-                ,
-                CodeBindMessageEnums.PARAMS_ERROR, "错误调用"
-        );
-
-        // 处理请求
-        Integer status = PictureReviewStatusEnums.REVIEWING.getCode();
-        Long userId = userService.userGetCurrentLonginUserId();
-        if (spaceId != null && spaceId != 0) { // 如果用户传递请求中指定了图片的所属空间, 则必须要求该空间属于该用户
-            status = PictureReviewStatusEnums.PASS.getCode();
-            List<Space> spaceList = spaceService.spaceSearch(new SpaceSearchRequest().setId(spaceId)).getRecords();
-            ThrowUtils.throwIf(spaceList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的空间不存在");
-            ThrowUtils.throwIf(!userId.equals(spaceList.get(0).getUserId()), CodeBindMessageEnums.NO_AUTH_ERROR, "您不是该空间的所属者, 没有权限上传图片");
-        } else {
-            spaceId = 0L;
-        }
-        if (pictureId != null) { // 如果用户传递的图片的标识, 并且图片原本就拥有一个所属空间, 就必须要求当前登陆用户有权限修改该空间内的图片才可以修改图片信息
-            List<Picture> pictureList = pictureService.pictureSearch(new PictureSearchRequest().setId(pictureId)).getRecords();
-            ThrowUtils.throwIf(pictureList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的图片不存在");
-            Picture picture = pictureList.get(0);
-            Long pictureOfSpaceId = picture.getSpaceId();
-            if (pictureOfSpaceId != 0) {
-                List<Space> spaceList = spaceService.spaceSearch(new SpaceSearchRequest().setId(pictureOfSpaceId)).getRecords();
-                ThrowUtils.throwIf(spaceList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的空间不存在");
-                Space space = spaceList.get(0);
-                ThrowUtils.throwIf(!userId.equals(space.getUserId()) && ((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole() != UserRoleEnums.ADMIN_ROLE.getCode(), CodeBindMessageEnums.NO_AUTH_ERROR, "该图片属于私有空间图片, 您不是该空间的所属者, 没有权限修改图片");
-            }
-        }
-        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(status, userId, spaceId, pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl, multipartFile));
-        pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetSessionById(userId)));
-
-        // 响应数据
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);
-    }
-
-    @Operation(summary = "销毁图片网络接口")
-    @SaCheckLogin
-    @PostMapping("/destroy")
-    public BaseResponse<Boolean> pictureDestroy(@RequestBody PictureDestroyRequest pictureDestroyRequest) {
-        // 检查参数
-        ThrowUtils.throwIf(pictureDestroyRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "错误调用");
-
-        // 处理请求
-        Long userId = userService.userGetCurrentLonginUserId();
-        List<Picture> pictureList = pictureService.pictureSearch(new PictureSearchRequest().setId(pictureDestroyRequest.getId())).getRecords();
-        ThrowUtils.throwIf(pictureList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的图片不存在");
-        Picture picture = pictureList.get(0);
-        Long pictureOfSpaceId = picture.getSpaceId();
-        if (pictureOfSpaceId != 0) { // 图片原本就拥有一个所属空间, 就必须要求当前登陆用户有权限修改该空间内的图片才可以修改图片信息
-            List<Space> spaceList = spaceService.spaceSearch(new SpaceSearchRequest().setId(pictureOfSpaceId)).getRecords();
-            ThrowUtils.throwIf(spaceList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的空间不存在");
-            Space space = spaceList.get(0);
-            ThrowUtils.throwIf(!userId.equals(space.getUserId()) && ((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole() != UserRoleEnums.ADMIN_ROLE.getCode(), CodeBindMessageEnums.NO_AUTH_ERROR, "该图片属于私有空间图片, 您不是该空间的所属者, 没有权限删除图片");
-        }
-        ThrowUtils.throwIf(!Objects.equals(picture.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您无法销毁不是自己的空间的图片");
-        if (picture.getSpaceId() != 0) {
-            spaceService.spaceCheckAndDecreaseCurrent(picture);
-        }
-
-        // 响应数据
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(PictureDeleteRequest.copyProperties(pictureDestroyRequest)));
-    }
-
-    @Operation(summary = "查找图片网络接口")
-    @SaCheckLogin
-    @PostMapping("/query")
-//    @CacheSearchOptimization(ttl = 60)
-    public BaseResponse<Page<PictureVO>> pictureQuery(@RequestBody PictureQueryRequest pictureQueryRequest) {
-        // 检查参数
-        ThrowUtils.throwIf(pictureQueryRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "错误调用");
-
-        // 处理请求
-        var request = PictureSearchRequest.copyProperties(pictureQueryRequest);
-        Long pictureId = pictureQueryRequest.getId();
-        Picture apicture = pictureService.getById(pictureId);
-        ThrowUtils.throwIf(apicture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "图片不存在");
-        Space privateSpace = spaceService.spaceGetCurrentLoginUserPrivateSpace();
-        request
-                .setReviewStatus(pictureId != null && apicture != null && apicture.getUserId() == userService.userGetCurrentLonginUserId() ? null : PictureReviewStatusEnums.PASS.getCode()) // 强制用户只能查看通过审核的图片, 不过用户自己除外
-                .setSpaceId(pictureId != null && privateSpace != null && apicture.getSpaceId() != 0 ? privateSpace.getId() : 0) // 强制用户只能查看属于自己私有空间的图片或公共图库的图片
-        ;
-        if (pictureQueryRequest.getSpaceId() != null && pictureQueryRequest.getSpaceId() == privateSpace.getId()) {
-            request
-                    .setReviewStatus(PictureReviewStatusEnums.NOTODO.getCode())
-                    .setSpaceId(privateSpace.getId());
-        }
-
-        Page<Picture> picturePage = pictureService.pictureSearch(request);
-        Page<User> userPage = userService.userSearch(new UserSearchRequest());
-
-        List<Picture> pictureList = picturePage.getRecords();
-        List<User> userList = userPage.getRecords();
-
-        Map<Long, User> userMap = userList // 利用映射机制来减少多次单 SQL 后顺便做脱敏
-                .stream()
-                .collect(Collectors.toMap(
-                        user -> {
-                            return user.getId();
-                        },
-                        user -> {
-                            return user;
-                        },
-                        (user1, user2) -> {
-                            return user1;
-                        }
-                )); // 构建 userId 到 User 的映射避免 N+1 查询
-        log.debug("避免多次查询所构建的临时 userMap 的值为 {}", userMap);
-        List<PictureVO> pictureVOList = pictureList
-                .stream()
-                .map(picture -> {
-                    PictureVO pictureVO = PictureVO.removeSensitiveData(picture); // 需要脱敏
-                    User user = userMap.get(picture.getUserId()); // 需要把用户信息都映射进去, 同时避免重复查询
-                    if (user != null) {
-                        pictureVO.setUserVO(UserVO.removeSensitiveData(user));
-                    }
-                    return pictureVO;
-                })
-                .collect(Collectors.toList());
-        log.debug("查询到的图片列表脱敏后为 {}", pictureVOList);
-        Page<PictureVO> pictureVOPage = new Page<>(); // 重新构造一个分页对象
-        pictureVOPage.setCurrent(picturePage.getCurrent());
-        pictureVOPage.setSize(picturePage.getSize());
-        pictureVOPage.setTotal(picturePage.getTotal());
-        pictureVOPage.setRecords(pictureVOList);
-
-        // 响应数据
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVOPage);
-    }
-
-    @Operation(summary = "获取当前后端支持图片类别网络接口")
-    @SaCheckLogin
-    @GetMapping("/categorys")
-    public BaseResponse<List<String>> pictureCategorys() {
-        // 响应数据
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetCategorys());
-    }
+//    /**
+//     * 注入图片服务依赖
+//     */
+//    @Resource
+//    private PictureService pictureService;
+//
+//    /**
+//     * 注入用户服务依赖
+//     */
+//    @Resource
+//    private UserService userService;
+//
+//    /**
+//     * 注入空间服务依赖
+//     */
+//    @Resource
+//    private SpaceService spaceService;
+//
+//    /// 管理接口 ///
+//    @Operation(summary = "👑图片添加网络接口(管理)")
+//    @SaCheckLogin
+//    @SaCheckRole("admin")
+//    @PostMapping("/admin/add")
+//    public BaseResponse<Picture> adminPictureAdd(@RequestBody PictureAddRequest pictureAddRequest) {
+//        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureAdd(pictureAddRequest)); // 可以直接绕过 COS 进行添加落库
+//    }
+//
+//    @Operation(summary = "👑图片删除网络接口(管理)")
+//    @SaCheckLogin
+//    @SaCheckRole("admin")
+//    @PostMapping("/admin/delete")
+//    public BaseResponse<Boolean> adminPictureDelete(@RequestBody PictureDeleteRequest pictureDeleteRequest) {
+//        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(pictureDeleteRequest)); // TODO: 实际上管理员删除接口最重要的一点就是可以直接清理 COS 上的图片, 但是普通用户只是去除数据库中的关联而已
+//    }
+//
+//    @Operation(summary = "👑图片更新网络接口(管理)")
+//    @SaCheckLogin
+//    @SaCheckRole("admin")
+//    @PostMapping("/admin/update")
+//    public BaseResponse<Picture> adminPictureUpdate(@RequestBody PictureUpdateRequest pictureUpdateRequest) {
+//        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUpdate(pictureUpdateRequest)); // 可以直接绕过 COS 进行更新落库
+//    }
+//
+//    @Operation(summary = "👑图片查询网络接口(管理)")
+//    @SaCheckLogin
+//    @SaCheckRole("admin")
+//    @PostMapping("/admin/search")
+//    public BaseResponse<Page<Picture>> adminPictureSearch(@RequestBody PictureSearchRequest pictureSearchRequest) {
+//        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息, 同时这个接口也是实时的, 对于管理员修改状态后实时刷新更加友好
+//    }
+//
+//    @Operation(summary = "图片审核网络接口(管理)")
+//    @SaCheckLogin
+//    @SaCheckRole("admin")
+//    @PostMapping("/review")
+//    public BaseResponse<Boolean> adminPictureReview(@RequestBody AdminPictureReviewRequest adminPictureReviewRequest) {
+//        log.debug("本次需要审核的报文 {}", adminPictureReviewRequest);
+//        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureReview(adminPictureReviewRequest.getId(), adminPictureReviewRequest.getReviewStatus(), adminPictureReviewRequest.getReviewMessage())); // 这个接口只是获取用户 id 不用获取详细的用户信息
+//    }
+//
+//    @Operation(summary = "图片批量网络接口(管理)")
+//    @SaCheckLogin
+//    @SaCheckRole("admin")
+//    @PostMapping("/batch")
+//    public BaseResponse<Integer> adminPictureBatch(@RequestBody AdminPictureBatchRequest adminPictureBatchRequest) {
+////        int uploadCount = pictureService.pictureBatch(adminPictureBatchRequest.getSearchText(), adminPictureBatchRequest.getSearchCount(), adminPictureBatchRequest.getNamePrefix(), adminPictureBatchRequest.getCategory());
+//        return TheResult.success(CodeBindMessageEnums.SUCCESS, uploadCount);
+//    }
+//
+//    /// 普通接口 ///
+//    @Operation(summary = "上传图片网络接口")
+//    @SaCheckLogin
+//    @PostMapping("/upload")
+//    public BaseResponse<PictureVO> pictureUpload(
+//            @RequestParam(value = "spaceId", required = false) Long spaceId,
+//            @RequestParam(value = "pictureId", required = false) Long pictureId,
+//            @RequestParam(value = "pictureCategory", required = false) String pictureCategory,
+//            @RequestParam(value = "pictureName", required = false) String pictureName,
+//            @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction,
+//            @RequestParam(value = "pictureTags", required = false) String pictureTags,
+//            @RequestParam(value = "pictureFileUrl", required = false) String pictureFileUrl,
+//            @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile
+//    ) {
+//        // 检查参数
+//        ThrowUtils.throwIf(
+//                spaceId == null &&
+//                        pictureId == null &&
+//                        StringUtils.isAllBlank(pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl) &&
+//                        multipartFile == null
+//                ,
+//                CodeBindMessageEnums.PARAMS_ERROR, "错误调用"
+//        );
+//
+//        // 处理请求
+//        Integer status = PictureReviewStatusEnums.REVIEWING.getCode();
+//        Long userId = userService.userGetCurrentLonginUserId();
+//        if (spaceId != null && spaceId != 0) { // 如果用户传递请求中指定了图片的所属空间, 则必须要求该空间属于该用户
+//            status = PictureReviewStatusEnums.PASS.getCode();
+//            List<Space> spaceList = spaceService.spaceSearch(new SpaceSearchRequest().setId(spaceId)).getRecords();
+//            ThrowUtils.throwIf(spaceList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的空间不存在");
+//            ThrowUtils.throwIf(!userId.equals(spaceList.get(0).getUserId()), CodeBindMessageEnums.NO_AUTH_ERROR, "您不是该空间的所属者, 没有权限上传图片");
+//        } else {
+//            spaceId = 0L;
+//        }
+//        if (pictureId != null) { // 如果用户传递的图片的标识, 并且图片原本就拥有一个所属空间, 就必须要求当前登陆用户有权限修改该空间内的图片才可以修改图片信息
+//            List<Picture> pictureList = pictureService.pictureSearch(new PictureSearchRequest().setId(pictureId)).getRecords();
+//            ThrowUtils.throwIf(pictureList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的图片不存在");
+//            Picture picture = pictureList.get(0);
+//            Long pictureOfSpaceId = picture.getSpaceId();
+//            if (pictureOfSpaceId != 0) {
+//                List<Space> spaceList = spaceService.spaceSearch(new SpaceSearchRequest().setId(pictureOfSpaceId)).getRecords();
+//                ThrowUtils.throwIf(spaceList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的空间不存在");
+//                Space space = spaceList.get(0);
+//                ThrowUtils.throwIf(!userId.equals(space.getUserId()) && ((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole() != UserRoleEnums.ADMIN_ROLE.getCode(), CodeBindMessageEnums.NO_AUTH_ERROR, "该图片属于私有空间图片, 您不是该空间的所属者, 没有权限修改图片");
+//            }
+//        }
+//        PictureVO pictureVO = PictureVO.removeSensitiveData(pictureService.pictureUpload(status, userId, spaceId, pictureId, pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl, multipartFile));
+//        pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userGetSessionById(userId)));
+//
+//        // 响应数据
+//        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVO);
+//    }
+//
+//    @Operation(summary = "销毁图片网络接口")
+//    @SaCheckLogin
+//    @PostMapping("/destroy")
+//    public BaseResponse<Boolean> pictureDestroy(@RequestBody PictureDestroyRequest pictureDestroyRequest) {
+//        // 检查参数
+//        ThrowUtils.throwIf(pictureDestroyRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "错误调用");
+//
+//        // 处理请求
+//        Long userId = userService.userGetCurrentLonginUserId();
+//        List<Picture> pictureList = pictureService.pictureSearch(new PictureSearchRequest().setId(pictureDestroyRequest.getId())).getRecords();
+//        ThrowUtils.throwIf(pictureList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的图片不存在");
+//        Picture picture = pictureList.get(0);
+//        Long pictureOfSpaceId = picture.getSpaceId();
+//        if (pictureOfSpaceId != 0) { // 图片原本就拥有一个所属空间, 就必须要求当前登陆用户有权限修改该空间内的图片才可以修改图片信息
+//            List<Space> spaceList = spaceService.spaceSearch(new SpaceSearchRequest().setId(pictureOfSpaceId)).getRecords();
+//            ThrowUtils.throwIf(spaceList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的空间不存在");
+//            Space space = spaceList.get(0);
+//            ThrowUtils.throwIf(!userId.equals(space.getUserId()) && ((User) StpUtil.getSessionByLoginId(StpUtil.getLoginId()).get(UserConstant.USER_LOGIN_STATE)).getRole() != UserRoleEnums.ADMIN_ROLE.getCode(), CodeBindMessageEnums.NO_AUTH_ERROR, "该图片属于私有空间图片, 您不是该空间的所属者, 没有权限删除图片");
+//        }
+//        ThrowUtils.throwIf(!Objects.equals(picture.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您无法销毁不是自己的空间的图片");
+//        if (picture.getSpaceId() != 0) {
+//            spaceService.spaceCheckAndDecreaseCurrent(picture);
+//        }
+//
+//        // 响应数据
+//        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(PictureDeleteRequest.copyProperties(pictureDestroyRequest)));
+//    }
+//
+//    @Operation(summary = "查找图片网络接口")
+//    @SaCheckLogin
+//    @PostMapping("/query")
+////    @CacheSearchOptimization(ttl = 60)
+//    public BaseResponse<Page<PictureVO>> pictureQuery(@RequestBody PictureQueryRequest pictureQueryRequest) {
+//        // 检查参数
+//        ThrowUtils.throwIf(pictureQueryRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "错误调用");
+//
+//        // 处理请求
+//        var request = PictureSearchRequest.copyProperties(pictureQueryRequest);
+//        Long pictureId = pictureQueryRequest.getId();
+//        Picture apicture = pictureService.getById(pictureId);
+//        ThrowUtils.throwIf(apicture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "图片不存在");
+//        Space privateSpace = spaceService.spaceGetCurrentLoginUserPrivateSpace();
+//        request
+//                .setReviewStatus(pictureId != null && apicture != null && apicture.getUserId() == userService.userGetCurrentLonginUserId() ? null : PictureReviewStatusEnums.PASS.getCode()) // 强制用户只能查看通过审核的图片, 不过用户自己除外
+//                .setSpaceId(pictureId != null && privateSpace != null && apicture.getSpaceId() != 0 ? privateSpace.getId() : 0) // 强制用户只能查看属于自己私有空间的图片或公共图库的图片
+//        ;
+//        if (pictureQueryRequest.getSpaceId() != null && pictureQueryRequest.getSpaceId() == privateSpace.getId()) {
+//            request
+//                    .setReviewStatus(PictureReviewStatusEnums.NOTODO.getCode())
+//                    .setSpaceId(privateSpace.getId());
+//        }
+//
+//        Page<Picture> picturePage = pictureService.pictureSearch(request);
+//        Page<User> userPage = userService.userSearch(new UserSearchRequest());
+//
+//        List<Picture> pictureList = picturePage.getRecords();
+//        List<User> userList = userPage.getRecords();
+//
+//        Map<Long, User> userMap = userList // 利用映射机制来减少多次单 SQL 后顺便做脱敏
+//                .stream()
+//                .collect(Collectors.toMap(
+//                        user -> {
+//                            return user.getId();
+//                        },
+//                        user -> {
+//                            return user;
+//                        },
+//                        (user1, user2) -> {
+//                            return user1;
+//                        }
+//                )); // 构建 userId 到 User 的映射避免 N+1 查询
+//        log.debug("避免多次查询所构建的临时 userMap 的值为 {}", userMap);
+//        List<PictureVO> pictureVOList = pictureList
+//                .stream()
+//                .map(picture -> {
+//                    PictureVO pictureVO = PictureVO.removeSensitiveData(picture); // 需要脱敏
+//                    User user = userMap.get(picture.getUserId()); // 需要把用户信息都映射进去, 同时避免重复查询
+//                    if (user != null) {
+//                        pictureVO.setUserVO(UserVO.removeSensitiveData(user));
+//                    }
+//                    return pictureVO;
+//                })
+//                .collect(Collectors.toList());
+//        log.debug("查询到的图片列表脱敏后为 {}", pictureVOList);
+//        Page<PictureVO> pictureVOPage = new Page<>(); // 重新构造一个分页对象
+//        pictureVOPage.setCurrent(picturePage.getCurrent());
+//        pictureVOPage.setSize(picturePage.getSize());
+//        pictureVOPage.setTotal(picturePage.getTotal());
+//        pictureVOPage.setRecords(pictureVOList);
+//
+//        // 响应数据
+//        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureVOPage);
+//    }
+//
+//    @Operation(summary = "获取当前后端支持图片类别网络接口")
+//    @SaCheckLogin
+//    @GetMapping("/categorys")
+//    public BaseResponse<List<String>> pictureCategorys() {
+//        // 响应数据
+//        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetCategorys());
+//    }
 
 }
