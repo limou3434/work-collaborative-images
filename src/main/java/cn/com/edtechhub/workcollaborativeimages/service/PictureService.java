@@ -54,14 +54,14 @@ public interface PictureService extends IService<Picture> {
     Boolean pictureReview(Long id, Integer reviewStatus, String reviewMessage);
 
     /**
-     * 批量爬取图片服务
-     */
-    Integer pictureBatch(String searchText, Integer searchCount, String namePrefix, String category, String introduction, String tags);
-
-    /**
      * 图片转化链接服务
      */
     Picture pictureUpload(Long pictureId, Long spaceId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile);
+    
+    /**
+     * 批量爬取图片服务
+     */
+    Integer pictureBatch(String searchText, Integer searchCount, String namePrefix, String category, String introduction, String tags);
 
     /**
      * 获取图片所属的空间服务

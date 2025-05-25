@@ -190,55 +190,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
     @Override
     @LogParams
-    public Integer pictureBatch(String searchText, Integer searchCount, String namePrefix, String category, String introduction, String tags) {
-        // 检查参数
-        ThrowUtils.throwIf(searchText == null, CodeBindMessageEnums.PARAMS_ERROR, "缺少需要爬取的关键文本");
-        ThrowUtils.throwIf(searchCount == null, CodeBindMessageEnums.PARAMS_ERROR, "缺少需要爬取的图片个数");
-        ThrowUtils.throwIf(searchCount > PictureConstant.MAX_NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "最多" + PictureConstant.MAX_NAME_LENGTH + "位字符");
-
-        // 要抓取的地址
-        String fetchUrl = String.format("https://cn.bing.com/images/async?q=%s&mmasync=1", searchText);
-        Document document = null;
-        try {
-            document = Jsoup.connect(fetchUrl).get();
-        } catch (IOException e) {
-            ThrowUtils.throwIf(true, CodeBindMessageEnums.OPERATION_ERROR, "获取页面失败");
-        }
-        Element div = document.getElementsByClass("dgControl").first();
-        if (ObjUtil.isNull(div)) {
-            ThrowUtils.throwIf(true, CodeBindMessageEnums.OPERATION_ERROR, "获取元素失败");
-        }
-        Elements imgElementList = div.select("img.mimg");
-        int uploadCount = 0;
-        for (Element imgElement : imgElementList) {
-            String fileUrl = imgElement.attr("src");
-            if (StrUtil.isBlank(fileUrl)) {
-                log.debug("当前链接为空, 已跳过: {}", fileUrl);
-                continue;
-            }
-            // 处理图片上传地址，防止出现转义问题
-            int questionMarkIndex = fileUrl.indexOf("?");
-            if (questionMarkIndex > -1) {
-                fileUrl = fileUrl.substring(0, questionMarkIndex);
-            }
-            // 上传图片
-            try {
-                Picture picture = this.pictureUpload(null, null, category, namePrefix + (uploadCount + 1), introduction, tags, fileUrl, null);
-                log.debug("图片上传成功, id = {}", picture.getId());
-                uploadCount++;
-            } catch (Exception e) {
-                log.debug("图片上传失败", e);
-                continue;
-            }
-            if (uploadCount >= searchCount) {
-                break;
-            }
-        }
-        return uploadCount;
-    }
-
-    @Override
-    @LogParams
     public Picture pictureUpload(Long pictureId, Long spaceId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile) {
         return transactionTemplate.execute(status -> {
             // 准备可能需要的参数
@@ -294,6 +245,55 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "图片保存到数据库中失败");
             return this.getById(picture.getId());
         });
+    }
+
+    @Override
+    @LogParams
+    public Integer pictureBatch(String searchText, Integer searchCount, String name, String category, String introduction, String tags) {
+        // 检查参数
+        ThrowUtils.throwIf(searchText == null, CodeBindMessageEnums.PARAMS_ERROR, "缺少需要爬取的关键文本");
+        ThrowUtils.throwIf(searchCount == null, CodeBindMessageEnums.PARAMS_ERROR, "缺少需要爬取的图片个数");
+        ThrowUtils.throwIf(searchCount > PictureConstant.MAX_NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "最多" + PictureConstant.MAX_NAME_LENGTH + "位字符");
+
+        // 要抓取的地址
+        String fetchUrl = String.format("https://cn.bing.com/images/async?q=%s&mmasync=1", searchText);
+        Document document = null;
+        try {
+            document = Jsoup.connect(fetchUrl).get();
+        } catch (IOException e) {
+            ThrowUtils.throwIf(true, CodeBindMessageEnums.OPERATION_ERROR, "获取页面失败");
+        }
+        Element div = document.getElementsByClass("dgControl").first();
+        if (ObjUtil.isNull(div)) {
+            ThrowUtils.throwIf(true, CodeBindMessageEnums.OPERATION_ERROR, "获取元素失败");
+        }
+        Elements imgElementList = div.select("img.mimg");
+        int uploadCount = 0;
+        for (Element imgElement : imgElementList) {
+            String fileUrl = imgElement.attr("src");
+            if (StrUtil.isBlank(fileUrl)) {
+                log.debug("当前链接为空, 已跳过: {}", fileUrl);
+                continue;
+            }
+            // 处理图片上传地址，防止出现转义问题
+            int questionMarkIndex = fileUrl.indexOf("?");
+            if (questionMarkIndex > -1) {
+                fileUrl = fileUrl.substring(0, questionMarkIndex);
+            }
+            // 上传图片
+            try {
+                Picture picture = this.pictureUpload(null, null, category, name + (uploadCount + 1), introduction, tags, fileUrl, null);
+                log.debug("图片上传成功, id = {}", picture.getId());
+                uploadCount++;
+            } catch (Exception e) {
+                log.debug("图片上传失败", e);
+                continue;
+            }
+            if (uploadCount >= searchCount) {
+                break;
+            }
+        }
+        return uploadCount;
     }
 
     @Override

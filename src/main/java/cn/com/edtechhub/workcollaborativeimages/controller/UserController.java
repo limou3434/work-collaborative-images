@@ -33,6 +33,8 @@ import javax.servlet.http.HttpServletRequest;
 @Slf4j
 public class UserController { // 通常控制层有服务层中的所有方法, 并且还有组合而成的方法, 如果组合的方法开始变得复杂就会封装到服务层内部
 
+    /// 依赖注入 ///
+
     /**
      * 注入用户服务实例
      */
@@ -47,8 +49,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @PostMapping("/admin/add")
     @LogParams
     public BaseResponse<User> adminUserAdd(@RequestBody UserAddRequest userAddRequest) {
-        User user = userService.userAdd(userAddRequest);
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, user);
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userAdd(userAddRequest));
     }
 
     @Operation(summary = "👑删除用户网络接口")
@@ -56,8 +57,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaCheckRole("admin")
     @PostMapping("/admin/delete")
     public BaseResponse<Boolean> adminUserDelete(@RequestBody UserDeleteRequest userDeleteRequest) {
-        Boolean result = userService.userDelete(userDeleteRequest);
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userDelete(userDeleteRequest));
     }
 
     @Operation(summary = "👑修改用户网络接口")
@@ -76,7 +76,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userSearch(userSearchRequest));
     }
 
-    @Operation(summary = "👑封禁用户网络接口")
+    @Operation(summary = "👑指定标识来封禁用户网络接口")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/disable")

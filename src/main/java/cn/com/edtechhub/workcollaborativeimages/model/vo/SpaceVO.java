@@ -1,12 +1,16 @@
 package cn.com.edtechhub.workcollaborativeimages.model.vo;
 
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
-import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Data
 public class SpaceVO implements Serializable {
@@ -73,6 +77,26 @@ public class SpaceVO implements Serializable {
         var spaceVO = new SpaceVO();
         BeanUtils.copyProperties(space, spaceVO);
         return spaceVO;
+    }
+
+    /**
+     * 脱敏方法(分页脱敏)
+     */
+    public static Page<SpaceVO> removeSensitiveData(Page<Space> spacePage) {
+        if (spacePage == null) {
+            return null;
+        }
+        var spaceList = spacePage.getRecords()
+                .stream()
+                .map(SpaceVO::removeSensitiveData)
+                .filter(Objects::nonNull) // 只保留非 null 的元素
+                .collect(Collectors.toList());
+        var newSpacePage = new Page<SpaceVO>();
+        newSpacePage.setCurrent(spacePage.getCurrent());
+        newSpacePage.setSize(spacePage.getSize());
+        newSpacePage.setTotal(spacePage.getTotal());
+        newSpacePage.setRecords(spaceList);
+        return newSpacePage;
     }
 
 }

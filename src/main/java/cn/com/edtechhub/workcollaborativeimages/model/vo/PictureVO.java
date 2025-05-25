@@ -1,6 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.model.vo;
 
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
@@ -8,6 +9,8 @@ import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 图片脱敏
@@ -124,13 +127,33 @@ public class PictureVO implements Serializable {
     /**
      * 脱敏方法
      */
-    static public PictureVO removeSensitiveData(Picture picture) {
+    public static PictureVO removeSensitiveData(Picture picture) {
         if (picture == null) {
             return null;
         }
         PictureVO pictureVO = new PictureVO();
         BeanUtils.copyProperties(picture, pictureVO);
         return pictureVO;
+    }
+
+    /**
+     * 脱敏方法(分页脱敏)
+     */
+    public static Page<PictureVO> removeSensitiveData(Page<Picture> picturePage) {
+        if (picturePage == null) {
+            return null;
+        }
+        var pictureList = picturePage.getRecords()
+                .stream()
+                .map(PictureVO::removeSensitiveData)
+                .filter(Objects::nonNull) // 只保留非 null 的元素
+                .collect(Collectors.toList());
+        var newPicturePage = new Page<PictureVO>();
+        newPicturePage.setCurrent(picturePage.getCurrent());
+        newPicturePage.setSize(picturePage.getSize());
+        newPicturePage.setTotal(picturePage.getTotal());
+        newPicturePage.setRecords(pictureList);
+        return newPicturePage;
     }
 
 }

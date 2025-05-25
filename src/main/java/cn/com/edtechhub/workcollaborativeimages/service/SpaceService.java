@@ -66,6 +66,6 @@ public interface SpaceService extends IService<Space> {
     /**
      * 获取当前登陆用户的所有私有空间
      */
-    Space spaceGetCurrentLoginUserPrivateSpace();
+    Space spaceGetCurrentLoginUserPrivateSpaces();
 
 }

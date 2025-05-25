@@ -71,28 +71,6 @@ public class PictureQueryRequest extends PageRequest implements Serializable {
      */
     private String picFormat;
 
-    /**
-     * 创建用户 id
-     */
-    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
-    private Long userId;
-
-    /**
-     * 状态：0-待审核; 1-通过; 2-拒绝
-     */
-    private Integer reviewStatus;
-
-    /**
-     * 审核信息
-     */
-    private String reviewMessage;
-
-    /**
-     * 审核人 id
-     */
-    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
-    private Long reviewerId;
-
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
 

@@ -97,14 +97,4 @@ public class PictureSearchRequest extends PageRequest implements Serializable {
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 转换方法
-     */
-    public static PictureSearchRequest copyProperties(PictureQueryRequest pictureQueryRequest) {
-        // TODO: 待删除
-        var adminPictureSearchRequest = new PictureSearchRequest();
-        BeanUtils.copyProperties(pictureQueryRequest, adminPictureSearchRequest);
-        return adminPictureSearchRequest;
-    }
-
 }

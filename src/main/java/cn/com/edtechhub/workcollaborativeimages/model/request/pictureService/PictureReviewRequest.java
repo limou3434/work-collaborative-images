@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 @Data
 @Accessors(chain = true) // 实现链式调用
-public class AdminPictureReviewRequest implements Serializable {
+public class PictureReviewRequest implements Serializable {
 
     /**
      * id

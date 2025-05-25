@@ -1,12 +1,17 @@
 package cn.com.edtechhub.workcollaborativeimages.model.vo;
 
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 用户脱敏
@@ -120,6 +125,26 @@ public class UserVO implements Serializable {
         var userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);
         return userVO;
+    }
+
+    /**
+     * 脱敏方法(分页脱敏)
+     */
+    public static Page<UserVO> removeSensitiveData(Page<User> userPage) {
+        if (userPage == null) {
+            return null;
+        }
+        var userList = userPage.getRecords()
+                .stream()
+                .map(UserVO::removeSensitiveData)
+                .filter(Objects::nonNull) // 只保留非 null 的元素
+                .collect(Collectors.toList());
+        var newUserPage = new Page<UserVO>();
+        newUserPage.setCurrent(userPage.getCurrent());
+        newUserPage.setSize(userPage.getSize());
+        newUserPage.setTotal(userPage.getTotal());
+        newUserPage.setRecords(userList);
+        return newUserPage;
     }
 
 }

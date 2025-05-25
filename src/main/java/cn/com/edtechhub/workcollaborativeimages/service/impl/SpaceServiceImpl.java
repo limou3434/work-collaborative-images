@@ -209,10 +209,11 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 .collect(Collectors.toList());
     }
 
-    public Space spaceGetCurrentLoginUserPrivateSpace() {
+    public Space spaceGetCurrentLoginUserPrivateSpaces() {
         Long userId = userService.userGetCurrentLonginUserId();
         List<Space> spaceList = this.spaceSearch(new SpaceSearchRequest().setUserId(userId)).getRecords();
-        return spaceList.isEmpty() ? null : spaceList.get(0);
+        ThrowUtils.throwIf(spaceList.isEmpty(), CodeBindMessageEnums.FORBIDDEN_ERROR, "当前登录用户尚未拥有私有空间");
+        return spaceList.get(0);
     }
 
     /**
