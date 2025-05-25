@@ -22,12 +22,12 @@ public class SpaceVO implements Serializable {
     /**
      * 空间名称
      */
-    private String spaceName;
+    private String name;
 
     /**
      * 空间级别：0-普通版 1-专业版 2-旗舰版
      */
-    private Integer spaceLevel;
+    private Integer level;
 
     /**
      * 空间图片的最大总大小
@@ -89,7 +89,6 @@ public class SpaceVO implements Serializable {
         var spaceList = spacePage.getRecords()
                 .stream()
                 .map(SpaceVO::removeSensitiveData)
-                .filter(Objects::nonNull) // 只保留非 null 的元素
                 .collect(Collectors.toList());
         var newSpacePage = new Page<SpaceVO>();
         newSpacePage.setCurrent(spacePage.getCurrent());

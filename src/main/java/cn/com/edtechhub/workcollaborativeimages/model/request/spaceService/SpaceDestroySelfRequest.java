@@ -7,7 +7,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class SpaceDestroyRequest implements Serializable {
+public class SpaceDestroySelfRequest implements Serializable {
 
     /**
      * id

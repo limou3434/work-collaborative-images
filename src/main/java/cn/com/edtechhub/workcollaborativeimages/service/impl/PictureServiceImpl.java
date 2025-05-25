@@ -81,7 +81,16 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         // 检查参数
         ThrowUtils.throwIf(pictureAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         String name = pictureAddRequest.getName();
-        this.checkName(name);
+        ThrowUtils.throwIf(
+                name == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "名字不得为空"
+        );
+        ThrowUtils.throwIf(
+                name.length() > PictureConstant.MAX_NAME_LENGTH,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "名字不得大于" + PictureConstant.MAX_NAME_LENGTH + "位字符"
+        );
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -91,7 +100,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             try {
                 boolean result = this.save(picture); // 保存实例的同时利用唯一键约束避免并发问题
                 ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
-            } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
+            } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够应对并发场景
                 ThrowUtils.throwIf(true, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "已经存在该图片, 或者曾经被删除");
             }
             return this.getById(picture.getId());
@@ -104,8 +113,16 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         // 检查参数
         ThrowUtils.throwIf(pictureDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = pictureDeleteRequest.getId();
-        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不能为空");
-        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法, 必须是正整数");
+        ThrowUtils.throwIf(
+                id == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不能为空"
+        );
+        ThrowUtils.throwIf(
+                id <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不得非法, 必须是正整数"
+        );
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -122,9 +139,20 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         ThrowUtils.throwIf(pictureUpdateRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = pictureUpdateRequest.getId();
         String name = pictureUpdateRequest.getName();
-        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不能为空");
-        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法, 必须是正整数");
-        if (StringUtils.isNotBlank(name)) this.checkName(name);
+        ThrowUtils.throwIf(
+                id == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不能为空");
+        ThrowUtils.throwIf(
+                id <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不得非法, 必须是正整数"
+        );
+        ThrowUtils.throwIf(
+                StrUtil.isNotBlank(name) && name.length() > PictureConstant.MAX_NAME_LENGTH,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "名字不得大于" + PictureConstant.MAX_NAME_LENGTH + "位字符"
+        );
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -143,8 +171,16 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         ThrowUtils.throwIf(pictureSearchRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = pictureSearchRequest.getId();
         String name = pictureSearchRequest.getName();
-        ThrowUtils.throwIf(id != null && id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不合法");
-        if (StringUtils.isNotBlank(name)) this.checkName(name);
+        ThrowUtils.throwIf(
+                id != null && id <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "空间标识不得非法"
+        );
+        ThrowUtils.throwIf(
+                StrUtil.isNotBlank(name) && name.length() > PictureConstant.MAX_NAME_LENGTH,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "名字不得大于" + PictureConstant.MAX_NAME_LENGTH + "位字符"
+        );
 
         // 服务实现
         LambdaQueryWrapper<Picture> queryWrapper = this.getQueryWrapper(pictureSearchRequest); // 构造查询条件
@@ -155,7 +191,16 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @Override
     @LogParams
     public Picture pictureSearchById(Long id) {
-        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "请求标识不能为空");
+        ThrowUtils.throwIf(
+                id == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不能为空"
+        );
+        ThrowUtils.throwIf(
+                id <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不得非法"
+        );
         return this.getById(id);
     }
 
@@ -194,7 +239,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         return transactionTemplate.execute(status -> {
             // 准备可能需要的参数
             Long userId = userService.userGetCurrentLonginUserId();
-            String uploadPathPrefix = String.format(spaceId == 0 ? "public/%s" : "space/%s", userId); // 构造和用户相关的图片父目录
+            String uploadPathPrefix = String.format(spaceId == null ? "public/%s" : "space/%s", userId); // 构造和用户相关的图片父目录
 
             // 如果携带图片先进行上传
             var uploadPictureResult = new UploadPictureResult();
@@ -215,6 +260,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             } else {
                 picture = this.pictureSearchById(pictureId);
                 ThrowUtils.throwIf(picture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "指定 id 所对应的图片不存在所以无法更新");
+                spaceService.spaceCheckAndDecreaseCurrent(picture); // 提前减少私有空间存量
             }
 
             // 无论是添加还是更新都需要填写实例参数
@@ -367,13 +413,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                 )
         ;
         return lambdaQueryWrapper;
-    }
-
-    /**
-     * 检查添加或更新的参数
-     */
-    private void checkName(String name) {
-        ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > PictureConstant.MAX_NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "名字不得大于" + PictureConstant.MAX_NAME_LENGTH + "位字符");
     }
 
 }

@@ -137,7 +137,6 @@ public class UserVO implements Serializable {
         var userList = userPage.getRecords()
                 .stream()
                 .map(UserVO::removeSensitiveData)
-                .filter(Objects::nonNull) // 只保留非 null 的元素
                 .collect(Collectors.toList());
         var newUserPage = new Page<UserVO>();
         newUserPage.setCurrent(userPage.getCurrent());

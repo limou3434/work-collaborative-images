@@ -1,5 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
 
+import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
@@ -25,7 +27,7 @@ public class PictureCreateRequest implements Serializable {
     /**
      * 图片名称
      */
-    private String name = "默认名称";
+    private String name = PictureConstant.DEFAULT_NAME;
 
     /**
      * 简介

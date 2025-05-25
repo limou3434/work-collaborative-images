@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.controller;
 
+import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
@@ -150,7 +151,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureSearch(pictureSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息, 同时这个接口也是实时的, 对于管理员修改状态后实时刷新更加友好
     }
 
-    @Operation(summary = "👑审核图片后修改状态网络接口")
+    @Operation(summary = "👑审核图片网络接口")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/review")
@@ -182,16 +183,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @Operation(summary = "用户上传图片网络接口")
     @SaCheckLogin
     @PostMapping("/upload")
-    public BaseResponse<PictureVO> pictureUpload(
-            @RequestParam(value = "pictureId", required = false) Long pictureId,
-            @RequestParam(value = "spaceId", required = false) Long spaceId,
-            @RequestParam(value = "pictureCategory", required = false) String pictureCategory,
-            @RequestParam(value = "pictureName", required = false) String pictureName,
-            @RequestParam(value = "pictureIntroduction", required = false) String pictureIntroduction,
-            @RequestParam(value = "pictureTags", required = false) String pictureTags,
-            @RequestParam(value = "pictureFileUrl", required = false) String pictureFileUrl,
-            @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile
-    ) {
+    public BaseResponse<PictureVO> pictureUpload(@RequestParam(value = "pictureId", required = false) Long pictureId, @RequestParam(value = "spaceId", required = false) Long spaceId, @RequestParam(value = "pictureCategory", required = false, defaultValue = PictureConstant.DEFAULT_CATEGORT) String pictureCategory, @RequestParam(value = "pictureName", required = false, defaultValue = PictureConstant.DEFAULT_NAME) String pictureName, @RequestParam(value = "pictureIntroduction", required = false, defaultValue = PictureConstant.DEFAULT_INTRODUCTION) String pictureIntroduction, @RequestParam(value = "pictureTags", required = false) String pictureTags, @RequestParam(value = "pictureFileUrl", required = false) String pictureFileUrl, @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile) {
         // 如果有传递空间标识就需要检查该用户是否有权限上传图片
         if (spaceId != null) {
             Space designatedSpace = spaceService.spaceSearchById(spaceId); // 获取需要上传的私有空间

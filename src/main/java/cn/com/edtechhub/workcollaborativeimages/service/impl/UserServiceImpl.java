@@ -2,8 +2,8 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
-import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
+import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.mapper.UserMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
@@ -16,7 +16,6 @@ import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.exception.DisableServiceException;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -58,8 +57,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         ThrowUtils.throwIf(userAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         String account = userAddRequest.getAccount();
         String passwd = userAddRequest.getPasswd();
-        this.checkAccount(account);
-        this.checkPasswd(passwd);
+        ThrowUtils.throwIf(
+                StringUtils.isBlank(account),
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "账户不得为空"
+        );
+        ThrowUtils.throwIf(
+                account.length() < UserConstant.MIN_ACCOUNT_LENGTH,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "账户不得小于" + UserConstant.MIN_ACCOUNT_LENGTH + "位字符"
+        );
+        ThrowUtils.throwIf(
+                this.checkAccountIsNotOk(account),
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "账户不得包含特殊字符"
+        );
+        ThrowUtils.throwIf(
+                StringUtils.isBlank(passwd),
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "密码不得为空"
+        );
+        ThrowUtils.throwIf(
+                passwd.length() < UserConstant.MIN_PASSWD_LENGTH,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "密码不得小于" + UserConstant.MIN_PASSWD_LENGTH + "位字符"
+        );
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -70,7 +92,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             try {
                 boolean result = this.save(user); // 保存实例的同时利用唯一键约束避免并发问题
                 ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
-            } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够因对并发场景
+            } catch (DuplicateKeyException e) { // 无需加锁, 只需要设置唯一键就足够应对并发场景
                 ThrowUtils.throwIf(true, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "已经存在该用户, 或者曾经被删除");
             }
             return this.getById(user.getId());
@@ -84,7 +106,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         ThrowUtils.throwIf(userDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = userDeleteRequest.getId();
         ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不能为空");
-        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不合法, 必须是正整数");
+        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不得非法, 必须是正整数");
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -102,10 +124,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Long id = userUpdateRequest.getId();
         String account = userUpdateRequest.getAccount();
         String passwd = userUpdateRequest.getPasswd();
-        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不能为空");
-        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不合法, 必须是正整数");
-        if (StringUtils.isNotBlank(account)) this.checkAccount(account);
-        if (StringUtils.isNotBlank(passwd)) this.checkPasswd(passwd);
+        ThrowUtils.throwIf(
+                id == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不得为空"
+        );
+        ThrowUtils.throwIf(
+                id <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不得非法, 必须是正整数"
+        );
+        ThrowUtils.throwIf(
+                StringUtils.isNotBlank(account) && this.checkAccountIsNotOk(account),
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "账号不得包含非法字符"
+        );
+        ThrowUtils.throwIf(
+                StringUtils.isNotBlank(passwd) && passwd.length() < UserConstant.MIN_PASSWD_LENGTH,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "密码不得小于" + UserConstant.MIN_PASSWD_LENGTH + "位字符"
+        );
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -129,8 +167,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         ThrowUtils.throwIf(userSearchRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = userSearchRequest.getId();
         String account = userSearchRequest.getAccount();
-        ThrowUtils.throwIf(id != null && id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不合法");
-        if (StringUtils.isNotBlank(account)) this.checkAccount(account);
+        ThrowUtils.throwIf(
+                id != null && id <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "用户标识不得非法"
+        );
+        ThrowUtils.throwIf(
+                StringUtils.isNotBlank(account) && this.checkAccountIsNotOk(account),
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "用户账号不得包含非法字符"
+        );
 
         // 服务实现
         LambdaQueryWrapper<User> queryWrapper = this.getQueryWrapper(userSearchRequest); // 构造查询条件
@@ -141,7 +187,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     @LogParams
     public User userSearchById(Long id) {
-        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "请求 id 不能为空");
+        ThrowUtils.throwIf(
+                id == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不得为空"
+        );
+        ThrowUtils.throwIf(
+                id <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不得非法"
+        );
         return this.getById(id);
     }
 
@@ -149,8 +204,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @LogParams
     public Boolean userDisable(Long userId, Long disableTime, UserRoleEnums userRoleEnums) {
         // 参数检查
-        ThrowUtils.throwIf(userId == null, CodeBindMessageEnums.PARAMS_ERROR, "用户 id 不能为空");
+        ThrowUtils.throwIf(userId == null, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不得为空");
+        ThrowUtils.throwIf(userId <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不得非法");
         ThrowUtils.throwIf(disableTime == null, CodeBindMessageEnums.PARAMS_ERROR, "封禁时间不能为空, 至少需要填写为 0");
+        ThrowUtils.throwIf(disableTime < 0, CodeBindMessageEnums.PARAMS_ERROR, "封禁时间不能为负数");
 
         // 服务实现
         User user = this.userSearchById(userId); // 查询对应用户
@@ -190,10 +247,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public User userLogin(String account, String passwd, String device) {
         // 检查参数
         ThrowUtils.throwIf(StringUtils.isBlank(account), CodeBindMessageEnums.PARAMS_ERROR, "缺失必要的登录账号");
+        ThrowUtils.throwIf(this.checkAccountIsNotOk(account), CodeBindMessageEnums.PARAMS_ERROR, "登录账号不得包含非法字符串");
         ThrowUtils.throwIf(StringUtils.isBlank(passwd), CodeBindMessageEnums.PARAMS_ERROR, "缺失必要的登录密码");
         ThrowUtils.throwIf(StringUtils.isBlank(device), CodeBindMessageEnums.PARAMS_ERROR, "缺失必要的登录设备类型");
-        this.checkAccount(account);
-        this.checkAccount(passwd);
 
         // 服务实现
         User user = this.userValidation(account, passwd); // 创建实例
@@ -301,22 +357,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return lambdaQueryWrapper;
     }
 
+
     /**
      * 检查账号是否符合要求
      */
-    private void checkAccount(String checkAccount) {
-        ThrowUtils.throwIf(StringUtils.isBlank(checkAccount), CodeBindMessageEnums.PARAMS_ERROR, "账户为空");
-        ThrowUtils.throwIf(checkAccount.length() < UserConstant.MIN_ACCOUNT_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "账户不得小于" + UserConstant.MIN_ACCOUNT_LENGTH + "位字符");
+    private Boolean checkAccountIsNotOk(String checkAccount) {
         String validPattern = "^[$_-]+$";
-        ThrowUtils.throwIf(checkAccount.matches(validPattern), CodeBindMessageEnums.PARAMS_ERROR, "账号不能包含特殊字符");
-    }
-
-    /**
-     * 检查密码是否符合要求
-     */
-    private void checkPasswd(String checkPasswd) {
-        ThrowUtils.throwIf(StringUtils.isBlank(checkPasswd), CodeBindMessageEnums.PARAMS_ERROR, "密码为空");
-        ThrowUtils.throwIf(checkPasswd.length() < UserConstant.MIN_PASSWD_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "密码不得小于" + UserConstant.MIN_PASSWD_LENGTH + "位字符");
+        return checkAccount.matches(validPattern);
     }
 
     /**

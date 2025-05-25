@@ -2,8 +2,8 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.SpaceConstant;
-import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
+import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.mapper.SpaceMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements SpaceService {
 
+    /// 依赖注入 ///
+
     /**
      * 注入事务管理依赖
      */
@@ -56,75 +58,106 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     public Space spaceAdd(SpaceAddRequest spaceAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(spaceAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
-        this.checkParameters(spaceAddRequest.getSpaceName(), spaceAddRequest.getSpaceLevel());
+        String name = spaceAddRequest.getName();
+        Integer level = spaceAddRequest.getLevel();
+        ThrowUtils.throwIf(
+                name == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "必须设置名字"
+        );
+        ThrowUtils.throwIf(
+                name.length() > SpaceConstant.MAX_NAME_LENGTH,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "名字不得大于" + SpaceConstant.MAX_NAME_LENGTH + "位字符"
+        );
+        ThrowUtils.throwIf(
+                level == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "必须设置空间等级"
+        );
+        ThrowUtils.throwIf(
+                SpaceLevelEnums.getEnums(level) == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "空间等级不合法"
+        );
 
         // 服务实现
-        Long userId = userService.userGetCurrentLonginUserId(); // 但是不能数据库的利用唯一键约束避免并发问题, 因为这样后续就无法拓展单用户多空间
-        synchronized (String.valueOf(userId).intern()) { // 针对用户进行加锁 TODO: 这种加锁有可能导致字符串池膨胀(目前概率较低), 可以考虑使用 Guava Cache
-            return transactionTemplate.execute(status -> { // 必须在锁内处理事务
-                // 锁内事务原理
-                // A 线程进入方法, 开始事务
-                // B 线程也进入方法, 开始另一个事务
-                // A 线程执行到 synchronized 加锁, 拿到锁
-                // A 查询数据库，此时还没有空间 → 合法 → 创建空间 → 提交事务
-                // A 释放锁
-                // B 线程获得锁, 但它事务早就开始了
-                // B 线程查询数据库, 此时看不到 A 的新数据（隔离级别问题）
-                // B 线程也判断为合法 → 也创建了空间
-                // 若普通用户尚未存在自己的空间则允许创建多余的空间
-                var space = SpaceAddRequest.copyProperties2Entity(spaceAddRequest); // 创建实例
-                Integer type = spaceAddRequest.getType();
-                space = this.fillSpaceBySpaceLevel(space);
-                boolean exists = this
-                        .lambdaQuery()
-                        .eq(Space::getUserId, userId)
-                        .eq(Space::getType, type) // TODO: 还是有点问题的
-                        .exists();
-                ThrowUtils.throwIf(exists, CodeBindMessageEnums.OPERATION_ERROR, "每个用户仅能有一个私有空间");
-                try {
-                    boolean result = this.save(space);
-                    ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
-                } catch (DuplicateKeyException e) {
-                    ThrowUtils.throwIf(true, CodeBindMessageEnums.OPERATION_ERROR, "已经存在该空间, 或者曾经被删除");
-                }
-                return this.getById(space.getId());
-            });
-        }
+        return transactionTemplate.execute(status -> { // 必须在锁内处理事务
+            // 创建实例
+            var space = SpaceAddRequest.copyProperties2Entity(spaceAddRequest);
+            space = this.fillSpaceBySpaceLevel(space);
+            // 操作数据库
+            try {
+                boolean result = this.save(space);
+                ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
+            } catch (DuplicateKeyException e) {
+                ThrowUtils.throwIf(true, CodeBindMessageEnums.OPERATION_ERROR, "已经存在该空间, 或者曾经被删除");
+            }
+            return this.getById(space.getId());
+        });
     }
 
     @Override
     @LogParams
     public Boolean spaceDelete(SpaceDeleteRequest spaceDeleteRequest) {
         // 检查参数
-        ThrowUtils.throwIf(spaceDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "空间删除请求体不能为空");
+        ThrowUtils.throwIf(spaceDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = spaceDeleteRequest.getId();
-        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
-        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不合法, 必须是正整数");
+        ThrowUtils.throwIf(
+                id == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不能为空"
+        );
+        ThrowUtils.throwIf(
+                id <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不得非法, 必须是正整数"
+        );
 
         // 服务实现
         return transactionTemplate.execute(status -> {
-            boolean result = this.removeById(spaceDeleteRequest.getId());
+            boolean result = this.removeById(id);
             ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除空间失败, 也许该空间不存在或者已经被删除");
             return true;
         });
+
+        // TODO: 考虑把和私有图库绑定的图片全部从远端图库中删除
     }
 
     @Override
     @LogParams
     public Space spaceUpdate(SpaceUpdateRequest spaceUpdateRequest) {
         // 检查参数
-        ThrowUtils.throwIf(spaceUpdateRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "空间更新请求体不能为空");
+        ThrowUtils.throwIf(spaceUpdateRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = spaceUpdateRequest.getId();
-        String name = spaceUpdateRequest.getSpaceName();
-        Integer level = spaceUpdateRequest.getSpaceLevel();
-        ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
-        ThrowUtils.throwIf(id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不合法, 必须是正整数");
-        this.checkParameters(name, level);
+        String name = spaceUpdateRequest.getName();
+        Integer level = spaceUpdateRequest.getLevel();
+        ThrowUtils.throwIf(
+                id == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不能为空");
+        ThrowUtils.throwIf(
+                id <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "标识不得非法, 必须是正整数"
+        );
+        ThrowUtils.throwIf(
+                StrUtil.isNotBlank(name) && name.length() > SpaceConstant.MAX_NAME_LENGTH,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "名字不得大于" + SpaceConstant.MAX_NAME_LENGTH + "位字符"
+        );
+        ThrowUtils.throwIf(
+                level != null && SpaceLevelEnums.getEnums(level) == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "等级不合法"
+        );
 
         // 服务实现
         return transactionTemplate.execute(status -> {
+            // 创建实例
             Space space = SpaceUpdateRequest.copyProperties2Entity(spaceUpdateRequest);
             this.fillSpaceBySpaceLevel(space);
+            // 操作数据库
             this.updateById(space);
             return this.getById(id);
         });
@@ -134,12 +167,25 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @LogParams
     public Page<Space> spaceSearch(SpaceSearchRequest spaceSearchRequest) {
         // 检查参数
-        ThrowUtils.throwIf(spaceSearchRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "空间查询请求不能为空");
+        ThrowUtils.throwIf(spaceSearchRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
         Long id = spaceSearchRequest.getId();
-        String name = spaceSearchRequest.getSpaceName();
-        ThrowUtils.throwIf(id != null && id <= 0, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不合法");
-        ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > SpaceConstant.NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "空间名称不能大于" + SpaceConstant.NAME_LENGTH + "位字符");
-        ThrowUtils.throwIf(spaceSearchRequest.getSpaceLevel() != null && SpaceLevelEnums.getEnums(spaceSearchRequest.getSpaceLevel()) == null, CodeBindMessageEnums.PARAMS_ERROR, "空间等级非法");
+        String name = spaceSearchRequest.getName();
+        Integer level = spaceSearchRequest.getLevel();
+        ThrowUtils.throwIf(
+                id != null && id <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "空间标识不得非法"
+        );
+        ThrowUtils.throwIf(
+                StrUtil.isNotBlank(name) && name.length() > SpaceConstant.MAX_NAME_LENGTH,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "名字不能大于" + SpaceConstant.MAX_NAME_LENGTH + "位字符"
+        );
+        ThrowUtils.throwIf(
+                level != null && SpaceLevelEnums.getEnums(level) == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "等级不合法"
+        );
 
         // 服务实现
         LambdaQueryWrapper<Space> queryWrapper = this.getQueryWrapper(spaceSearchRequest); // 构造查询条件
@@ -155,7 +201,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     }
 
     public void spaceCheckAndIncreaseCurrent(Picture picture) {
-        if (picture.getSpaceId() == 0) {
+        if (picture.getSpaceId() == null) {
             log.debug("该图片属于公有图库无需改动额度");
             return;
         }
@@ -163,8 +209,14 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         Space space = this.getById(picture.getSpaceId());
         ThrowUtils.throwIf(space == null, CodeBindMessageEnums.SYSTEM_ERROR, "图片所属的空间发生意外错误");
 
-        space.setTotalSize(space.getTotalSize() + picture.getPicSize());
-        space.setTotalCount(space.getTotalCount() + 1);
+        Long oldTotalSize = space.getTotalSize();
+        Long oldTotalCount = space.getTotalCount();
+        Long futureTotalSize = oldTotalSize + picture.getPicSize();
+        Long futureTotalCount = oldTotalCount + 1;
+        space.setTotalSize(futureTotalSize);
+        space.setTotalCount(futureTotalCount);
+        log.debug("之前的大小 {} -> 将来的大小 {}", oldTotalSize, futureTotalSize);
+        log.debug("之前的数量 {} -> 将来的数量 {}", oldTotalCount, futureTotalCount);
 
         ThrowUtils.throwIf(space.getMaxSize() < space.getTotalSize(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "大小额度不够");
         ThrowUtils.throwIf(space.getMaxCount() < space.getTotalCount(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "数量额度不够");
@@ -174,7 +226,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     }
 
     public void spaceCheckAndDecreaseCurrent(Picture picture) {
-        if (picture.getSpaceId() == 0) {
+        if (picture.getSpaceId() == null) {
             log.debug("该图片属于公有图库无需改动额度");
             return;
         }
@@ -182,8 +234,16 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         Space space = this.getById(picture.getSpaceId());
         ThrowUtils.throwIf(space == null, CodeBindMessageEnums.SYSTEM_ERROR, "图片所属的空间发生意外错误");
 
-        space.setTotalSize(space.getTotalSize() - picture.getPicSize());
-        space.setTotalCount(space.getTotalCount() - 1);
+        Long oldTotalSize = space.getTotalSize();
+        Long oldTotalCount = space.getTotalCount();
+        Long futureTotalSize = oldTotalSize - picture.getPicSize();
+        Long futureTotalCount = oldTotalCount - 1;
+        space.setTotalSize(futureTotalSize);
+        space.setTotalCount(futureTotalCount);
+        log.debug("之前的大小 {} -> 将来的大小 {}", oldTotalSize, futureTotalSize);
+        log.debug("之前的数量 {} -> 将来的数量 {}", oldTotalCount, futureTotalCount);
+
+        ThrowUtils.throwIf(space.getTotalSize() == 0 || space.getTotalCount() == 0, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您的存量为 0 没有任何资源需要删除");
 
         if (space.getTotalSize() < 0) {
             log.debug("当前大小计算误差, 予以修正");
@@ -200,21 +260,27 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     }
 
     public List<SpaceLevelInfo> spaceGetLevelInfo() {
-        return Arrays.stream(SpaceLevelEnums.values()) // 获取所有枚举
-                .map(spaceLevelEnum -> new SpaceLevelInfo(
-                        spaceLevelEnum.getCode(),
-                        spaceLevelEnum.getDescription(),
-                        spaceLevelEnum.getMaxCount(),
-                        spaceLevelEnum.getMaxSize()))
-                .collect(Collectors.toList());
+        return Arrays
+                .stream(SpaceLevelEnums.values()) // 获取所有枚举
+                .map(
+                        spaceLevelEnum -> new SpaceLevelInfo(
+                                spaceLevelEnum.getCode(),
+                                spaceLevelEnum.getDescription(),
+                                spaceLevelEnum.getMaxCount(),
+                                spaceLevelEnum.getMaxSize())
+                )
+                .collect(Collectors.toList()
+                );
     }
 
     public Space spaceGetCurrentLoginUserPrivateSpaces() {
         Long userId = userService.userGetCurrentLonginUserId();
         List<Space> spaceList = this.spaceSearch(new SpaceSearchRequest().setUserId(userId)).getRecords();
-        ThrowUtils.throwIf(spaceList.isEmpty(), CodeBindMessageEnums.FORBIDDEN_ERROR, "当前登录用户尚未拥有私有空间");
+        if (spaceList.isEmpty()) return null;
         return spaceList.get(0);
     }
+
+    /// 私有方法 ///
 
     /**
      * 获取查询封装器的方法
@@ -225,8 +291,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
         // 取得需要查询的参数
         Long id = spaceSearchRequest.getId();
-        String name = spaceSearchRequest.getSpaceName();
-        Integer level = spaceSearchRequest.getSpaceLevel();
+        String name = spaceSearchRequest.getName();
+        Integer level = spaceSearchRequest.getLevel();
         Long userId = spaceSearchRequest.getUserId();
         String sortField = spaceSearchRequest.getSortField();
         String sortOrder = spaceSearchRequest.getSortOrder();
@@ -259,12 +325,16 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     }
 
     /**
-     * 检查添加或更新的参数
+     * 检查 name
      */
-    private void checkParameters(String name, Integer level) {
-        ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > SpaceConstant.NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "空间名称不能大于 SpaceConstant.NAME_LENGTH 个字符");
-        ThrowUtils.throwIf(level == null, CodeBindMessageEnums.PARAMS_ERROR, "空间等级不能为空");
-        ThrowUtils.throwIf(SpaceLevelEnums.getEnums(level) == null, CodeBindMessageEnums.PARAMS_ERROR, "空间等级不合法");
+    private void checkName(String name) {
+        ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > SpaceConstant.MAX_NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "名字不得大于" + SpaceConstant.MAX_NAME_LENGTH + "位字符");
+    }
+
+    /**
+     * 检查 level
+     */
+    private void checkLevel(Integer level) {
     }
 
 }

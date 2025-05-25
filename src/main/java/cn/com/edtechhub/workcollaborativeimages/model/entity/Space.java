@@ -138,8 +138,8 @@ public class Space implements Serializable {
                 "Hash = " + hashCode() +
                 ", id=" + id +
                 ", type=" + type +
-                ", spaceName=" + name +
-                ", spaceLevel=" + level +
+                ", name=" + name +
+                ", level=" + level +
                 ", maxSize=" + maxSize +
                 ", maxCount=" + maxCount +
                 ", totalSize=" + totalSize +

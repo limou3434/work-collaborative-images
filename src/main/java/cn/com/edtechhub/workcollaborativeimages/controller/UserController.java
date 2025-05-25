@@ -76,7 +76,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userService.userSearch(userSearchRequest));
     }
 
-    @Operation(summary = "👑指定标识来封禁用户网络接口")
+    @Operation(summary = "👑封禁用户网络接口")
     @SaCheckLogin
     @SaCheckRole("admin")
     @PostMapping("/admin/disable")

@@ -146,7 +146,6 @@ public class PictureVO implements Serializable {
         var pictureList = picturePage.getRecords()
                 .stream()
                 .map(PictureVO::removeSensitiveData)
-                .filter(Objects::nonNull) // 只保留非 null 的元素
                 .collect(Collectors.toList());
         var newPicturePage = new Page<PictureVO>();
         newPicturePage.setCurrent(picturePage.getCurrent());

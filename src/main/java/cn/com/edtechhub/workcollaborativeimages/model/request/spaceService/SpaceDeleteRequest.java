@@ -21,13 +21,4 @@ public class SpaceDeleteRequest implements Serializable {
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 转换方法
-     */
-    public static SpaceDeleteRequest copyProperties(SpaceDestroyRequest spaceDestroyRequest) {
-        var adminSpaceDeleteRequest = new SpaceDeleteRequest();
-        BeanUtils.copyProperties(spaceDestroyRequest, adminSpaceDeleteRequest);
-        return adminSpaceDeleteRequest;
-    }
-
 }

@@ -17,9 +17,11 @@ public class LogParamsAOP {
 
     @Around("@annotation(logParams)")
     public Object logMethodParams(ProceedingJoinPoint joinPoint, LogParams logParams) throws Throwable {
-        log.debug(">>> [LogParams] 执行前");
         String className = joinPoint.getTarget().getClass().getSimpleName();
         String methodName = joinPoint.getSignature().getName();
+        String fullMethodName = className + "." + methodName;
+
+        log.debug(">>> [LogParams - {}] 执行前", fullMethodName);
         Object[] args = joinPoint.getArgs();
         StringBuilder sb = new StringBuilder();
         sb
@@ -31,8 +33,8 @@ public class LogParamsAOP {
             sb.append("--> [").append(i).append("]: ").append(args[i]).append("\n");
         }
         Object result = joinPoint.proceed();
-        log.debug("服务调用过程检查\n{}==> {}", sb, result);
-        log.debug("<<< [LogParams] 执行后");
+        log.debug("=== [LogParams - {}] 服务调用过程检查\n{}==> {}", fullMethodName, sb, result);
+        log.debug("<<< [LogParams - {}] 执行后", fullMethodName);
         return result; // 调用原方法
     }
 }

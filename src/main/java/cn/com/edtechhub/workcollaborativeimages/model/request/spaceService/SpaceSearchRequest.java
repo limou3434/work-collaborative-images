@@ -30,23 +30,14 @@ public class SpaceSearchRequest extends PageRequest implements Serializable {
     /**
      * 空间名称
      */
-    private String spaceName;
+    private String name;
 
     /**
      * 空间级别：0-普通版 1-专业版 2-旗舰版
      */
-    private Integer spaceLevel;
+    private Integer level;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
-
-    /**
-     * 转换方法
-     */
-    public static SpaceSearchRequest copyProperties(SpaceQueryRequest spaceQueryRequest) {
-        var adminSpaceSearchRequest = new SpaceSearchRequest();
-        BeanUtils.copyProperties(spaceQueryRequest, adminSpaceSearchRequest);
-        return adminSpaceSearchRequest;
-    }
 
 }
