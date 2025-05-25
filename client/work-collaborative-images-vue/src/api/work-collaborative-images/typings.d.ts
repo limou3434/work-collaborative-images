@@ -1,101 +1,6 @@
 declare namespace WorkCollaborativeImagesAPI {
-  type AdminPictureAddRequest = {
-    url?: string
-    spaceId?: string
-    name?: string
-    introduction?: string
-    category?: string
-    tags?: string
-    picSize?: number
-    picWidth?: number
-    picHeight?: number
-    picScale?: number
-    picFormat?: string
-    userId?: number
-  }
-
-  type AdminPictureBatchRequest = {
-    searchText?: string
-    searchCount?: number
-    namePrefix?: string
-    category?: string
-  }
-
-  type AdminPictureDeleteRequest = {
-    id?: number
-    spaceId?: number
-  }
-
-  type AdminPictureReviewRequest = {
-    id?: number
-    reviewStatus?: number
-    reviewMessage?: string
-  }
-
-  type AdminPictureSearchRequest = {
-    pageCurrent?: number
-    pageSize?: number
-    sortField?: string
-    sortOrder?: string
-    id?: number
-    name?: string
-    introduction?: string
-    category?: string
-    tags?: string
-    picSize?: number
-    picWidth?: number
-    picHeight?: number
-    picScale?: number
-    picFormat?: string
-    userId?: number
-    spaceId?: number
-    reviewStatus?: number
-    reviewMessage?: string
-    reviewerId?: number
-  }
-
-  type AdminPictureUpdateRequest = {
-    id?: number
-    url?: string
-    name?: string
-    introduction?: string
-    category?: string
-    tags?: string
-    picSize?: number
-    picWidth?: number
-    picHeight?: number
-    picScale?: number
-    picFormat?: string
-    userId?: number
-  }
-
-  type AdminSpaceAddRequest = {
-    spaceName?: string
-    spaceLevel?: number
-    userId?: number
-  }
-
-  type AdminSpaceDeleteRequest = {
-    id?: number
-  }
-
-  type AdminSpaceSearchRequest = {
-    pageCurrent?: number
-    pageSize?: number
-    sortField?: string
-    sortOrder?: string
-    id?: number
-    userId?: number
-    spaceName?: string
-    spaceLevel?: number
-  }
-
-  type AdminSpaceUpdateRequest = {
-    id?: number
-    spaceName?: string
-    spaceLevel?: number
-    maxSize?: number
-    maxCount?: number
+  type adminGetUserTokenParams = {
+    id: number
   }
 
   type BaseResponseBoolean = {
@@ -140,12 +45,6 @@ declare namespace WorkCollaborativeImagesAPI {
     data?: PageSpace
   }
 
-  type BaseResponsePageSpaceVO = {
-    code?: number
-    message?: string
-    data?: PageSpaceVO
-  }
-
   type BaseResponsePageUser = {
     code?: number
     message?: string
@@ -182,10 +81,10 @@ declare namespace WorkCollaborativeImagesAPI {
     data?: User
   }
 
-  type BaseResponseUserStatus = {
+  type BaseResponseUserTokenStatus = {
     code?: number
     message?: string
-    data?: UserStatus
+    data?: UserTokenStatus
   }
 
   type BaseResponseUserVO = {
@@ -241,20 +140,6 @@ declare namespace WorkCollaborativeImagesAPI {
     pages?: number
   }
 
-  type PageSpaceVO = {
-    records?: SpaceVO[]
-    total?: number
-    size?: number
-    current?: number
-    orders?: OrderItem[]
-    optimizeCountSql?: PageSpaceVO
-    searchCount?: PageSpaceVO
-    optimizeJoinOfCountSql?: boolean
-    maxLimit?: number
-    countId?: string
-    pages?: number
-  }
-
   type PageUser = {
     records?: User[]
     total?: number
@@ -293,6 +178,36 @@ declare namespace WorkCollaborativeImagesAPI {
     updateTime?: string
   }
 
+  type PictureAddRequest = {
+    url?: string
+    name?: string
+    introduction?: string
+    category?: string
+    tags?: string
+    picSize?: number
+    picWidth?: number
+    picHeight?: number
+    picScale?: number
+    picFormat?: string
+    userId?: number
+    spaceId?: number
+    reviewStatus?: number
+    reviewMessage?: string
+  }
+
+  type PictureBatchRequest = {
+    searchText?: string
+    searchCount?: number
+    name?: string
+    introduction?: string
+    category?: string
+    tags?: string
+  }
+
+  type PictureDeleteRequest = {
+    id?: number
+  }
+
   type PictureDestroyRequest = {
     id?: number
   }
@@ -313,15 +228,54 @@ declare namespace WorkCollaborativeImagesAPI {
     picHeight?: number
     picScale?: number
     picFormat?: string
+  }
+
+  type PictureReviewRequest = {
+    id?: number
+    reviewStatus?: number
+    reviewMessage?: string
+  }
+
+  type PictureSearchRequest = {
+    pageCurrent?: number
+    pageSize?: number
+    sortField?: string
+    sortOrder?: string
+    id?: number
+    name?: string
+    introduction?: string
+    category?: string
+    tags?: string
+    picSize?: number
+    picWidth?: number
+    picHeight?: number
+    picScale?: number
+    picFormat?: string
     userId?: number
+    spaceId?: number
     reviewStatus?: number
     reviewMessage?: string
     reviewerId?: number
   }
 
+  type PictureUpdateRequest = {
+    id?: number
+    url?: string
+    name?: string
+    introduction?: string
+    category?: string
+    tags?: string
+    picSize?: number
+    picWidth?: number
+    picHeight?: number
+    picScale?: number
+    picFormat?: string
+    userId?: number
+  }
+
   type pictureUploadParams = {
-    spaceId?: number
     pictureId?: number
+    spaceId?: number
     pictureCategory?: string
     pictureName?: string
     pictureIntroduction?: string
@@ -354,8 +308,9 @@ declare namespace WorkCollaborativeImagesAPI {
 
   type Space = {
     id?: number
-    spaceName?: string
-    spaceLevel?: number
+    type?: number
+    name?: string
+    level?: number
     maxSize?: number
     maxCount?: number
     totalSize?: number
@@ -366,17 +321,24 @@ declare namespace WorkCollaborativeImagesAPI {
     updateTime?: string
   }
 
-  type SpaceCreateRequest = {
-    spaceName?: string
+  type SpaceAddRequest = {
+    name?: string
+    type?: number
+    level?: number
+    userId?: number
   }
 
-  type SpaceDestroyRequest = {
+  type SpaceCreateSelfRequest = {
+    name?: string
+  }
+
+  type SpaceDeleteRequest = {
     id?: number
   }
 
-  type SpaceEditRequest = {
+  type SpaceEditRequestSelf = {
     id?: number
-    spaceName?: string
+    name?: string
   }
 
   type SpaceLevelInfo = {
@@ -386,19 +348,29 @@ declare namespace WorkCollaborativeImagesAPI {
     maxSize?: number
   }
 
-  type SpaceQueryRequest = {
+  type SpaceSearchRequest = {
     pageCurrent?: number
     pageSize?: number
     sortField?: string
     sortOrder?: string
     id?: number
-    spaceName?: string
+    userId?: number
+    name?: string
+    level?: number
+  }
+
+  type SpaceUpdateRequest = {
+    id?: number
+    name?: string
+    level?: number
+    maxSize?: number
+    maxCount?: number
   }
 
   type SpaceVO = {
     id?: number
-    spaceName?: string
-    spaceLevel?: number
+    name?: string
+    level?: number
     maxSize?: number
     maxCount?: number
     totalSize?: number
@@ -492,7 +464,7 @@ declare namespace WorkCollaborativeImagesAPI {
     level?: number
   }
 
-  type UserStatus = {
+  type UserTokenStatus = {
     isLogin?: boolean
     tokenName?: string
     tokenTimeout?: string

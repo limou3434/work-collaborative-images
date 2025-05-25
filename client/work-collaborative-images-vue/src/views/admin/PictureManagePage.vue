@@ -64,7 +64,7 @@ const columns = [
 
 // 获取分页查询的结果
 const dataList = ref<WorkCollaborativeImagesAPI.Picture[]>([]) // 存储分页查询后的图片数组
-const searchParams = reactive<WorkCollaborativeImagesAPI.AdminPictureSearchRequest>({
+const searchParams = reactive<WorkCollaborativeImagesAPI.PictureSearchRequest>({
   sortOrder: 'inverted',
   pageCurrent: 1,
   pageSize: 10,
@@ -152,7 +152,7 @@ const doDelete = async (id: string) => {
   if (!id) {
     return
   }
-  const deleteParams = reactive<WorkCollaborativeImagesAPI.AdminPictureDeleteRequest>({
+  const deleteParams = reactive<WorkCollaborativeImagesAPI.PictureDeleteRequest>({
     id: Number(id),
   })
   const res = await adminPictureDelete(deleteParams)
@@ -200,10 +200,10 @@ const stopTimer = () => {
 // 设置批量提交弹窗
 const loading = ref<boolean>(false)
 const showModal = ref(false)
-const form = reactive<WorkCollaborativeImagesAPI.AdminPictureBatchRequest>({
+const form = reactive<WorkCollaborativeImagesAPI.PictureBatchRequest>({
   searchText: '',
   searchCount: 5,
-  namePrefix: '默认名称',
+  name: '默认名称',
   category: '默认分类',
 })
 const handleOk = async (): Promise<void> => {
@@ -261,7 +261,7 @@ const handleOk = async (): Promise<void> => {
             <a-input-number v-model:value="form.searchCount" />
           </a-form-item>
           <a-form-item label="名称前缀">
-            <a-input v-model:value="form.namePrefix" placeholder="请输入响应名称前缀" />
+            <a-input v-model:value="form.name" placeholder="请输入响应名称前缀" />
           </a-form-item>
           <a-form-item label="图片类别">
             <a-input v-model:value="form.category" placeholder="请输入响应图片类别" />

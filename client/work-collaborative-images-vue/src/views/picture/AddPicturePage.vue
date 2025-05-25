@@ -11,7 +11,7 @@ import {
 
 // 这个页面作为创建页面的同时也可以作为修改页面把路径中的 id 获取到后直接显示在上传组件上
 const route = useRoute()
-const searchParams = reactive<WorkCollaborativeImagesAPI.AdminPictureSearchRequest>({
+const searchParams = reactive<WorkCollaborativeImagesAPI.PictureSearchRequest>({
   id: -1,
 }) // 存储初始化的查询参数, 后续用来做搜索请求
 const getOldPicture = async () => {

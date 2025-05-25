@@ -46,7 +46,7 @@ const columns = [
 
 // 获取分页查询的结果
 const dataList = ref<WorkCollaborativeImagesAPI.Space[]>([]) // 存储分页查询后的图片数组
-const searchParams = reactive<WorkCollaborativeImagesAPI.AdminSpaceSearchRequest>({
+const searchParams = reactive<WorkCollaborativeImagesAPI.SpaceSearchRequest>({
   sortOrder: 'inverted',
   pageCurrent: 1,
   pageSize: 10,
@@ -105,7 +105,7 @@ const doDelete = async (id: string) => {
   if (!id) {
     return
   }
-  const deleteParams = reactive<WorkCollaborativeImagesAPI.AdminSpaceDeleteRequest>({
+  const deleteParams = reactive<WorkCollaborativeImagesAPI.SpaceDeleteRequest>({
     id: Number(id),
   })
   const res = await adminSpaceDelete(deleteParams)
@@ -131,7 +131,7 @@ const doDelete = async (id: string) => {
     <a-form :model="searchParams" layout="vertical" @finish="doSearch">
       <!-- 快速可用部分 -->
       <a-form-item label="名称">
-        <a-input v-model:value="searchParams.spaceName" allow-clear placeholder="输入名称" />
+        <a-input v-model:value="searchParams.name" allow-clear placeholder="输入名称" />
       </a-form-item>
       <!-- 展开可用部分 -->
       <template v-if="showMore">
@@ -141,7 +141,7 @@ const doDelete = async (id: string) => {
       </template>
       <template v-if="showMore">
         <a-form-item label="空间等级">
-          <a-select v-model:value="searchParams.spaceLevel" allow-clear placeholder="选择空间等级">
+          <a-select v-model:value="searchParams.level" allow-clear placeholder="选择空间等级">
             <a-select-option :value="0">普通版</a-select-option>
             <a-select-option :value="1">专业版</a-select-option>
             <a-select-option :value="2">旗舰版</a-select-option>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { spaceQuery } from '@/api/work-collaborative-images/spaceController.ts'
+import { spaceQuerySelf } from '@/api/work-collaborative-images/spaceController.ts'
 import { formatSize } from '@/utils'
 import {
   pictureCategorys,
@@ -16,7 +16,7 @@ const props = defineProps<{
 
 // 空间信息
 const space = ref<WorkCollaborativeImagesAPI.SpaceVO>({
-  spaceName: '',
+  name: '',
   totalSize: 0,
   maxSize: 0,
 })
@@ -24,7 +24,7 @@ const space = ref<WorkCollaborativeImagesAPI.SpaceVO>({
 // 拉取空间详情
 const fetchSpaceDetail = async () => {
   try {
-    const res = await spaceQuery({ id: Number(props.id) })
+    const res = await spaceQuerySelf({ id: Number(props.id) })
     if (
       res.data.code === 20000 &&
       res.data.data &&
@@ -66,7 +66,7 @@ const pagination = reactive({
 })
 
 // 图片数据和搜索参数
-const searchParams = reactive<WorkCollaborativeImagesAPI.AdminPictureSearchRequest>({
+const searchParams = reactive<WorkCollaborativeImagesAPI.PictureQueryRequest>({
   spaceId: undefined, // 初始为空，等加载完后设置
   sortOrder: 'inverted',
   pageCurrent: 1,
@@ -120,7 +120,7 @@ onMounted(() => {
   <div id="spaceDetailPage">
     <!-- 空间信息 -->
     <a-flex justify="space-between">
-      <h2>私有空间: {{ space.spaceName }}</h2>
+      <h2>私有空间: {{ space.name }}</h2>
     </a-flex>
     <!-- 搜索组件 -->
     <div class="search-bar">

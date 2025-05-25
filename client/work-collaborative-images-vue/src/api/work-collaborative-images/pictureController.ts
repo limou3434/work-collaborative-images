@@ -2,9 +2,9 @@
 /* eslint-disable */
 import request from '@/request'
 
-/** 图片添加网络接口(管理) POST /picture/admin/add */
+/** 👑添加图片网络接口 POST /picture/admin/add */
 export async function adminPictureAdd(
-  body: WorkCollaborativeImagesAPI.AdminPictureAddRequest,
+  body: WorkCollaborativeImagesAPI.PictureAddRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponsePicture>('/picture/admin/add', {
@@ -17,9 +17,9 @@ export async function adminPictureAdd(
   })
 }
 
-/** 图片删除网络接口(管理) POST /picture/admin/delete */
+/** 👑删除图片网络接口 POST /picture/admin/delete */
 export async function adminPictureDelete(
-  body: WorkCollaborativeImagesAPI.AdminPictureDeleteRequest,
+  body: WorkCollaborativeImagesAPI.PictureDeleteRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/picture/admin/delete', {
@@ -32,9 +32,9 @@ export async function adminPictureDelete(
   })
 }
 
-/** 图片查询网络接口(管理) POST /picture/admin/search */
+/** 👑查询图片网络接口 POST /picture/admin/search */
 export async function adminPictureSearch(
-  body: WorkCollaborativeImagesAPI.AdminPictureSearchRequest,
+  body: WorkCollaborativeImagesAPI.PictureSearchRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponsePagePicture>('/picture/admin/search', {
@@ -47,9 +47,9 @@ export async function adminPictureSearch(
   })
 }
 
-/** 图片更新网络接口(管理) POST /picture/admin/update */
+/** 👑更新图片网络接口 POST /picture/admin/update */
 export async function adminPictureUpdate(
-  body: WorkCollaborativeImagesAPI.AdminPictureUpdateRequest,
+  body: WorkCollaborativeImagesAPI.PictureUpdateRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponsePicture>('/picture/admin/update', {
@@ -62,9 +62,9 @@ export async function adminPictureUpdate(
   })
 }
 
-/** 图片批量网络接口(管理) POST /picture/batch */
+/** 👑图片批量爬取网络接口 POST /picture/batch */
 export async function adminPictureBatch(
-  body: WorkCollaborativeImagesAPI.AdminPictureBatchRequest,
+  body: WorkCollaborativeImagesAPI.PictureBatchRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseInteger>('/picture/batch', {
@@ -85,7 +85,7 @@ export async function pictureCategorys(options?: { [key: string]: any }) {
   })
 }
 
-/** 销毁图片网络接口 POST /picture/destroy */
+/** 根据指定标识销毁图片网络接口 POST /picture/destroy */
 export async function pictureDestroy(
   body: WorkCollaborativeImagesAPI.PictureDestroyRequest,
   options?: { [key: string]: any }
@@ -100,7 +100,7 @@ export async function pictureDestroy(
   })
 }
 
-/** 查找图片网络接口 POST /picture/query */
+/** 查找公有图库或私有空间中图片的网络接口 POST /picture/query */
 export async function pictureQuery(
   body: WorkCollaborativeImagesAPI.PictureQueryRequest,
   options?: { [key: string]: any }
@@ -115,9 +115,9 @@ export async function pictureQuery(
   })
 }
 
-/** 图片审核网络接口(管理) POST /picture/review */
+/** 👑审核图片网络接口 POST /picture/review */
 export async function adminPictureReview(
-  body: WorkCollaborativeImagesAPI.AdminPictureReviewRequest,
+  body: WorkCollaborativeImagesAPI.PictureReviewRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/picture/review', {

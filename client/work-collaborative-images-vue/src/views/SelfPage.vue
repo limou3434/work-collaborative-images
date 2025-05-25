@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { spaceQuery } from '@/api/work-collaborative-images/spaceController.ts'
+import { spaceQuerySelf } from '@/api/work-collaborative-images/spaceController.ts'
 import { message } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
 
@@ -16,7 +16,7 @@ const checkUserSpace = async () => {
     return
   }
   // 获取用户空间信息
-  const res = await spaceQuery({
+  const res = await spaceQuerySelf({
     pageCurrent: 1,
     pageSize: 1,
   })

@@ -3,10 +3,10 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
 import {
-  spaceCreate,
-  spaceEdit,
+  spaceCreateSelf,
+  spaceEditSelf,
+  spaceQuerySelf,
   spaceLevel,
-  spaceQuery,
 } from '@/api/work-collaborative-images/spaceController.ts'
 import { formatSize } from '@/utils'
 
@@ -19,24 +19,24 @@ const isEdit = ref(!isNaN(id))
 
 // 表单参数
 const spaceFormParams = reactive<
-  WorkCollaborativeImagesAPI.AdminSpaceAddRequest & {
+  WorkCollaborativeImagesAPI.SpaceAddRequest & {
     id?: number
   }
 >({
-  spaceName: '',
+  name: '',
 })
 
 // 提交表单
 const handleSubmit = async () => {
   let res
   if (isEdit.value) {
-    res = await spaceEdit({
+    res = await spaceEditSelf({
       id,
-      spaceName: spaceFormParams.spaceName,
+      name: spaceFormParams.name,
     })
   } else {
-    res = await spaceCreate({
-      spaceName: spaceFormParams.spaceName,
+    res = await spaceCreateSelf({
+      name: spaceFormParams.name,
     })
   }
 
@@ -49,10 +49,10 @@ const handleSubmit = async () => {
 
 // 获取旧数据
 const getOldSpace = async () => {
-  const res = await spaceQuery({ id })
+  const res = await spaceQuerySelf({ id })
   const record = res.data.data?.records?.[0]
   if (res.data.code === 20000 && record) {
-    spaceFormParams.spaceName = record.spaceName
+    spaceFormParams.name = record.name
   } else {
     message.error('获取空间信息失败')
   }
@@ -90,9 +90,9 @@ onMounted(() => {
       <a-form-item
         :rules="[{ required: true, message: '请输入名称' }]"
         label="名称"
-        name="spaceName"
+        name="name"
       >
-        <a-input v-model:value="spaceFormParams.spaceName" allowClear placeholder="请输入名称" />
+        <a-input v-model:value="spaceFormParams.name" allowClear placeholder="请输入名称" />
       </a-form-item>
       <a-form-item>
         <a-button html-type="submit" style="width: 100%" type="primary">

@@ -2,9 +2,9 @@
 /* eslint-disable */
 import request from '@/request'
 
-/** 空间添加网络接口(管理) POST /space/admin/add */
+/** 👑添加空间网络接口 POST /space/admin/add */
 export async function adminSpaceAdd(
-  body: WorkCollaborativeImagesAPI.AdminSpaceAddRequest,
+  body: WorkCollaborativeImagesAPI.SpaceAddRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseSpace>('/space/admin/add', {
@@ -17,9 +17,9 @@ export async function adminSpaceAdd(
   })
 }
 
-/** 空间删除网络接口(管理) POST /space/admin/delete */
+/** 👑删除空间网络接口 POST /space/admin/delete */
 export async function adminSpaceDelete(
-  body: WorkCollaborativeImagesAPI.AdminSpaceDeleteRequest,
+  body: WorkCollaborativeImagesAPI.SpaceDeleteRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/space/admin/delete', {
@@ -32,9 +32,9 @@ export async function adminSpaceDelete(
   })
 }
 
-/** 空间查询网络接口(管理) POST /space/admin/search */
+/** 👑查询空间网络接口 POST /space/admin/search */
 export async function adminSpaceSearch(
-  body: WorkCollaborativeImagesAPI.AdminSpaceSearchRequest,
+  body: WorkCollaborativeImagesAPI.SpaceSearchRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponsePageSpace>('/space/admin/search', {
@@ -47,9 +47,9 @@ export async function adminSpaceSearch(
   })
 }
 
-/** 空间更新网络接口(管理) POST /space/admin/update */
+/** 👑更新空间网络接口 POST /space/admin/update */
 export async function adminSpaceUpdate(
-  body: WorkCollaborativeImagesAPI.AdminSpaceUpdateRequest,
+  body: WorkCollaborativeImagesAPI.SpaceUpdateRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseSpace>('/space/admin/update', {
@@ -62,9 +62,9 @@ export async function adminSpaceUpdate(
   })
 }
 
-/** 创建空间网络接口 POST /space/create */
-export async function spaceCreate(
-  body: WorkCollaborativeImagesAPI.SpaceCreateRequest,
+/** 创建私有空间网络接口 POST /space/create */
+export async function spaceCreateSelf(
+  body: WorkCollaborativeImagesAPI.SpaceCreateSelfRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseSpaceVO>('/space/create', {
@@ -77,24 +77,17 @@ export async function spaceCreate(
   })
 }
 
-/** 销毁空间网络接口 POST /space/destroy */
-export async function spaceDestroy(
-  body: WorkCollaborativeImagesAPI.SpaceDestroyRequest,
-  options?: { [key: string]: any }
-) {
+/** 销毁私有空间网络接口 POST /space/destroy */
+export async function spaceDestroySelf(options?: { [key: string]: any }) {
   return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/space/destroy', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
     ...(options || {}),
   })
 }
 
-/** 编辑空间网络接口 POST /space/edit */
-export async function spaceEdit(
-  body: WorkCollaborativeImagesAPI.SpaceEditRequest,
+/** 编辑私有空间网络接口 POST /space/edit */
+export async function spaceEditSelf(
+  body: WorkCollaborativeImagesAPI.SpaceEditRequestSelf,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseSpaceVO>('/space/edit', {
@@ -115,17 +108,10 @@ export async function spaceLevel(options?: { [key: string]: any }) {
   })
 }
 
-/** 查找空间网络接口 POST /space/query */
-export async function spaceQuery(
-  body: WorkCollaborativeImagesAPI.SpaceQueryRequest,
-  options?: { [key: string]: any }
-) {
-  return request<WorkCollaborativeImagesAPI.BaseResponsePageSpaceVO>('/space/query', {
+/** 查找私有空间网络接口 POST /space/query */
+export async function spaceQuerySelf(options?: { [key: string]: any }) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseSpaceVO>('/space/query', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
     ...(options || {}),
   })
 }

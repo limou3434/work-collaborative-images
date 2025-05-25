@@ -2,8 +2,8 @@
 /* eslint-disable */
 import request from '@/request'
 
-/** 添加用户网络接口(管理) POST /user/admin/add */
-export async function userAdd(
+/** 👑添加用户网络接口 POST /user/admin/add */
+export async function adminUserAdd(
   body: WorkCollaborativeImagesAPI.UserAddRequest,
   options?: { [key: string]: any }
 ) {
@@ -17,7 +17,7 @@ export async function userAdd(
   })
 }
 
-/** 删除用户网络接口(管理) POST /user/admin/delete */
+/** 👑删除用户网络接口 POST /user/admin/delete */
 export async function adminUserDelete(
   body: WorkCollaborativeImagesAPI.UserDeleteRequest,
   options?: { [key: string]: any }
@@ -32,7 +32,7 @@ export async function adminUserDelete(
   })
 }
 
-/** 封禁用户网络接口(管理) POST /user/admin/disable */
+/** 👑封禁用户网络接口 POST /user/admin/disable */
 export async function adminUserDisable(
   body: WorkCollaborativeImagesAPI.UserDisableRequest,
   options?: { [key: string]: any }
@@ -47,7 +47,7 @@ export async function adminUserDisable(
   })
 }
 
-/** 查询用户网络接口(管理) POST /user/admin/search */
+/** 👑查询用户网络接口 POST /user/admin/search */
 export async function adminUserSearch(
   body: WorkCollaborativeImagesAPI.UserSearchRequest,
   options?: { [key: string]: any }
@@ -62,7 +62,22 @@ export async function adminUserSearch(
   })
 }
 
-/** 修改用户网络接口(管理) POST /user/admin/update */
+/** 👑获取指定用户凭证网络接口 GET /user/admin/token */
+export async function adminGetUserToken(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: WorkCollaborativeImagesAPI.adminGetUserTokenParams,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseUserTokenStatus>('/user/admin/token', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  })
+}
+
+/** 👑修改用户网络接口 POST /user/admin/update */
 export async function adminUserUpdate(
   body: WorkCollaborativeImagesAPI.UserUpdateRequest,
   options?: { [key: string]: any }
@@ -77,9 +92,17 @@ export async function adminUserUpdate(
   })
 }
 
-/** 获取登录信息网络接口 GET /user/info */
-export async function userInfo(options?: { [key: string]: any }) {
-  return request<WorkCollaborativeImagesAPI.BaseResponseUserVO>('/user/info', {
+/** 获取登录会话网络接口 GET /user/get/session */
+export async function userGetSession(options?: { [key: string]: any }) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseUserVO>('/user/get/session', {
+    method: 'GET',
+    ...(options || {}),
+  })
+}
+
+/** 获取登录凭证网络接口 GET /user/get/token */
+export async function userGetToken(options?: { [key: string]: any }) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseUserTokenStatus>('/user/get/token', {
     method: 'GET',
     ...(options || {}),
   })
@@ -119,14 +142,6 @@ export async function userRegister(
       'Content-Type': 'application/json',
     },
     data: body,
-    ...(options || {}),
-  })
-}
-
-/** 获取登录状态网络接口 GET /user/status */
-export async function userStatus(options?: { [key: string]: any }) {
-  return request<WorkCollaborativeImagesAPI.BaseResponseUserStatus>('/user/status', {
-    method: 'GET',
     ...(options || {}),
   })
 }

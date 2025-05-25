@@ -1,0 +1,219 @@
+<script lang="ts" setup>
+import { reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+
+const props = defineProps<{
+  categoryList: string[]
+  pagination: PaginationConfig & { total: number }
+  dataList: WorkCollaborativeImagesAPI.PictureVO[]
+  loading: boolean
+}>()
+
+const emit = defineEmits<{
+  (e: 'search', params: any): void
+}>()
+
+const router = useRouter()
+
+// 内部维护搜索参数
+const selectedCategory = ref('all')
+const searchKeyword = ref('')
+const localPagination = reactive({
+  pageCurrent: props.pagination.current || 1,
+  pageSize: props.pagination.pageSize || 10,
+})
+
+// 监听分页变化，触发搜索
+watch(
+  () => [localPagination.pageCurrent, localPagination.pageSize],
+  () => {
+    doSearch()
+  },
+)
+
+const doSearch = () => {
+  const params = {
+    introduction: searchKeyword.value,
+    category: selectedCategory.value === 'all' ? undefined : selectedCategory.value,
+    pageCurrent: localPagination.pageCurrent,
+    pageSize: localPagination.pageSize,
+  }
+  emit('search', params)
+}
+
+// 监听父组件分页变化，保持同步
+watch(
+  () => props.pagination.current,
+  (val) => {
+    if (val && val !== localPagination.pageCurrent) localPagination.pageCurrent = val
+  },
+)
+
+watch(
+  () => props.pagination.pageSize,
+  (val) => {
+    if (val && val !== localPagination.pageSize) localPagination.pageSize = val
+  },
+)
+
+const onCategoryChange = (key: string) => {
+  selectedCategory.value = key
+  localPagination.pageCurrent = 1
+  doSearch()
+}
+
+const onSearchInput = () => {
+  localPagination.pageCurrent = 1
+  doSearch()
+}
+
+const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
+  router.push({ path: `/picture/${picture.id}` })
+}
+</script>
+
+<template>
+  <div id="PictureOverview">
+    <div class="search-bar" style="max-width: 480px; margin: 0 auto 16px; text-align: center;">
+      <a-input-search
+        v-model:value="searchKeyword"
+        enter-button="搜索"
+        placeholder="从海量图片中搜索"
+        size="large"
+        @search="onSearchInput"
+        style="width: 100%; max-width: 480px;"
+      />
+    </div>
+
+    <a-tabs
+      v-model:activeKey="selectedCategory"
+      style="margin-bottom: 16px"
+      @change="onCategoryChange"
+    >
+      <a-tab-pane key="all" tab="全部" />
+      <a-tab-pane v-for="category in props.categoryList" :key="category" :tab="category" />
+    </a-tabs>
+
+    <a-list
+      :data-source="props.dataList"
+      :grid="{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 5, xxl: 6 }"
+      :loading="props.loading"
+      :pagination="{
+        current: localPagination.pageCurrent,
+        pageSize: localPagination.pageSize,
+        total: props.pagination.total,
+        showTotal: (total) => `共 ${total} 条`,
+        showSizeChanger: true,
+        showQuickJumper: true,
+        'onUpdate:current': (page) => (localPagination.pageCurrent = page),
+        'onUpdate:pageSize': (size) => {
+          localPagination.pageSize = size
+          localPagination.pageCurrent = 1
+        },
+      }"
+    >
+      <template #renderItem="{ item: picture }">
+        <a-list-item>
+          <a-card class="picture-card" hoverable @click="doClickPicture(picture)">
+            <template #cover>
+              <div class="image-wrapper">
+                <img :alt="picture.name" :src="picture.url" class="image" />
+                <div class="overlay">
+                  <div class="info">
+                    <div class="title">{{ picture.name }}</div>
+                    <div class="introduction">{{ picture.introduction || '无简介' }}</div>
+                    <a-tag :color="picture.category ? 'green' : 'gray'">
+                      {{ picture.category || '无种类' }}
+                    </a-tag>
+                    <div class="tags">
+                      <template v-if="JSON.parse(picture.tags ?? '[]').length > 3">
+                        <a-tag
+                          v-for="tag in JSON.parse(picture.tags ?? '[]').slice(0, 3)"
+                          :key="tag"
+                        >
+                          {{ tag }}
+                        </a-tag>
+                        <a-tooltip :title="JSON.parse(picture.tags ?? '[]').join(', ')">
+                          <a-tag>...</a-tag>
+                        </a-tooltip>
+                      </template>
+                      <template v-else-if="JSON.parse(picture.tags ?? '[]').length > 0">
+                        <a-tag v-for="tag in JSON.parse(picture.tags ?? '[]')" :key="tag">
+                          {{ tag }}
+                        </a-tag>
+                      </template>
+                      <template v-else>
+                        <a-tag>无标签</a-tag>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </a-card>
+        </a-list-item>
+      </template>
+    </a-list>
+  </div>
+</template>
+
+<style scoped>
+.picture-card {
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.image-wrapper {
+  position: relative;
+  height: 240px;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(93, 54, 128, 0.56);
+  color: #ffffff;
+  padding: 8px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 12px;
+}
+
+.picture-card:hover .overlay {
+  opacity: 1;
+}
+
+.overlay .title {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overlay .introduction {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.overlay .tags {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+</style>

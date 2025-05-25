@@ -22,7 +22,7 @@ const props = defineProps<{
 }>()
 
 // 根据从页面上获取到的 id 来查询图片详情
-const searchParams = reactive<WorkCollaborativeImagesAPI.AdminPictureSearchRequest>({
+const searchParams = reactive<WorkCollaborativeImagesAPI.PictureSearchRequest>({
   id: props.id,
 }) // 存储初始化的查询参数, 后续用来做搜索请求
 const picture = ref<WorkCollaborativeImagesAPI.PictureVO>({})
@@ -93,7 +93,7 @@ const doDelete = async () => {
   if (!id) {
     return
   }
-  const deletePicture: WorkCollaborativeImagesAPI.AdminPictureDeleteRequest = {
+  const deletePicture: WorkCollaborativeImagesAPI.PictureDeleteRequest = {
     id: -1,
   }
   deletePicture.id = id
