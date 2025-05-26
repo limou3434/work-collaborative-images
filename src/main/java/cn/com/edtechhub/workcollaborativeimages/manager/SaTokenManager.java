@@ -45,9 +45,11 @@ public class SaTokenManager implements StpInterface {
         // 直接从会话缓存中获取用户的所有信息
         User user = (User) StpUtil.getSessionByLoginId(loginId).get(UserConstant.USER_LOGIN_STATE);
         UserRoleEnums userRole = UserRoleEnums.getEnums(user.getRole()); // 由于在本数据库中为了拓展性使用数字来标识身份, 因此需要做一层转化
-        log.debug("检测一次当前用户的身份名称: {}", userRole.getDescription());
         List<String> list = new ArrayList<>();
-        list.add(userRole.getDescription());
+        if (userRole != null) {
+            log.debug("检测一次当前用户的身份名称: {}", userRole.getDescription());
+            list.add(userRole.getDescription());
+        }
         return list;
     }
 
