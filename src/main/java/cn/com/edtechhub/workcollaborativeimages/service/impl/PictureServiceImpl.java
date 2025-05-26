@@ -244,7 +244,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             String uploadPathPrefix = String.format(spaceId == null ? "public/%s" : "space/%s", userId); // 构造和用户相关的图片父目录
 
             // 如果携带图片先进行上传
-            var uploadPictureResult = new UploadPictureResult();
+            UploadPictureResult uploadPictureResult = null;
             if (multipartFile != null) { // 支持对本地文件的上传
                 log.debug("支持对本地文件的上传");
                 uploadPictureResult = cosManager.uploadPicture(uploadPathPrefix, multipartFile); // 执行具体的上传任务
@@ -259,7 +259,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             if (pictureId == null) { // 添加逻辑
                 boolean res = pictureFileUrl == null && multipartFile == null;
                 ThrowUtils.throwIf(res, CodeBindMessageEnums.PARAMS_ERROR, "上传图片需要附带图片地址或图片文件");
-            } else {
+            } else { // 修改逻辑
                 picture = this.pictureSearchById(pictureId);
                 ThrowUtils.throwIf(picture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "指定 id 所对应的图片不存在所以无法更新");
                 spaceService.spaceCheckAndDecreaseCurrent(picture); // 提前减少私有空间存量
