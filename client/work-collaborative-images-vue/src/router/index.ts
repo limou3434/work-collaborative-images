@@ -56,7 +56,7 @@ const router = createRouter({
       ],
     },
     {
-      path: '/space/:id',
+      path: '/space',
       name: '空间页面',
       children: [
         {
@@ -85,7 +85,7 @@ const router = createRouter({
     },
     {
       path: '/admin',
-      name: '后台管理',
+      name: '管理页面',
       children: [
         {
           path: 'user',

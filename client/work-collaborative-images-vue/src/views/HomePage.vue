@@ -35,6 +35,9 @@ onMounted(async () => {
 
 <template>
   <div>
+    <a-flex justify="space-between">
+      <h2>公共空间</h2>
+    </a-flex>
     <PictureOverview
       :data-list="dataList"
       :loading="loading"

@@ -1,10 +1,7 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
-import {
-  adminPictureDelete,
-  pictureQuery,
-} from '@/api/work-collaborative-images/pictureController.ts'
+import { pictureDestroy, pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
 import ShareModal from '@/components/ShareModal.vue'
 import { formatSize } from '@/utils'
 import {
@@ -30,7 +27,7 @@ const fetchPictureDetail = async () => {
   try {
     const res = await pictureQuery(searchParams)
     if (res.data.code === 20000 && res.data.data && res.data.data.records) {
-      if(res.data.data.records.length === 0) {
+      if (res.data.data.records.length === 0) {
         message.error('图片不存在')
         return
       }
@@ -39,7 +36,7 @@ const fetchPictureDetail = async () => {
       message.error(res.data.message)
     }
   } catch (e: any) {
-    message.error('获取图片详情失败：' + e.message)
+    message.error(e.message)
   }
 }
 onMounted(() => {
@@ -49,7 +46,7 @@ onMounted(() => {
 // 编辑权限
 const loginUserStore = useLoginUserStore()
 const canEdit = computed(() => {
-  const loginUser = loginUserStore.loginUser;
+  const loginUser = loginUserStore.loginUser
   // 未登录不可编辑
   if (!loginUser.id) {
     return false
@@ -84,7 +81,7 @@ const doShare = () => {
 
 // 编辑图片
 const doEdit = () => {
-  router.push('/picture/add?id=' + picture.value.id)
+  router.push('/operate/picture/add?id=' + picture.value.id)
 }
 
 // 删除图片
@@ -97,7 +94,7 @@ const doDelete = async () => {
     id: -1,
   }
   deletePicture.id = id
-  const res = await adminPictureDelete(deletePicture)
+  const res = await pictureDestroy(deletePicture)
   if (res.data.code === 20000) {
     message.success('删除成功')
   } else {
@@ -162,7 +159,7 @@ const doDelete = async () => {
             <template v-if="JSON.parse(picture.tags ?? '[]').length > 3">
               <!-- 显示前三个标签 -->
               <a-tag v-for="tag in JSON.parse(picture.tags ?? '[]').slice(0, 3)" :key="tag"
-              >{{ tag }}
+                >{{ tag }}
               </a-tag>
               <!-- 如果超过三个标签，显示 "..." -->
               <a-tooltip :title="JSON.parse(picture.tags ?? '[]').join(', ')">

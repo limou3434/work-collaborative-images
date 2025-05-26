@@ -1,47 +1,85 @@
 <script lang="ts" setup>
-import { onMounted } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { spaceQuerySelf } from '@/api/work-collaborative-images/spaceController.ts'
 import { message } from 'ant-design-vue'
-import { useLoginUserStore } from '@/stores/loginUser.ts'
+import PictureOverview from '@/components/PictureOverview.vue'
+import { pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
+import SpaceDashboard from '@/components/SpaceDashboard.vue'
 
+// 路由对象
 const router = useRouter()
-const loginUserStore = useLoginUserStore()
 
-// 检查用户是否有个人空间
-const checkUserSpace = async () => {
-  const loginUser = loginUserStore.loginUser
-  if (!loginUser?.id) {
-    await router.replace('/user/login')
-    return
-  }
-  // 获取用户空间信息
-  const res = await spaceQuerySelf({
-    pageCurrent: 1,
-    pageSize: 1,
+// 空间信息
+const space = ref<WorkCollaborativeImagesAPI.SpaceVO>()
+
+// 图片分页状态
+const pagination = reactive({
+  pageCurrent: 1,
+  pageSize: 10,
+  total: 0,
+})
+
+// 图片数据列表和加载状态
+const dataList = ref<WorkCollaborativeImagesAPI.PictureVO[]>([])
+const loading = ref(false)
+
+// 获取图片数据（关键：始终注入 spaceId）
+const getTableData = async (
+  params: Omit<WorkCollaborativeImagesAPI.PictureQueryRequest, 'spaceId'>,
+) => {
+  if (!space.value?.id) return
+  loading.value = true
+  const res = await pictureQuery({
+    ...params,
+    spaceId: space.value.id,
   })
-  if (res.data.code === 20000 && res.data.data != null && res.data.data.records != null) {
-    if (res.data.data?.records?.length > 0) {
-      const space = res.data.data.records[0]
-      await router.replace(`/space/${space.id}`)
-    } else {
-      await router.replace('/operate/space/add/')
-      message.warn('请先创建空间')
-    }
+  if (res.data.code === 20000 && res.data.data && res.data.data.records) {
+    dataList.value = res.data.data.records ?? []
+    pagination.total = res.data.data.total ?? 0
   } else {
-    message.error('加载我的空间失败，' + res.data.message)
+    message.error(res.data.message)
   }
+  loading.value = false
 }
 
-// 在页面加载时检查用户空间
-onMounted(() => {
-  checkUserSpace()
+// 页面加载时
+onMounted(async () => {
+  // 获取用户空间信息
+  const res = await spaceQuerySelf()
+  if (res.data.code === 20000 && res.data.data) {
+    space.value = res.data.data
+    message.success('获取私有空间成功')
+
+    // 初次加载数据
+    await getTableData({
+      pageCurrent: pagination.pageCurrent,
+      pageSize: pagination.pageSize,
+      introduction: '',
+      category: undefined,
+    })
+  } else {
+    message.warn(res.data.message)
+    await router.replace('/operate/space/add/')
+  }
 })
 </script>
 
 <template>
   <div id="mySpace">
-    <p>正在跳转, 请您稍候...</p>
+    <!-- 空间信息 -->
+    <a-flex justify="space-between">
+      <h2>私有空间: {{ space?.name }}</h2>
+    </a-flex>
+    <!-- 空间仪表 -->
+    <SpaceDashboard :space="space" style="margin-bottom: 24px" />
+    <!-- 图片概览 -->
+    <PictureOverview
+      :data-list="dataList"
+      :loading="loading"
+      :pagination="pagination"
+      @search="getTableData"
+    />
   </div>
 </template>
 
