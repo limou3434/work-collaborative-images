@@ -1,10 +1,15 @@
 <script lang="ts" setup>
-import { reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { pictureCategorys } from '@/api/work-collaborative-images/pictureController.ts'
+import { message } from 'ant-design-vue'
 
 const props = defineProps<{
-  categoryList: string[]
-  pagination: PaginationConfig & { total: number }
+  pagination: {
+    pageCurrent: number
+    pageSize: number
+    total: number
+  }
   dataList: WorkCollaborativeImagesAPI.PictureVO[]
   loading: boolean
 }>()
@@ -19,7 +24,7 @@ const router = useRouter()
 const selectedCategory = ref('all')
 const searchKeyword = ref('')
 const localPagination = reactive({
-  pageCurrent: props.pagination.current || 1,
+  pageCurrent: props.pagination.pageCurrent || 1,
   pageSize: props.pagination.pageSize || 10,
 })
 
@@ -43,7 +48,7 @@ const doSearch = () => {
 
 // 监听父组件分页变化，保持同步
 watch(
-  () => props.pagination.current,
+  () => props.pagination.pageCurrent,
   (val) => {
     if (val && val !== localPagination.pageCurrent) localPagination.pageCurrent = val
   },
@@ -70,18 +75,32 @@ const onSearchInput = () => {
 const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
   router.push({ path: `/picture/${picture.id}` })
 }
+
+// 标签数据
+const categoryList = ref<string[]>([])
+const getTagCategoryOptions = async () => {
+  const res = await pictureCategorys()
+  if (res.data.code === 20000 && res.data.data) {
+    categoryList.value = res.data.data ?? []
+  } else {
+    message.error(res.data.message)
+  }
+}
+onMounted(async () => {
+  await getTagCategoryOptions()
+})
 </script>
 
 <template>
   <div id="PictureOverview">
-    <div class="search-bar" style="max-width: 480px; margin: 0 auto 16px; text-align: center;">
+    <div class="search-bar" style="max-width: 480px; margin: 0 auto 16px; text-align: center">
       <a-input-search
         v-model:value="searchKeyword"
         enter-button="搜索"
         placeholder="从海量图片中搜索"
         size="large"
+        style="width: 100%; max-width: 480px"
         @search="onSearchInput"
-        style="width: 100%; max-width: 480px;"
       />
     </div>
 
@@ -91,7 +110,7 @@ const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
       @change="onCategoryChange"
     >
       <a-tab-pane key="all" tab="全部" />
-      <a-tab-pane v-for="category in props.categoryList" :key="category" :tab="category" />
+      <a-tab-pane v-for="category in categoryList" :key="category" :tab="category" />
     </a-tabs>
 
     <a-list
@@ -102,11 +121,11 @@ const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
         current: localPagination.pageCurrent,
         pageSize: localPagination.pageSize,
         total: props.pagination.total,
-        showTotal: (total) => `共 ${total} 条`,
+        showTotal: (total: number) => `共 ${total} 条`,
         showSizeChanger: true,
         showQuickJumper: true,
-        'onUpdate:current': (page) => (localPagination.pageCurrent = page),
-        'onUpdate:pageSize': (size) => {
+        'onUpdate:current': (page: number) => (localPagination.pageCurrent = page),
+        'onUpdate:pageSize': (size: number) => {
           localPagination.pageSize = size
           localPagination.pageCurrent = 1
         },
