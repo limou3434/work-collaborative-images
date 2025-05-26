@@ -3,20 +3,19 @@ import { onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { spaceQuerySelf } from '@/api/work-collaborative-images/spaceController.ts'
 import {
-  pictureCategorys,
+  // pictureCategorys,
   pictureQuery,
 } from '@/api/work-collaborative-images/pictureController.ts'
-import { useRouter } from 'vue-router'
 
-// 获取从路径上得到的空间 id 参数
-const props = defineProps<{
-  id: number
-}>()
+// // 获取从路径上得到的空间 id 参数
+// const props = defineProps<{
+//   id: number
+// }>()
 
-// 根据从页面上获取到的 id 来查询图片详情
-const searchParams = reactive<WorkCollaborativeImagesAPI.SpaceSearchRequest>({
-  id: props.id,
-}) // 存储初始化的查询参数, 后续用来做搜索请求
+// // 根据从页面上获取到的 id 来查询图片详情
+// const searchParams = reactive<WorkCollaborativeImagesAPI.SpaceSearchRequest>({
+//   id: props.id,
+// }) // 存储初始化的查询参数, 后续用来做搜索请求
 // 空间信息
 const space = ref<WorkCollaborativeImagesAPI.SpaceVO>({
   name: '',
@@ -39,19 +38,19 @@ const fetchSpaceDetail = async () => {
     message.error(e.message)
   }
 }
-
-// 分类标签
-const categoryList = ref<string[]>([])
-const selectedCategory = ref<string>('all')
-
-const getTagCategoryOptions = async () => {
-  const res = await pictureCategorys()
-  if (res.data.code === 20000 && res.data.data) {
-    categoryList.value = res.data.data ?? []
-  } else {
-    message.error(res.data.message)
-  }
-}
+//
+// // 分类标签
+// const categoryList = ref<string[]>([])
+// const selectedCategory = ref<string>('all')
+//
+// const getTagCategoryOptions = async () => {
+//   const res = await pictureCategorys()
+//   if (res.data.code === 20000 && res.data.data) {
+//     categoryList.value = res.data.data ?? []
+//   } else {
+//     message.error(res.data.message)
+//   }
+// }
 
 // 分页
 const pagination = reactive({
@@ -91,26 +90,10 @@ const getTableData = async () => {
   }
 }
 
-// 搜索回调
-const doSearch = () => {
-  searchParams.category = selectedCategory.value === 'all' ? undefined : selectedCategory.value
-  searchParams.pageCurrent = 1
-  pagination.pageCurrent = 1
-  getTableData()
-}
-
-// 图片详情跳转
-const router = useRouter()
-const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
-  router.push({
-    path: `/picture/${picture.id}`,
-  })
-}
-
 // 页面初始化
 onMounted(() => {
   fetchSpaceDetail()
-  getTagCategoryOptions()
+  // getTagCategoryOptions()
 })
 </script>
 
