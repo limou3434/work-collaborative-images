@@ -50,9 +50,8 @@ const handleSubmit = async () => {
 // 获取旧数据
 const getOldSpace = async () => {
   const res = await spaceQuerySelf({ id })
-  const record = res.data.data?.records?.[0]
-  if (res.data.code === 20000 && record) {
-    spaceFormParams.name = record.name
+  if (res.data.code === 20000 && res.data.data) {
+    spaceFormParams.name = res.data.data.name
   } else {
     message.error('获取空间信息失败')
   }
