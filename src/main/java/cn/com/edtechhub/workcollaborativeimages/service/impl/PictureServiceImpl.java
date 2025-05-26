@@ -285,6 +285,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
             // 无论是添加还是更新只要不是公共图库的图片都需要增加存量
             if (picture.getSpaceId() != null) {
+                picture.setReviewMessage("该图片属于私有用户 " + userId + " 的图片, 无需审核, 若是通过审核则可以上传到公共图库中");
                 spaceService.spaceCheckAndIncreaseCurrent(picture);
             }
 
