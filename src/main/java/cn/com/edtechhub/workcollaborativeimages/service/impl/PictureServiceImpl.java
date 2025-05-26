@@ -8,6 +8,7 @@ import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
@@ -34,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -295,6 +297,19 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
     @Override
     @LogParams
+    public Boolean pictureUnLink(Long pictureId) {
+        return transactionTemplate.execute(status -> {
+            Picture picture = this.pictureSearchById(pictureId);
+            Space space = this.pictureGetSpace(picture);
+            if (space != null) {
+                spaceService.spaceCheckAndDecreaseCurrent(picture);
+            }
+            return this.pictureDelete(new PictureDeleteRequest().setId(pictureId));
+        });
+    }
+
+    @Override
+    @LogParams
     public Integer pictureBatch(String searchText, Integer searchCount, String name, String category, String introduction, String tags) {
         // 检查参数
         ThrowUtils.throwIf(searchText == null, CodeBindMessageEnums.PARAMS_ERROR, "缺少需要爬取的关键文本");
@@ -344,10 +359,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
     @Override
     @LogParams
-    public Long pictureGetSpace(Picture picture) {
+    public Space pictureGetSpace(Picture picture) {
         Long spaceId = picture.getSpaceId();
-        ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该图片属于公有空间的图片, 没有所属空间, 无法获取对应标识");
-        return spaceId;
+        if (spaceId == null) return null;
+        return spaceService.spaceSearchById(spaceId);
     }
 
     @Override

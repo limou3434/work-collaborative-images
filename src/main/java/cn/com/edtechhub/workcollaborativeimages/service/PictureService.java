@@ -2,6 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.service;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
@@ -57,7 +58,12 @@ public interface PictureService extends IService<Picture> {
      * 图片转化链接服务
      */
     Picture pictureUpload(Long pictureId, Long spaceId, String pictureCategory, String pictureName, String pictureIntroduction, String pictureTags, String pictureFileUrl, MultipartFile multipartFile);
-    
+
+    /**
+     * 图片断开链接服务
+     */
+    Boolean pictureUnLink(Long pictureId);
+
     /**
      * 批量爬取图片服务
      */
@@ -66,7 +72,7 @@ public interface PictureService extends IService<Picture> {
     /**
      * 获取图片所属的空间服务
      */
-    Long pictureGetSpace(Picture picture);
+    Space pictureGetSpace(Picture picture);
 
     /**
      * 获取图片的审核状态服务

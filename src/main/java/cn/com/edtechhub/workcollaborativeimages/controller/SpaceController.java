@@ -139,7 +139,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceUpdate(spaceUpdateRequest)));
     }
 
-    @Operation(summary = "查找私有空间网络接口")
+    @Operation(summary = "查找私有空间网络接口") // TODO: 修改接口路径
     @SaCheckLogin
     @PostMapping("/query")
     public BaseResponse<SpaceVO> spaceQuerySelf() {

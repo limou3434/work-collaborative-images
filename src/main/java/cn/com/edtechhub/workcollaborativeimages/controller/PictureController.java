@@ -212,7 +212,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         }
 
         // 删除文件
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureDelete(new PictureDeleteRequest().setId(pictureId)));
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUnLink(pictureId));
     }
 
     @Operation(summary = "查找公有图库或私有空间中图片的网络接口")
@@ -225,10 +225,12 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         BeanUtils.copyProperties(pictureQueryRequest, pictureSearchRequest);
 
         // 根据是否传递 id 来决定搜索请求的限制
-        if (pictureQueryRequest.getSpaceId() == null) { // 用户只能看到审核通过的公共图库图片
+        Long spaceId = pictureQueryRequest.getSpaceId();
+        if (spaceId == null) { // 用户只能看到审核通过的公共图库图片
             pictureSearchRequest.setReviewStatus(PictureReviewStatusEnums.PASS.getCode());
         } else { // 用户只能看到自己私有空间的图片并且无需走审核逻辑
-            pictureSearchRequest.setSpaceId(userService.userGetCurrentLonginUserId());
+            ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserPrivateSpaces().getId() != spaceId, CodeBindMessageEnums.PARAMS_ERROR, "您没有访问该私有空间的权力");
+            pictureSearchRequest.setSpaceId(spaceId);
         }
 
         // 最终返回查找后的结果
