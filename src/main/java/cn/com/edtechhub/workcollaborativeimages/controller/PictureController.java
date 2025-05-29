@@ -8,11 +8,13 @@ import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.*;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
+import cn.com.edtechhub.workcollaborativeimages.model.vo.UserVO;
 import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
+import cn.com.edtechhub.workcollaborativeimages.utils.PageUtils;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
@@ -245,6 +247,21 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         // 先把搜索实例请求构建出来
         var pictureSearchRequest = new PictureSearchRequest();
         BeanUtils.copyProperties(pictureQueryRequest, pictureSearchRequest);
+
+        // 如果用户只搜索自己的图片则允许不通过审核
+        Long id = pictureQueryRequest.getId();
+        if (id != null) {
+            Picture picture = pictureService.pictureSearchById(id);
+            ThrowUtils.throwIf(picture == null, CodeBindMessageEnums.SYSTEM_ERROR, "图片没有所属的创建用户");
+
+            Long userId = userService.userGetCurrentLonginUserId();
+            if (picture.getUserId() == userId) {
+                PictureVO pictureVO = PictureVO.removeSensitiveData(picture);
+                pictureVO.setUserVO(UserVO.removeSensitiveData(userService.userSearchById(userId)));
+                Page<PictureVO> page = PageUtils.singlePage(pictureVO);
+                return TheResult.success(CodeBindMessageEnums.SUCCESS, page);
+            }
+        }
 
         // 根据是否传递 id 来决定搜索请求的限制
         Long spaceId = pictureQueryRequest.getSpaceId();
