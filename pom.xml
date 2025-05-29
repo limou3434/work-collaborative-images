@@ -75,6 +75,11 @@
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <!-- Hibernate Validator 参数校验模块 -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
 
         <!-- MySQL: https://www.mysql.com/ -->
         <dependency>
