@@ -8,10 +8,13 @@ import cn.com.edtechhub.workcollaborativeimages.mapper.SpaceMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
@@ -21,6 +24,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -52,6 +56,13 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
      */
     @Resource
     UserService userService;
+
+    /**
+     * 注入图片服务依赖
+     */
+    @Resource
+    @Lazy
+    PictureService pictureService;
 
     @Override
     @LogParams
@@ -85,10 +96,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         return transactionTemplate.execute(status -> { // 必须在锁内处理事务
             // 创建实例
             var space = SpaceAddRequest.copyProperties2Entity(spaceAddRequest);
-            space = this.fillSpaceBySpaceLevel(space);
             // 操作数据库
             try {
-                boolean result = this.save(space);
+                boolean result = this.save(this.fillSpaceBySpaceLevel(space));
                 ThrowUtils.throwIf(!result, CodeBindMessageEnums.OPERATION_ERROR, "添加出错");
             } catch (DuplicateKeyException e) {
                 ThrowUtils.throwIf(true, CodeBindMessageEnums.OPERATION_ERROR, "已经存在该空间, 或者曾经被删除");
@@ -116,12 +126,30 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
         // 服务实现
         return transactionTemplate.execute(status -> {
+            // 先考虑把和私有图库绑定的图片全部从远端图库中删除
+            Page<Picture> picturePage = pictureService.pictureSearch(new PictureSearchRequest().setSpaceId(id));
+            List<Picture> pictureList = picturePage.getRecords();
+            if (pictureList.isEmpty()) {
+                log.debug("该空间下没有图片资源, 无需清空");
+            }
+            else {
+                log.debug("该空间下存在图片资源, 需要清空");
+                // 这里调用远端图库删除图片
+                for (Picture pic : pictureList) {
+                    try {
+                        pictureService.pictureDelete(new PictureDeleteRequest().setId(pic.getId()));
+                    } catch (Exception e) {
+                        ThrowUtils.throwIf(true, CodeBindMessageEnums.SYSTEM_ERROR, "删除图片 " + pic.getId() + "失败");
+                    }
+                }
+            }
+
+            // 再把图库本身删除
             boolean result = this.removeById(id);
             ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除空间失败, 也许该空间不存在或者已经被删除");
+
             return true;
         });
-
-        // TODO: 考虑把和私有图库绑定的图片全部从远端图库中删除
     }
 
     @Override

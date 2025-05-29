@@ -17,9 +17,9 @@ public enum SpaceTypeEnums {
     SELF("私有空间", 1),
 
     /**
-     * 团队空间枚举实例
+     * 协作空间枚举实例
      */
-    COLLABORATIVE("团队空间", 2);
+    COLLABORATIVE("协作空间", 2);
 
     /**
      * 类型描述

@@ -2,6 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.controller;
 
 import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
@@ -183,14 +184,35 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     @Operation(summary = "用户上传图片网络接口")
     @SaCheckLogin
     @PostMapping("/upload")
-    public BaseResponse<PictureVO> pictureUpload(@RequestParam(value = "pictureId", required = false) Long pictureId, @RequestParam(value = "spaceId", required = false) Long spaceId, @RequestParam(value = "pictureCategory", required = false, defaultValue = PictureConstant.DEFAULT_CATEGORT) String pictureCategory, @RequestParam(value = "pictureName", required = false, defaultValue = PictureConstant.DEFAULT_NAME) String pictureName, @RequestParam(value = "pictureIntroduction", required = false, defaultValue = PictureConstant.DEFAULT_INTRODUCTION) String pictureIntroduction, @RequestParam(value = "pictureTags", required = false) String pictureTags, @RequestParam(value = "pictureFileUrl", required = false) String pictureFileUrl, @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile) {
+    public BaseResponse<PictureVO> pictureUpload(
+            @RequestParam(value = "pictureId", required = false) Long pictureId,
+            @RequestParam(value = "spaceId", required = false) Long spaceId,
+            @RequestParam(value = "spaceType", required = false) Integer spaceType,
+            @RequestParam(value = "pictureCategory", required = false, defaultValue = PictureConstant.DEFAULT_CATEGORT) String pictureCategory,
+            @RequestParam(value = "pictureName", required = false, defaultValue = PictureConstant.DEFAULT_NAME) String pictureName,
+            @RequestParam(value = "pictureIntroduction", required = false, defaultValue = PictureConstant.DEFAULT_INTRODUCTION) String pictureIntroduction,
+            @RequestParam(value = "pictureTags", required = false) String pictureTags,
+            @RequestParam(value = "pictureFileUrl", required = false) String pictureFileUrl,
+            @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile
+    ) {
         // 如果有传递空间标识就需要检查该用户是否有权限上传图片
         if (spaceId != null) {
-            Space designatedSpace = spaceService.spaceSearchById(spaceId); // 获取需要上传的私有空间
-            ThrowUtils.throwIf(designatedSpace == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "不存在该私有空间无法上传图片");
+            ThrowUtils.throwIf(spaceType == null, CodeBindMessageEnums.PARAMS_ERROR, "必须指定用户上传的是私有空间还是协作空间");
 
-            Space privateSpace = spaceService.spaceGetCurrentLoginUserPrivateSpaces(); // 获取当前用户的私有空间
-            ThrowUtils.throwIf(designatedSpace.getId() != privateSpace.getId(), CodeBindMessageEnums.NOT_FOUND_ERROR, "该私有空间不属于您");
+            Space space = spaceService.spaceSearchById(spaceId); // 获取空间
+            ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "不存在该私有空间无法上传图片");
+
+            if (SpaceTypeEnums.getEnums(spaceType) == SpaceTypeEnums.SELF) {
+                log.debug("该图片需要上传到私有空间");
+                Space selfSpace = spaceService.spaceGetCurrentLoginUserPrivateSpaces(); // 获取私有空间
+                ThrowUtils.throwIf(space.getId() != selfSpace.getId(), CodeBindMessageEnums.NOT_FOUND_ERROR, "该私有空间不属于您");
+            } else if (SpaceTypeEnums.getEnums(spaceType) == SpaceTypeEnums.COLLABORATIVE) {
+                log.debug("该图片需要上传到协作空间");
+                Space collaborativeSpace = spaceService.spaceGetCurrentLoginUserPrivateSpaces(); // 获取协作空间
+                // TODO: 协作空间逻辑
+            } else {
+                ThrowUtils.throwIf(true, CodeBindMessageEnums.PARAMS_ERROR, "未知的空间类型");
+            }
         }
 
         // 上传图片
