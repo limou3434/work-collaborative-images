@@ -88,9 +88,9 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @Operation(summary = "👑获取指定用户凭证网络接口")
     @SaCheckLogin
     @SaCheckRole("admin")
-    @GetMapping("/admin/token")
-    public BaseResponse<UserTokenStatus> adminGetUserToken(Long id) {
-        UserTokenStatus userTokenStatus = userService.userGetTokenById(id);
+    @GetMapping("/admin/get/token")
+    public BaseResponse<UserTokenStatus> adminUserGetToken(@RequestBody UserGetTokenRequest userGetTokenRequest) {
+        UserTokenStatus userTokenStatus = userService.userGetTokenById(userGetTokenRequest.getUserId());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, userTokenStatus);
     }
 
