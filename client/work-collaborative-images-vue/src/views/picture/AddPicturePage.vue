@@ -16,7 +16,6 @@ const router = useRouter()
 
 // 上传表单参数
 const pictureForm = reactive<WorkCollaborativeImagesAPI.pictureUploadParams>({
-  pictureId: Number(route.query?.id) || 0,
   spaceId: 0,
   pictureName: '',
   pictureCategory: '',
@@ -33,7 +32,7 @@ watch(joinPrivateSpace, async (val) => {
       pictureForm.spaceId = res.data.data.id
       pictureForm.spaceType = SPACE_PUBLIC_ENUM.SELF
     } else {
-      message.error('获取私有空间 ID 失败')
+      message.error(res.data.message)
       joinPrivateSpace.value = false
     }
   } else {
@@ -77,15 +76,18 @@ const onSuccess = (newPicture: WorkCollaborativeImagesAPI.PictureVO) => {
 
 // 提交表单
 const handleSubmit = async () => {
-  if (!picture.value?.id) {
-    message.error('请先上传图片')
-    return
-  }
   pictureForm.pictureTags = JSON.stringify(pictureForm.pictureTags)
   const res = await pictureUpload(pictureForm)
   if (res.data.code === 20000 && res.data.data) {
     message.success('上传成功')
-    await router.push({ path: `/picture/${picture.value.id}` })
+    if (route.query.from === 'mySpace') {
+      // 如果是从我的空间跳转过来的，则跳转到我的空间
+      await router.push('/self')
+    }
+    else {
+      // 如果是从图片详情页跳转过来的，则跳转到图片详情页
+      await router.push({ path: `/picture/${picture?.value?.id}` })
+    }
   } else {
     message.error(res.data.message)
   }

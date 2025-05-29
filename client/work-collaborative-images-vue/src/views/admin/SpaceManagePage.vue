@@ -7,6 +7,7 @@ import {
   adminSpaceSearch,
 } from '@/api/work-collaborative-images/spaceController.ts'
 import { formatSize } from '@/utils'
+import { SPACE_LEVEL_MAP } from '@/constants/space.ts'
 
 // 定义表格的列名和对应字段
 const columns = [
@@ -167,12 +168,16 @@ const doDelete = async (id: string) => {
       @change="doTableChange"
     >
       <template #bodyCell="{ column, record }">
-        <!-- 图片展示 -->
-        <template v-if="column.dataIndex === 'url'">
-          <a-image :src="record.thumbnailUrl" :width="120" />
+        <!-- 空间名称 -->
+        <template v-if="column.dataIndex === 'spaceName'">
+          {{record.name}}
         </template>
-        <!-- 图片信息 -->
-        <template v-if="column.dataIndex === 'spaceInfo'">
+        <!-- 空间级别 -->
+        <template v-if="column.dataIndex === 'spaceLevel'">
+          {{ SPACE_LEVEL_MAP[record.level as 0 | 1 | 2] }}
+        </template>
+        <!-- 空间存量 -->
+        <template v-else-if="column.dataIndex === 'spaceInfo'">
           <div>数量使用率: {{ record.totalCount }} 张 / {{ record.maxCount }} 张</div>
           <div>
             大小使用率: {{ formatSize(record.totalSize) }} / {{ formatSize(record.maxSize) }}
