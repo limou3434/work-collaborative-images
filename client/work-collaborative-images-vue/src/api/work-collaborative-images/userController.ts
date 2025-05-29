@@ -47,6 +47,23 @@ export async function adminUserDisable(
   })
 }
 
+/** 👑获取指定用户凭证网络接口 GET /user/admin/get/token */
+export async function adminUserGetToken(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: WorkCollaborativeImagesAPI.adminUserGetTokenParams,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseUserTokenStatus>('/user/admin/get/token', {
+    method: 'GET',
+    params: {
+      ...params,
+      userGetTokenRequest: undefined,
+      ...params['userGetTokenRequest'],
+    },
+    ...(options || {}),
+  })
+}
+
 /** 👑查询用户网络接口 POST /user/admin/search */
 export async function adminUserSearch(
   body: WorkCollaborativeImagesAPI.UserSearchRequest,
@@ -58,21 +75,6 @@ export async function adminUserSearch(
       'Content-Type': 'application/json',
     },
     data: body,
-    ...(options || {}),
-  })
-}
-
-/** 👑获取指定用户凭证网络接口 GET /user/admin/token */
-export async function adminGetUserToken(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: WorkCollaborativeImagesAPI.adminGetUserTokenParams,
-  options?: { [key: string]: any }
-) {
-  return request<WorkCollaborativeImagesAPI.BaseResponseUserTokenStatus>('/user/admin/token', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
     ...(options || {}),
   })
 }

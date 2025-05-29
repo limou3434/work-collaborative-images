@@ -1,6 +1,6 @@
 declare namespace WorkCollaborativeImagesAPI {
-  type adminGetUserTokenParams = {
-    id: number
+  type adminUserGetTokenParams = {
+    userGetTokenRequest: UserGetTokenRequest
   }
 
   type BaseResponseBoolean = {
@@ -276,6 +276,7 @@ declare namespace WorkCollaborativeImagesAPI {
   type pictureUploadParams = {
     pictureId?: number
     spaceId?: number
+    spaceType?: number
     pictureCategory?: string
     pictureName?: string
     pictureIntroduction?: string
@@ -433,6 +434,10 @@ declare namespace WorkCollaborativeImagesAPI {
   type UserDisableRequest = {
     id?: number
     disableTime?: number
+  }
+
+  type UserGetTokenRequest = {
+    userId?: number
   }
 
   type UserLoginRequest = {

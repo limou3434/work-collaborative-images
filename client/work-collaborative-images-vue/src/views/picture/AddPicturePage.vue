@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import PictureUpload from '@/components/PictureUpload.vue'
-import { onMounted, reactive, ref, watch } from 'vue'
+import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import {
@@ -8,7 +8,8 @@ import {
   pictureQuery,
   pictureUpload,
 } from '@/api/work-collaborative-images/pictureController.ts'
-import { spaceQuerySelf } from '@/api/work-collaborative-images/spaceController.ts' // 获取私有空间 ID 接口
+import { spaceQuerySelf } from '@/api/work-collaborative-images/spaceController.ts'
+import { SPACE_PUBLIC_ENUM } from '@/constants/space.ts' // 获取私有空间 ID 接口
 
 const route = useRoute()
 const router = useRouter()
@@ -30,6 +31,7 @@ watch(joinPrivateSpace, async (val) => {
     const res = await spaceQuerySelf()
     if (res.data.code === 20000 && res.data.data?.id) {
       pictureForm.spaceId = res.data.data.id
+      pictureForm.spaceType = SPACE_PUBLIC_ENUM.SELF
     } else {
       message.error('获取私有空间 ID 失败')
       joinPrivateSpace.value = false
@@ -101,6 +103,10 @@ const getCategoryList = async () => {
 }
 
 onMounted(() => {
+  if (route.query.from === 'mySpace') {
+    joinPrivateSpace.value = true
+    nextTick() // 强制触发 watch 逻辑自动设置 spaceId
+  }
   getOldPicture()
   getCategoryList()
 })

@@ -63,6 +63,11 @@ onMounted(async () => {
     await router.replace('/operate/space/add/')
   }
 })
+
+// 跳转到添加私有图片的页面
+const handleAddPicture = () => {
+  router.push({ path: '/operate/picture/add/', query: { from: 'mySpace' } })
+}
 </script>
 
 <template>
@@ -70,6 +75,7 @@ onMounted(async () => {
     <!-- 空间信息 -->
     <a-flex justify="space-between">
       <h2>私有空间: {{ space?.name }}</h2>
+      <a-button type="primary" @click="handleAddPicture">添加私有图片</a-button>
     </a-flex>
     <!-- 空间仪表 -->
     <SpaceDashboard :space="space" style="margin-bottom: 24px" />
