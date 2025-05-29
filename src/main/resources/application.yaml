@@ -9,7 +9,7 @@ spring:
   ## 配置重载
   devtools:
     restart:
-      enabled: true
+      enabled: false
   ## 资源限制
   servlet:
     multipart:
