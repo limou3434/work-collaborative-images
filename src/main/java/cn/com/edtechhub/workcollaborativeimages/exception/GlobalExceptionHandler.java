@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler // 直接拦截控制层及其内部调用的所有 Throwable
     public BaseResponse<String> exceptionHandler(Exception e) {
-        log.warn("触发全局所有异常处理方法");
+        log.error("触发全局所有异常处理方法");
         printStackTraceStatus(e, 0);
         return TheResult.error(CodeBindMessageEnums.SYSTEM_ERROR, "请联系管理员 89838804@qq.com");
     }
@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public BaseResponse<?> businessExceptionHandler(BusinessException e) {
-        log.error("触发业务内部异常处理方法");
+        log.warn("触发业务内部异常处理方法");
         printStackTraceStatus(e, 1);
         return TheResult.error(e.getCodeBindMessageEnums(), e.exceptionMessage);
     }
