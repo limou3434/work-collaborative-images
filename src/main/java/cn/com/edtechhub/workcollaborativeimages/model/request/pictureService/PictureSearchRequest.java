@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -93,6 +94,16 @@ public class PictureSearchRequest extends PageRequest implements Serializable {
      */
     @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
     private Long reviewerId;
+
+    /**
+     * 开始编辑时间
+     */
+    private LocalDateTime startEditTime;
+
+    /**
+     * 结束编辑时间
+     */
+    private LocalDateTime endEditTime;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;

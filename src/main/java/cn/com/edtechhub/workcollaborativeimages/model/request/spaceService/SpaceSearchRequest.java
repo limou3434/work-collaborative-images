@@ -37,6 +37,11 @@ public class SpaceSearchRequest extends PageRequest implements Serializable {
      */
     private Integer level;
 
+    /**
+     * 空间类型：0-公共图库 1-私有空间 2-协作空间
+     */
+    private Integer type;
+
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
 

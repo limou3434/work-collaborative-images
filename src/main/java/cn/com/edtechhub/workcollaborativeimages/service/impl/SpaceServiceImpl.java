@@ -3,6 +3,7 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.SpaceConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.mapper.SpaceMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
@@ -303,7 +304,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
     public Space spaceGetCurrentLoginUserPrivateSpaces() {
         Long userId = userService.userGetCurrentLonginUserId();
-        List<Space> spaceList = this.spaceSearch(new SpaceSearchRequest().setUserId(userId)).getRecords();
+        List<Space> spaceList = this.spaceSearch(new SpaceSearchRequest().setUserId(userId).setType(SpaceTypeEnums.SELF.getCode())).getRecords();
         if (spaceList.isEmpty()) return null;
         return spaceList.get(0);
     }
@@ -321,6 +322,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         Long id = spaceSearchRequest.getId();
         String name = spaceSearchRequest.getName();
         Integer level = spaceSearchRequest.getLevel();
+        Integer type = spaceSearchRequest.getType();
         Long userId = spaceSearchRequest.getUserId();
         String sortField = spaceSearchRequest.getSortField();
         String sortOrder = spaceSearchRequest.getSortOrder();
@@ -331,6 +333,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 .eq(id != null, Space::getId, id)
                 .like(StringUtils.isNotBlank(name), Space::getName, name)
                 .eq(level != null, Space::getLevel, level)
+                .eq(type != null, Space::getType, type)
                 .eq(userId != null, Space::getUserId, userId)
                 .orderBy(
                         StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则

@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -70,6 +71,16 @@ public class PictureQueryRequest extends PageRequest implements Serializable {
      * 图片格式
      */
     private String picFormat;
+
+    /**
+     * 开始编辑时间
+     */
+    private LocalDateTime startEditTime;
+
+    /**
+     * 结束编辑时间
+     */
+    private LocalDateTime endEditTime;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;

@@ -401,6 +401,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         Long userId = pictureSearchRequest.getUserId();
         Long spaceId = pictureSearchRequest.getSpaceId();
         Integer reviewStatus = pictureSearchRequest.getReviewStatus();
+        LocalDateTime startEditTime = pictureSearchRequest.getStartEditTime();
+        LocalDateTime endEditTime = pictureSearchRequest.getEndEditTime();
         String sortField = pictureSearchRequest.getSortField();
         String sortOrder = pictureSearchRequest.getSortOrder();
 
@@ -422,6 +424,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                 .eq(userId != null, Picture::getUserId, userId)
                 .eq(spaceId != null, Picture::getSpaceId, spaceId)
                 .eq(reviewStatus != null, Picture::getReviewStatus, reviewStatus)
+                .ge(ObjUtil.isNotEmpty(startEditTime), Picture::getUpdateTime, startEditTime) // >=
+                .lt(ObjUtil.isNotEmpty(endEditTime), Picture::getUpdateTime, endEditTime) // <
                 .orderBy(
                         StringUtils.isNotBlank(sortField) && !StringUtils.containsAny(sortField, "=", "(", ")", " "), // 不能包含 =、(、) 或空格等特殊字符, 避免潜在的 SQL 注入或不合法的排序规则
                         sortOrder.equals("ascend"), // 这里结果为 true 代表 ASC 升序, false 代表 DESC 降序
