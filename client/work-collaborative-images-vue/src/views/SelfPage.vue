@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { spaceQuerySelf } from '@/api/work-collaborative-images/spaceController.ts'
+import {
+  spaceDestroySelf,
+  spaceQuerySelf
+} from '@/api/work-collaborative-images/spaceController.ts'
 import { message } from 'ant-design-vue'
 import PictureOverview from '@/components/PictureOverview.vue'
-import { pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
+import { pictureDestroy, pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
 import SpaceDashboard from '@/components/SpaceDashboard.vue'
 
 // 路由对象
@@ -68,6 +71,16 @@ onMounted(async () => {
 const handleAddPicture = () => {
   router.push({ path: '/operate/picture/add/', query: { from: 'mySpace' } })
 }
+
+// 删除本空间的调用
+const handleDelSpace = async () => {
+  const res = await spaceDestroySelf()
+  if (res.data.code === 20000) {
+    message.success('销毁成功')
+  } else {
+    message.error(res.data.message)
+  }
+}
 </script>
 
 <template>
@@ -75,7 +88,17 @@ const handleAddPicture = () => {
     <!-- 空间信息 -->
     <a-flex justify="space-between">
       <h2>私有空间: {{ space?.name }}</h2>
-      <a-button type="primary" @click="handleAddPicture">添加私有图片</a-button>
+      <a-space>
+        <a-button type="primary" @click="handleAddPicture">添加图片到图库</a-button>
+        <a-popconfirm
+          title="确认销毁?"
+          ok-text="确认"
+          cancel-text="取消"
+          @confirm="handleDelSpace"
+        >
+          <a-button type="default" danger>销毁本图库内容</a-button>
+        </a-popconfirm>
+      </a-space>
     </a-flex>
     <!-- 空间仪表 -->
     <SpaceDashboard :space="space" style="margin-bottom: 24px" />

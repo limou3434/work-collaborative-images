@@ -189,12 +189,19 @@ const doDelete = async () => {
               <EditOutlined />
             </template>
           </a-button>
-          <a-button v-if="canEdit" danger @click="doDelete">
-            删除
-            <template #icon>
-              <DeleteOutlined />
-            </template>
-          </a-button>
+          <a-popconfirm
+            title="确认删除?"
+            ok-text="确认"
+            cancel-text="取消"
+            @confirm="doDelete"
+          >
+            <a-button v-if="canEdit" danger>
+              删除
+              <template #icon>
+                <DeleteOutlined />
+              </template>
+            </a-button>
+          </a-popconfirm>
           <a-button type="primary" @click="doDownload">
             下载
             <template #icon>
