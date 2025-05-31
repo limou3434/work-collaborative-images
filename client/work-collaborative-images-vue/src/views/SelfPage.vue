@@ -3,11 +3,11 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   spaceDestroySelf,
-  spaceQuerySelf
+  spaceQuerySelf,
 } from '@/api/work-collaborative-images/spaceController.ts'
 import { message } from 'ant-design-vue'
 import PictureOverview from '@/components/PictureOverview.vue'
-import { pictureDestroy, pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
+import { pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
 import SpaceDashboard from '@/components/SpaceDashboard.vue'
 
 // 路由对象
@@ -77,6 +77,7 @@ const handleDelSpace = async () => {
   const res = await spaceDestroySelf()
   if (res.data.code === 20000) {
     message.success('销毁成功')
+    await router.push('/self')
   } else {
     message.error(res.data.message)
   }
@@ -90,13 +91,8 @@ const handleDelSpace = async () => {
       <h2>私有空间: {{ space?.name }}</h2>
       <a-space>
         <a-button type="primary" @click="handleAddPicture">添加图片到图库</a-button>
-        <a-popconfirm
-          title="确认销毁?"
-          ok-text="确认"
-          cancel-text="取消"
-          @confirm="handleDelSpace"
-        >
-          <a-button type="default" danger>销毁本图库内容</a-button>
+        <a-popconfirm cancel-text="取消" ok-text="确认" title="确认销毁?" @confirm="handleDelSpace">
+          <a-button danger type="default">销毁本图库内容</a-button>
         </a-popconfirm>
       </a-space>
     </a-flex>

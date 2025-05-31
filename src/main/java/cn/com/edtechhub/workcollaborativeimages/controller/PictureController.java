@@ -4,6 +4,8 @@ import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.manager.SearchManager;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.*;
@@ -285,5 +287,16 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     public BaseResponse<List<String>> pictureCategorys() {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetCategorys());
     }
+
+//    @Operation(summary = "利用图片标识来搜索相似的图片")
+//    @PostMapping("/search/picture")
+//    public BaseResponse<List<ImageSearchResult>> searchPictureByPicture(@RequestBody PictureSimilarSearchRequest pictureSimilarSearchRequest) {
+//        Long pictureId = pictureSimilarSearchRequest.getPictureId();
+//        ThrowUtils.throwIf(pictureId == null || pictureId <= 0, ErrorCode.PARAMS_ERROR);
+//        Picture oldPicture = pictureService.getById(pictureId);
+//        ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
+//        List<ImageSearchResult> resultList = SearchManager.getSimilarPictureList(oldPicture.getUrl());
+//        return ResultUtils.success(resultList);
+//    }
 
 }

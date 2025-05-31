@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import {
   spaceCreateSelf,
@@ -12,6 +12,7 @@ import { formatSize } from '@/utils'
 
 // 路由
 const route = useRoute()
+const router = useRouter()
 
 // 判断是否为编辑模式
 const id = Number(route.query?.id)
@@ -42,6 +43,7 @@ const handleSubmit = async () => {
 
   if (res.data.code === 20000 && res.data.data) {
     message.success(isEdit.value ? '修改成功' : '创建成功')
+    await router.push('/self')
   } else {
     message.error(res.data.message || '操作失败')
   }
@@ -53,7 +55,7 @@ const getOldSpace = async () => {
   if (res.data.code === 20000 && res.data.data) {
     spaceFormParams.name = res.data.data.name
   } else {
-    message.error('获取空间信息失败')
+    message.error(res.data.message)
   }
 }
 
@@ -71,7 +73,7 @@ const fetchSpaceLevelList = async () => {
   if (res.data.code === 20000 && res.data.data) {
     spaceLevelList.value = res.data.data
   } else {
-    message.error('加载空间级别失败，' + res.data.message)
+    message.error(res.data.message)
   }
 } // 获取空间级别
 onMounted(() => {
