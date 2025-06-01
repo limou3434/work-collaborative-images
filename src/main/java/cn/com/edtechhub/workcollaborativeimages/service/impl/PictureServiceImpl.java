@@ -5,14 +5,14 @@ import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
+import cn.com.edtechhub.workcollaborativeimages.manager.SearchManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.*;
+import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
@@ -31,6 +31,7 @@ import org.jsoup.select.Elements;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -377,6 +378,16 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @LogParams
     public List<String> pictureGetCategorys() {
         return Arrays.asList("动漫", "艺术", "表情", "素材", "海报");
+    }
+
+    @Override
+    @LogParams
+    public List<ImageSearchResult> pictureGetSimilarPictureList(Long pictureId) {
+        ThrowUtils.throwIf(pictureId == null, CodeBindMessageEnums.PARAMS_ERROR, "图片标识参数不能为空");
+        ThrowUtils.throwIf(pictureId <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识参数不合法, 必须为正整数");
+        Picture oldPicture = this.pictureSearchById(pictureId);
+        ThrowUtils.throwIf(oldPicture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该图片不存在无法寻找相似的图片");
+        return SearchManager.getSimilarPictureList(oldPicture.getOriginalUrl());
     }
 
     /// 私有方法 ///

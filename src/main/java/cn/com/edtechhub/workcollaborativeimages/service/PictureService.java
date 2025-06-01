@@ -1,6 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
@@ -83,5 +84,10 @@ public interface PictureService extends IService<Picture> {
      * 获取图片种类服务
      */
     List<String> pictureGetCategorys();
+
+    /**
+     * 获取类似图片服务
+     */
+    List<ImageSearchResult> pictureGetSimilarPictureList(Long pictureId);
 
 }
