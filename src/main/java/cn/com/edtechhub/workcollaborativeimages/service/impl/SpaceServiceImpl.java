@@ -265,14 +265,14 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
         Long oldTotalSize = space.getTotalSize();
         Long oldTotalCount = space.getTotalCount();
+        ThrowUtils.throwIf(oldTotalSize == 0 || oldTotalCount == 0, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您的存量为 0 没有任何资源需要删除");
+
         Long futureTotalSize = oldTotalSize - picture.getPicSize();
         Long futureTotalCount = oldTotalCount - 1;
         space.setTotalSize(futureTotalSize);
         space.setTotalCount(futureTotalCount);
         log.debug("之前的大小 {} -> 将来的大小 {}", oldTotalSize, futureTotalSize);
         log.debug("之前的数量 {} -> 将来的数量 {}", oldTotalCount, futureTotalCount);
-
-        ThrowUtils.throwIf(space.getTotalSize() == 0 || space.getTotalCount() == 0, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您的存量为 0 没有任何资源需要删除");
 
         if (space.getTotalSize() < 0) {
             log.debug("当前大小计算误差, 予以修正");

@@ -35,6 +35,11 @@ public class Picture implements Serializable {
     private String thumbnailUrl;
 
     /**
+     * 原始图
+     */
+    private String originalUrl;
+
+    /**
      * 图片名称
      */
     private String name;
@@ -146,6 +151,7 @@ public class Picture implements Serializable {
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
                 && (this.getUrl() == null ? other.getUrl() == null : this.getUrl().equals(other.getUrl()))
                 && (this.getThumbnailUrl() == null ? other.getThumbnailUrl() == null : this.getThumbnailUrl().equals(other.getThumbnailUrl()))
+                && (this.getOriginalUrl() == null ? other.getOriginalUrl() == null : this.getOriginalUrl().equals(other.getOriginalUrl()))
                 && (this.getName() == null ? other.getName() == null : this.getName().equals(other.getName()))
                 && (this.getIntroduction() == null ? other.getIntroduction() == null : this.getIntroduction().equals(other.getIntroduction()))
                 && (this.getCategory() == null ? other.getCategory() == null : this.getCategory().equals(other.getCategory()))
@@ -173,6 +179,7 @@ public class Picture implements Serializable {
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
         result = prime * result + ((getUrl() == null) ? 0 : getUrl().hashCode());
         result = prime * result + ((getThumbnailUrl() == null) ? 0 : getThumbnailUrl().hashCode());
+        result = prime * result + ((getOriginalUrl() == null) ? 0 : getOriginalUrl().hashCode());
         result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
         result = prime * result + ((getIntroduction() == null) ? 0 : getIntroduction().hashCode());
         result = prime * result + ((getCategory() == null) ? 0 : getCategory().hashCode());
@@ -202,6 +209,7 @@ public class Picture implements Serializable {
                 ", id=" + id +
                 ", url=" + url +
                 ", thumbnailUrl=" + thumbnailUrl +
+                ", originalUrl=" + originalUrl +
                 ", name=" + name +
                 ", introduction=" + introduction +
                 ", category=" + category +

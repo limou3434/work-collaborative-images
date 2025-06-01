@@ -66,6 +66,7 @@ CREATE TABLE `picture`
     `id`             BIGINT UNSIGNED AUTO_INCREMENT COMMENT '本图片唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)',
     `url`            VARCHAR(512)    NOT NULL COMMENT '图片 url',
     `thumbnail_url`  VARCHAR(512)    NULL COMMENT '缩略图 url',
+    `original_url`   VARCHAR(512)    NULL COMMENT '原始图片 url',
     `name`           VARCHAR(128)    NOT NULL COMMENT '图片名称',
     `introduction`   VARCHAR(512)    NULL COMMENT '简介',
     `category`       VARCHAR(64)     NULL COMMENT '分类',

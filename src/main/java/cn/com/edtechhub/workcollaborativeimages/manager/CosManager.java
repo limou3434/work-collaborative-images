@@ -65,9 +65,128 @@ public class CosManager {
     ServerConstant serverConstant;
 
     /**
+     * 上传图片对象资源(本地上传)
+     */
+    public UploadPictureResult uploadPicture(String uploadPathPrefix, MultipartFile multipartFile) {
+        this.validPicture(multipartFile);
+
+        // 执行具体的图片上传逻辑
+        String uuid = RandomUtil.randomString(16); // 生成一个16位随机字符串作为唯一标识防止上传文件名重复, 不过这也意味着用户如果重复上传一张图片想要达到修改的目的是无法直接在 cos 中实现的
+        String originFilename = multipartFile.getOriginalFilename(); // 获取原始上传文件的文件名
+        String uploadFilename = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid, FileUtil.getSuffix(originFilename)); // 构造上传后的新文件名, 2025-05-08_1111111111111111.code.png
+        String uploadPath = String.format("%s/%s/%s", serverConstant.getProjectName(), uploadPathPrefix, uploadFilename); // 构造最终图片资源在 COS 对象存储服务上的完整路径, work-collaborative-images/public/38/2025-05-08_1111111111111111.code.png
+        log.debug("本次上传的图片预计完整路径为 {}", uploadPath);
+
+        // 创建临时文件并且获取图片的元数据(使用临时文件的原因是 COS 接口只能使用 File 类型上传文件, 不过其实这可以被优化)
+        File file = null;
+        UploadPictureResult uploadPictureResult = new UploadPictureResult(); // 封装图片元数据的结果
+        try {
+            // 获取原始图元数据
+            file = File.createTempFile(uploadPath, null); // 创建临时文件
+            multipartFile.transferTo(file); // 然后把文件内容写入到临时文件中避免用户直接上传图片
+            PutObjectResult putObjectResult = this.putPicture(uploadPath, file); // 开始上传图片
+            ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo(); // 从上传结果中获取图片的元信息, 这依赖于之前设置的 IsPicInfo=1
+
+            // 获取压缩图元数据
+            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
+            List<CIObject> objectList = processResults.getObjectList();
+            CIObject compressedCiObject = null;
+            CIObject thumbnailCiObject = null;
+            boolean res = CollUtil.isNotEmpty(objectList);
+            if (res) {
+                compressedCiObject = objectList.get(0);
+                thumbnailCiObject = objectList.size() > 1 ? objectList.get(1) : compressedCiObject; // 如果没有缩略图, 缩略图就等于压缩图(主要是为了配置前面避免小图片文件压缩后更大的问题)
+            }
+
+            // 如果压缩成功就把压缩图返回, 否则就只返回原始图
+            int picWidth = res ? compressedCiObject.getWidth() : imageInfo.getWidth(); // TODO: 如果下次改动了这段代码, 就提取进行重构
+            int picHeight = res ? compressedCiObject.getHeight() : imageInfo.getHeight();
+            String url = cosClientConfig.getHost() + "/" + compressedCiObject.getKey();
+            String thumbnailUrl = cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey();
+            String originalUrl = cosClientConfig.getHost() + "/" + uploadPath;
+            uploadPictureResult.setPicWidth(picWidth);
+            uploadPictureResult.setPicHeight(picHeight);
+            uploadPictureResult.setPicFormat(res ? compressedCiObject.getFormat() : imageInfo.getFormat());
+            uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
+            uploadPictureResult.setPicScale(NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue()); // 将浮点数数四舍五入后保留两位小数, 然后把高精度的类型转化为低精度类型
+            uploadPictureResult.setPicSize(res ? compressedCiObject.getSize().longValue() : FileUtil.size(file));
+            uploadPictureResult.setUrl(res ? url : originalUrl);
+            uploadPictureResult.setThumbnailUrl(res ? thumbnailUrl : null);
+            uploadPictureResult.setOriginalUrl(originalUrl); // 把原始图也保留下来
+        } catch (Exception e) {
+            log.debug("图片上传到对象存储失败 {}", e.getMessage());
+            ThrowUtils.throwIf(true, CodeBindMessageEnums.SYSTEM_ERROR, "上传失败");
+        } finally {
+            this.deleteTempFile(file); // 无论是哪一种结果最终都会把临时文件删除
+        }
+        log.debug("本次上传的图片最终返回结果为 {}", uploadPictureResult);
+        return uploadPictureResult;
+    }
+
+    /**
+     * 上传图片对象资源(远端上传)
+     */
+    public UploadPictureResult uploadPicture(String uploadPathPrefix, String fileUrl) {
+        this.validPicture(fileUrl);
+
+        // 执行具体的图片上传逻辑
+        String uuid = RandomUtil.randomString(16);
+        // String originFilename = multipartFile.getOriginalFilename();
+        String originFilename = FileUtil.mainName(fileUrl);
+        String uploadFilename = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid, FileUtil.getSuffix(originFilename));
+        String uploadPath = String.format("%s/%s/%s", serverConstant.getProjectName(), uploadPathPrefix, uploadFilename);
+        log.debug("本次上传的图片预计完整路径为 {}", uploadPath);
+
+        // 创建临时文件并且获取图片的元数据(使用临时文件的原因是 COS 接口只能使用 File 类型上传文件, 不过其实这可以被优化)
+        File file = null;
+        UploadPictureResult uploadPictureResult = new UploadPictureResult(); // 封装图片元数据的结果
+        try {
+            // 获取原始图元数据
+            file = File.createTempFile(uploadPath, null); // 创建临时文件
+            HttpUtil.downloadFile(fileUrl, file); // multipartFile.transferTo(file);
+            PutObjectResult putObjectResult = this.putPicture(uploadPath, file); // 开始上传图片
+            ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo(); // 从上传结果中获取图片的元信息, 这依赖于之前设置的 IsPicInfo=1
+
+            // 获取压缩图元数据
+            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
+            List<CIObject> objectList = processResults.getObjectList();
+            CIObject compressedCiObject = null;
+            CIObject thumbnailCiObject = null;
+            boolean res = CollUtil.isNotEmpty(objectList);
+            if (res) {
+                compressedCiObject = objectList.get(0);
+                thumbnailCiObject = objectList.size() > 1 ? objectList.get(1) : compressedCiObject; // 如果没有缩略图, 缩略图就等于压缩图(主要是为了配置前面避免小图片文件压缩后更大的问题)
+            }
+
+            // 如果压缩成功就把压缩图返回, 否则就只放回原始图
+            int picWidth = res ? compressedCiObject.getWidth() : imageInfo.getWidth();
+            int picHeight = res ? compressedCiObject.getHeight() : imageInfo.getHeight();
+            String url = cosClientConfig.getHost() + "/" + compressedCiObject.getKey();
+            String thumbnailUrl = cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey();
+            String originalUrl = cosClientConfig.getHost() + "/" + uploadPath;
+            uploadPictureResult.setPicWidth(picWidth);
+            uploadPictureResult.setPicHeight(picHeight);
+            uploadPictureResult.setPicFormat(res ? compressedCiObject.getFormat() : imageInfo.getFormat());
+            uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
+            uploadPictureResult.setPicScale(NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue()); // 将浮点数数四舍五入后保留两位小数, 然后把高精度的类型转化为低精度类型
+            uploadPictureResult.setPicSize(res ? compressedCiObject.getSize().longValue() : FileUtil.size(file));
+            uploadPictureResult.setUrl(res ? url : originalUrl);
+            uploadPictureResult.setThumbnailUrl(res ? thumbnailUrl : null);
+            uploadPictureResult.setOriginalUrl(originalUrl); // 把原始图也保留下来
+        } catch (Exception e) {
+            log.debug("图片上传到对象存储失败 {}", e.getMessage());
+            ThrowUtils.throwIf(true, CodeBindMessageEnums.SYSTEM_ERROR, "上传失败");
+        } finally {
+            this.deleteTempFile(file);
+        }
+        log.debug("本次上传的图片最终网络地址为 {}", uploadPictureResult.getUrl());
+        return uploadPictureResult;
+    }
+
+    /**
      * 校验图片对象资源(本地校验)
      */
-    public void validPicture(MultipartFile multipartFile) {
+    private void validPicture(MultipartFile multipartFile) {
         // 检查参数
         ThrowUtils.throwIf(multipartFile == null, CodeBindMessageEnums.PARAMS_ERROR, "文件不能为空");
 
@@ -177,120 +296,9 @@ public class CosManager {
     }
 
     /**
-     * 上传图片对象资源(本地上传)
-     */
-    public UploadPictureResult uploadPicture(String uploadPathPrefix, MultipartFile multipartFile) {
-        this.validPicture(multipartFile);
-
-        // 执行具体的图片上传逻辑
-        String uuid = RandomUtil.randomString(16); // 生成一个16位随机字符串作为唯一标识防止上传文件名重复, 不过这也意味着用户如果重复上传一张图片想要达到修改的目的是无法直接在 cos 中实现的
-        String originFilename = multipartFile.getOriginalFilename(); // 获取原始上传文件的文件名
-        String uploadFilename = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid, FileUtil.getSuffix(originFilename)); // 构造上传后的新文件名, 2025-05-08_1111111111111111.code.png
-        String uploadPath = String.format("%s/%s/%s", serverConstant.getProjectName(), uploadPathPrefix, uploadFilename); // 构造最终图片资源在 COS 对象存储服务上的完整路径, work-collaborative-images/public/38/2025-05-08_1111111111111111.code.png
-        log.debug("本次上传的图片预计完整路径为 {}", uploadPath);
-
-        // 创建临时文件并且获取图片的元数据(使用临时文件的原因是 COS 接口只能使用 File 类型上传文件, 不过其实这可以被优化)
-        File file = null;
-        UploadPictureResult uploadPictureResult = new UploadPictureResult(); // 封装图片元数据的结果
-        try {
-            // 获取原始图元数据
-            file = File.createTempFile(uploadPath, null); // 创建临时文件
-            multipartFile.transferTo(file); // 然后把文件内容写入到临时文件中避免用户直接上传图片
-            PutObjectResult putObjectResult = this.putPicture(uploadPath, file); // 开始上传图片
-            ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo(); // 从上传结果中获取图片的元信息, 这依赖于之前设置的 IsPicInfo=1
-
-            // 获取压缩图元数据
-            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
-            List<CIObject> objectList = processResults.getObjectList();
-            CIObject compressedCiObject = null;
-            CIObject thumbnailCiObject = null;
-            boolean res = CollUtil.isNotEmpty(objectList);
-            if (res) {
-                compressedCiObject = objectList.get(0);
-                thumbnailCiObject = objectList.size() > 1 ? objectList.get(1) : compressedCiObject; // 如果没有缩略图, 缩略图就等于压缩图(主要是为了配置前面避免小图片文件压缩后更大的问题)
-            }
-
-            // 如果压缩成功就把压缩图返回, 否则就只返回原始图
-            int picWidth = res ? compressedCiObject.getWidth() : imageInfo.getWidth(); // TODO: 如果下次改动了这段代码, 就提取进行重构
-            int picHeight = res ? compressedCiObject.getHeight() : imageInfo.getHeight();
-            uploadPictureResult.setPicWidth(picWidth);
-            uploadPictureResult.setPicHeight(picHeight);
-            uploadPictureResult.setPicFormat(res ? compressedCiObject.getFormat() : imageInfo.getFormat());
-            uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
-            uploadPictureResult.setPicScale(NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue()); // 将浮点数数四舍五入后保留两位小数, 然后把高精度的类型转化为低精度类型
-            uploadPictureResult.setPicSize(res ? compressedCiObject.getSize().longValue() : FileUtil.size(file));
-            uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + (res ? compressedCiObject.getKey() : uploadPath));
-            uploadPictureResult.setThumbnailUrl(res ? cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey() : null);
-        } catch (Exception e) {
-            log.debug("图片上传到对象存储失败 {}", e.getMessage());
-            ThrowUtils.throwIf(true, CodeBindMessageEnums.SYSTEM_ERROR, "上传失败");
-        } finally {
-            this.deleteTempFile(file); // 无论是哪一种结果最终都会把临时文件删除
-        }
-        log.debug("本次上传的图片最终返回结果为 {}", uploadPictureResult);
-        return uploadPictureResult;
-    }
-
-    /**
-     * 上传图片对象资源(远端上传)
-     */
-    public UploadPictureResult uploadPicture(String uploadPathPrefix, String fileUrl) {
-        this.validPicture(fileUrl);
-
-        // 执行具体的图片上传逻辑
-        String uuid = RandomUtil.randomString(16);
-        // String originFilename = multipartFile.getOriginalFilename();
-        String originFilename = FileUtil.mainName(fileUrl);
-        String uploadFilename = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid, FileUtil.getSuffix(originFilename));
-        String uploadPath = String.format("%s/%s/%s", serverConstant.getProjectName(), uploadPathPrefix, uploadFilename);
-        log.debug("本次上传的图片预计完整路径为 {}", uploadPath);
-
-        // 创建临时文件并且获取图片的元数据(使用临时文件的原因是 COS 接口只能使用 File 类型上传文件, 不过其实这可以被优化)
-        File file = null;
-        UploadPictureResult uploadPictureResult = new UploadPictureResult(); // 封装图片元数据的结果
-        try {
-            // 获取原始图元数据
-            file = File.createTempFile(uploadPath, null); // 创建临时文件
-            HttpUtil.downloadFile(fileUrl, file); // multipartFile.transferTo(file);
-            PutObjectResult putObjectResult = this.putPicture(uploadPath, file); // 开始上传图片
-            ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo(); // 从上传结果中获取图片的元信息, 这依赖于之前设置的 IsPicInfo=1
-
-            // 获取压缩图元数据
-            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
-            List<CIObject> objectList = processResults.getObjectList();
-            CIObject compressedCiObject = null;
-            CIObject thumbnailCiObject = null;
-            boolean res = CollUtil.isNotEmpty(objectList);
-            if (res) {
-                compressedCiObject = objectList.get(0);
-                thumbnailCiObject = objectList.size() > 1 ? objectList.get(1) : compressedCiObject; // 如果没有缩略图, 缩略图就等于压缩图(主要是为了配置前面避免小图片文件压缩后更大的问题)
-            }
-
-            // 如果压缩成功就把压缩图返回, 否则就只放回原始图
-            int picWidth = res ? compressedCiObject.getWidth() : imageInfo.getWidth();
-            int picHeight = res ? compressedCiObject.getHeight() : imageInfo.getHeight();
-            uploadPictureResult.setPicWidth(picWidth);
-            uploadPictureResult.setPicHeight(picHeight);
-            uploadPictureResult.setPicFormat(res ? compressedCiObject.getFormat() : imageInfo.getFormat());
-            uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
-            uploadPictureResult.setPicScale(NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue()); // 将浮点数数四舍五入后保留两位小数, 然后把高精度的类型转化为低精度类型
-            uploadPictureResult.setPicSize(res ? compressedCiObject.getSize().longValue() : FileUtil.size(file));
-            uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + (res ? compressedCiObject.getKey() : uploadPath));
-            uploadPictureResult.setThumbnailUrl(res ? cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey() : null);
-        } catch (Exception e) {
-            log.debug("图片上传到对象存储失败 {}", e.getMessage());
-            ThrowUtils.throwIf(true, CodeBindMessageEnums.SYSTEM_ERROR, "上传失败");
-        } finally {
-            this.deleteTempFile(file);
-        }
-        log.debug("本次上传的图片最终网络地址为 {}", uploadPictureResult.getUrl());
-        return uploadPictureResult;
-    }
-
-    /**
      * 删除临时对象资源
      */
-    public void deleteTempFile(File file) {
+    private void deleteTempFile(File file) {
         ThrowUtils.throwIf(file == null, CodeBindMessageEnums.PARAMS_ERROR, "错误使用删除临时对象资源的方法, 主要是因为要删除的文件为空");
 
         // 删除临时文件

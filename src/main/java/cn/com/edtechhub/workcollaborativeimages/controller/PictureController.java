@@ -4,8 +4,6 @@ import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
-import cn.com.edtechhub.workcollaborativeimages.manager.SearchManager;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.*;
@@ -87,13 +85,14 @@ import java.util.List;
  * a. 数据沉降: 将长时间未访问的数据自动迁移到低频访问存储, 从而降低存储成本, 不过要注意, 虽然低频存储的存储费用更低, 但是当你要访问低频存储的资源时, 会产生数据取回费用, 所以一般只对几乎不访问的资源进行沉降, 尽量减少取回费用, 分析再沉降, 待实现...
  * b. 清理策略: 在用户清理图片时, 需要借用消息队列把图片的 id 存储为列表, 然后异步进行删除落库和清理图床, 并且如果发生了存储资源不够就可以启用高强度的删除策略, 并且还需要提供一个管理接口提供给管理员来进行清理, 待实现...
  * <p>
- * (5)加锁优化:
+ * (5) 加锁优化:
  * a. 我们是对字符串常量池(intern)进行加锁的, 数据并不会及时释放, 如果还要使用本地锁, 可以按需选用另一种方式 —— 采用 ConcurrentHashMap 来存储锁对象
  * b. 本地锁也可以改为分布式锁, 可以基于 Redisson 实现
+ * <p>
  * 3. 拓展功能
  * 还有一些额外的拓展功能我们也可以实现
- * a. 多样搜索
- * b. 以图搜图
+ * a. 多样搜索, 组合多个图片关键字做关键字索引
+ * b. 以图搜图, 可以使用百度的 API 临时顶一顶
  * c. 以色搜图
  * d. 智能编辑
  *

@@ -173,8 +173,4 @@ public class SearchManager {
         return JSONUtil.toList(list, ImageSearchResult.class);
     }
 
-    public static void main(String[] args) {
-        System.out.println(getSimilarPictureList("https://wci-1318277926.cos.ap-guangzhou.myqcloud.com/work-collaborative-images/public/38/2025-05-30_0quces77rnzcfjlu.webp"));
-    }
-
 }
