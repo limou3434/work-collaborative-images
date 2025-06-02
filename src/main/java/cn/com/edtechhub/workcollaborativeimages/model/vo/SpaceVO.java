@@ -2,6 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.model.vo;
 
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -80,13 +81,27 @@ public class SpaceVO implements Serializable {
     }
 
     /**
+     * 脱敏方法(列表脱敏)
+     */
+    public static List<SpaceVO> removeSensitiveData(List<Space> spaceList) {
+        if (spaceList == null) {
+            return null;
+        }
+        return spaceList
+                .stream()
+                .map(SpaceVO::removeSensitiveData)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 脱敏方法(分页脱敏)
      */
     public static Page<SpaceVO> removeSensitiveData(Page<Space> spacePage) {
         if (spacePage == null) {
             return null;
         }
-        var spaceList = spacePage.getRecords()
+        var spaceList = spacePage
+                .getRecords()
                 .stream()
                 .map(SpaceVO::removeSensitiveData)
                 .collect(Collectors.toList());

@@ -9,7 +9,7 @@ import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -112,11 +112,6 @@ public class PictureVO implements Serializable {
     private Integer reviewStatus;
 
     /**
-     * 审核信息
-     */
-    private String reviewMessage;
-
-    /**
      * 审核人 id
      */
     private Long reviewerId;
@@ -137,13 +132,27 @@ public class PictureVO implements Serializable {
     }
 
     /**
+     * 脱敏方法(列表脱敏)
+     */
+    public static List<PictureVO> removeSensitiveData(List<Picture> pictureList) {
+        if (pictureList == null) {
+            return null;
+        }
+        return pictureList
+                .stream()
+                .map(PictureVO::removeSensitiveData)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 脱敏方法(分页脱敏)
      */
     public static Page<PictureVO> removeSensitiveData(Page<Picture> picturePage) {
         if (picturePage == null) {
             return null;
         }
-        var pictureList = picturePage.getRecords()
+        var pictureList = picturePage
+                .getRecords()
                 .stream()
                 .map(PictureVO::removeSensitiveData)
                 .collect(Collectors.toList());

@@ -128,13 +128,27 @@ public class UserVO implements Serializable {
     }
 
     /**
+     * 脱敏方法(列表脱敏)
+     */
+    public static List<UserVO> removeSensitiveData(List<User> userList) {
+        if (userList == null) {
+            return null;
+        }
+        return userList
+                .stream()
+                .map(UserVO::removeSensitiveData)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 脱敏方法(分页脱敏)
      */
     public static Page<UserVO> removeSensitiveData(Page<User> userPage) {
         if (userPage == null) {
             return null;
         }
-        var userList = userPage.getRecords()
+        var userList = userPage
+                .getRecords()
                 .stream()
                 .map(UserVO::removeSensitiveData)
                 .collect(Collectors.toList());
