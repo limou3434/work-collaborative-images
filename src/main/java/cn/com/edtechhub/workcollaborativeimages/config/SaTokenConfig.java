@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import javax.annotation.PostConstruct;
+
 /**
  * Sa-token 配置
  */
@@ -20,8 +22,15 @@ public class SaTokenConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new SaInterceptor()).addPathPatterns("/**");
-        log.debug("读取 Sa-token 配置查验是否正确: {}", SaManager.getConfig());
-        log.debug("读取 Sa-token 切面类查验是否被替换为自己的: {}", SaManager.getStpInterface());
+    }
+
+    /**
+     * 打印配置
+     */
+    @PostConstruct
+    public void printConfig() {
+        log.debug("当前项目 Sa-token 配置查验为: {}", SaManager.getConfig());
+        log.debug("当前项目 Sa-token 切面类被替换为: {}", SaManager.getStpInterface());
     }
 
 }
