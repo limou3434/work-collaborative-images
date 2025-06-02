@@ -10,7 +10,7 @@ const HOTS = {
 
 // 创建 Axios 实例
 const myAxios = axios.create({
-  baseURL: HOTS['develop'], // 后端服务地址
+  baseURL: HOTS['release'], // 后端服务地址
   timeout: 60000, // 响应时间未 6 s
   withCredentials: true, // 请求时携带 Cookie
 })
