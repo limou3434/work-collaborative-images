@@ -4,6 +4,8 @@ import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.CreateOutPaintingTaskResponse;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.GetOutPaintingTaskResponse;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
@@ -92,10 +94,19 @@ import java.util.List;
  * <p>
  * 3. 拓展功能
  * 还有一些额外的拓展功能我们也可以实现
- * a. 多样搜索, 组合多个图片关键字做关键字索引
- * b. 以图搜图, 可以使用百度的 API 临时顶一顶, 后续再来更换
- * c. 以色搜图, 在用户上传图片的瞬间就把主色调提取出来, 然后使用相似度算法进行匹配(欧几里得距离法、余弦相似度、曼哈顿距离、Jaccard 相似度、平均颜色差异、哈希算法、色调饱和亮度差异)
- * d. 智能编辑,
+ * (1) 多样搜索, 组合多个图片关键字做关键字索引
+ * (2) 以图搜图, 可以使用百度的 API 临时顶一顶, 后续再来更换
+ * (3) 以色搜图, 在用户上传图片的瞬间就把主色调提取出来, 然后使用相似度算法进行匹配(欧几里得距离法、余弦相似度、曼哈顿距离、Jaccard 相似度、平均颜色差异、哈希算法、色调饱和亮度差异)
+ * (4) 图片编辑, 分为基础编辑(依赖前端组件旋转图片、缩放图片、裁剪图片...)和智能编辑(阿里百炼接口实现拓展图片、文字生图...), 不过这里的智能编辑比较耗时, 可以采用异步处理
+ * 其中智能编辑是这个项目的亮点之一, 可以考虑使用比较便宜的它是一站式的大模型开发及应用构建平台, 这里选择阿里云百炼平台 https://www.aliyun.com/product/bailian?utm_content=m_1000400273
+ * 可以通过简单的界面操作, 在 5 分钟内开发出一款大模型应用, 并在线体验效果, 创建好应用后, 利用官方提供的 API 或 SDK 就可以快速在项目中使用, 相关的功能文档可以查阅 https://help.aliyun.com/zh/model-studio/what-is-model-studio
+ * 可以依据文档来获取免费额度 https://help.aliyun.com/zh/model-studio/new-free-quota?utm_content=m_1000400407
+ * 另外, 由于这种类型的 API 比较耗时, 仅支持异步调用方式, 并且一般推荐使用前端轮询而不是后端轮询(同步调用会导致服务器线程长时间被单个任务占用, 限制了并发处理能力, 增加了超时和系统崩溃的风险, 对于大型团队来说, 前后端同时对异步进行处理其实才是更好的选择)
+ * 开通过程如下:
+ * a. 前往控制台开通免费额度, 并且确保您的账户余额不为 ￥0.00 https://bailian.console.aliyun.com/?utm_content=m_1000400275#/home
+ * b. 然后需要获取阿里云的 API Key, 可以参考这篇文档 https://help.aliyun.com/zh/model-studio/get-api-key?utm_content=m_1000400408
+ * (5) 防止盗链, 图片还需要防止盗链...
+ * ）
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
@@ -290,15 +301,31 @@ public class PictureController { // 通常控制层有服务层中的所有方�
     }
 
     @Operation(summary = "利用某个图片的唯一标识来搜索相似的图片")
+    @SaCheckLogin
     @PostMapping("/search/picture")
     public BaseResponse<List<ImageSearchResult>> pictureSearchPicture(@RequestBody PictureSearchPictureRequest pictureSearchPictureRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetSimilarPictureList(pictureSearchPictureRequest.getPictureId()));
     }
 
     @Operation(summary = "利用某个图片的唯一标识来搜索同色的图片")
+    @SaCheckLogin
     @PostMapping("/search/color")
     public BaseResponse<List<PictureVO>> pictureSearchColor(@RequestBody PictureSearchColorRequest pictureSearchColorRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, PictureVO.removeSensitiveData(pictureService.pictureGetSameColorPictureList(pictureSearchColorRequest.getPictureId())));
+    }
+
+    @Operation(summary = "创建智能绘画任务")
+    @SaCheckLogin
+    @PostMapping("/out_painting/create_task")
+    public BaseResponse<CreateOutPaintingTaskResponse> pictureOutPaintingCreateTask(@RequestBody PictureCreateOutPaintingTaskRequest pictureCreateOutPaintingTaskRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureCreateOutPaintingTask(pictureCreateOutPaintingTaskRequest.getPictureId(), pictureCreateOutPaintingTaskRequest.getParameters()));
+    }
+
+    @Operation(summary = "查询智能绘画任务")
+    @SaCheckLogin
+    @GetMapping("/out_painting/get_task")
+    public BaseResponse<GetOutPaintingTaskResponse> pictureOutPaintingGetTask(@RequestParam("taskId") String taskId) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetOutPaintingTask(taskId));
     }
 
 }

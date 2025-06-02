@@ -1,6 +1,9 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.CreateOutPaintingTaskRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.CreateOutPaintingTaskResponse;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.GetOutPaintingTaskResponse;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
@@ -95,5 +98,16 @@ public interface PictureService extends IService<Picture> {
      * 获取同色图片服务
      */
     List<Picture> pictureGetSameColorPictureList(Long pictureId);
+
+    /**
+     * 创建图片绘制任务服务
+     */
+    CreateOutPaintingTaskResponse pictureCreateOutPaintingTask(Long pictureId, CreateOutPaintingTaskRequest.Parameters parameters);
+
+
+    /**
+     * 查看图片绘制任务服务
+     */
+    GetOutPaintingTaskResponse pictureGetOutPaintingTask(String taskId);
 
 }

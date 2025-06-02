@@ -3,12 +3,13 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
+import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.manager.AiManager;
 import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.manager.SearchManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.*;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
@@ -20,6 +21,7 @@ import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ColorUtils;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -66,6 +68,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
      */
     @Resource
     CosManager cosManager;
+
+    /**
+     * 注入 AI 管理器依赖
+     */
+    @Resource
+    AiManager aiManager;
 
     /**
      * 注入用户服务依赖
@@ -442,6 +450,31 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                 .sorted(Comparator.comparingDouble(p -> similarityMap.getOrDefault(p.getId(), Double.MAX_VALUE)))
                 .limit(12)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @LogParams
+    public CreateOutPaintingTaskResponse pictureCreateOutPaintingTask(Long pictureId, CreateOutPaintingTaskRequest.Parameters parameters) {
+        // 获取图片信息
+        Picture picture = Optional.ofNullable(this.pictureSearchById(pictureId)).orElseThrow(() -> new BusinessException(CodeBindMessageEnums.NOT_FOUND_ERROR, "该图片不存在"));
+
+        // 构造请求参数
+        CreateOutPaintingTaskRequest currentTaskRequest = new CreateOutPaintingTaskRequest();
+        CreateOutPaintingTaskRequest.Input currentInput = new CreateOutPaintingTaskRequest.Input();
+        CreateOutPaintingTaskRequest.Parameters currentParameters = new CreateOutPaintingTaskRequest.Parameters();
+        currentInput.setImageUrl(picture.getUrl());
+        BeanUtil.copyProperties(parameters, currentParameters);
+        currentTaskRequest.setInput(currentInput);
+        currentTaskRequest.setParameters(currentParameters);
+
+        // 创建任务
+        return aiManager.createOutPaintingTask(currentTaskRequest);
+    }
+
+    @Override
+    @LogParams
+    public GetOutPaintingTaskResponse pictureGetOutPaintingTask(String taskId) {
+        return aiManager.getOutPaintingTask(taskId);
     }
 
     /// 私有方法 ///

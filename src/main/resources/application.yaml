@@ -167,6 +167,10 @@ cos:
     region: ${COS_CLIENT_REGION} # 地域简称(COS 地域的简称请参见 https://cloud.tencent.com/document/product/436/6224)
     bucket: ${COS_CLIENT_BUCKET} # 存储桶名
 
+# 配置 ai
+aliyunai:
+  apiKey: ${ALY_AI_API_KEY} # 调用阿里百炼的接口密钥值
+
 # 配置 Nacos
 nacos:
   config:
