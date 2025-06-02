@@ -11,11 +11,14 @@ import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.*;
-import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
+import cn.com.edtechhub.workcollaborativeimages.utils.ColorUtils;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
@@ -31,15 +34,15 @@ import org.jsoup.select.Elements;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.awt.*;
 import java.io.IOException;
-import java.security.PublicKey;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Limou
@@ -279,6 +282,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                 picture.setThumbnailUrl(uploadPictureResult.getThumbnailUrl());
                 picture.setOriginalUrl(uploadPictureResult.getOriginalUrl());
                 picture.setPicSize(uploadPictureResult.getPicSize());
+                picture.setPicColor(uploadPictureResult.getPicColor());
                 picture.setPicWidth(uploadPictureResult.getPicWidth());
                 picture.setPicHeight(uploadPictureResult.getPicHeight());
                 picture.setPicScale(uploadPictureResult.getPicScale());
@@ -388,6 +392,56 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         Picture oldPicture = this.pictureSearchById(pictureId);
         ThrowUtils.throwIf(oldPicture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该图片不存在无法寻找相似的图片");
         return SearchManager.getSimilarPictureList(oldPicture.getOriginalUrl());
+    }
+
+    @Override
+    @LogParams
+    public List<Picture> pictureGetSameColorPictureList(Long pictureId) {
+        // 检查参数
+        ThrowUtils.throwIf(pictureId == null, CodeBindMessageEnums.PARAMS_ERROR, "图片标识不能为空");
+        ThrowUtils.throwIf(pictureId <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识必须为正整数");
+
+        // 查找目标图
+        Picture targetPicture = pictureSearchById(pictureId);
+        ThrowUtils.throwIf(targetPicture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "不存在该图片");
+
+        // 尝试获取目标图的所属空间, 若为私有空间图片则需要校验权限, 否则只查询公有图库中的图片
+        Long spaceId = targetPicture.getSpaceId();
+        Long mySpaceId = spaceService.spaceGetCurrentLoginUserPrivateSpaces().getId();
+        PictureSearchRequest searchRequest = new PictureSearchRequest();
+        if (spaceId != null) {
+            log.debug("该图片具有私有空间为 {}", spaceId);
+            ThrowUtils.throwIf(!spaceId.equals(mySpaceId), CodeBindMessageEnums.NO_AUTH_ERROR, "无权限访问该空间");
+        } else {
+            searchRequest.setReviewStatus(PictureReviewStatusEnums.PASS.getCode());
+        }
+        searchRequest.setSpaceId(spaceId);
+
+        // 获取所有需要比对的图片页面
+        List<Picture> picturesList = this.pictureSearch(searchRequest).getRecords();
+        log.debug("获取到的图片页面为 {}", picturesList.stream().map(Picture::getId).collect(Collectors.toList()));
+
+        // 提前解析目标图颜色，避免每次都 decode
+        Color targetColor = Color.decode(targetPicture.getPicColor());
+
+        // 为每个图片计算相似度（缓存颜色避免重复 decode）
+        Map<Long, Double> similarityMap = new HashMap<>();
+        for (Picture picture : picturesList) {
+            if (picture.getId().equals(pictureId)) {
+                continue; // 跳过自己
+            }
+            Color contrastColor = Color.decode(picture.getPicColor());
+            double similarity = ColorUtils.calculateSimilarity(targetColor, contrastColor);
+            similarityMap.put(picture.getId(), similarity);
+            log.debug("计算相似度 pictureId={} vs pictureId={}, 相似度为 {}", targetPicture.getId(), picture.getId(), similarity);
+        }
+
+        // 过滤并排序（只排其他图片）
+        return picturesList.stream()
+                .filter(picture -> !picture.getId().equals(pictureId))
+                .sorted(Comparator.comparingDouble(p -> similarityMap.getOrDefault(p.getId(), Double.MAX_VALUE)))
+                .limit(12)
+                .collect(Collectors.toList());
     }
 
     /// 私有方法 ///

@@ -65,6 +65,11 @@ public class Picture implements Serializable {
     private Long picSize;
 
     /**
+     * 图片主色调
+     */
+    private String picColor;
+
+    /**
      * 图片宽度
      */
     private Integer picWidth;
@@ -157,6 +162,7 @@ public class Picture implements Serializable {
                 && (this.getCategory() == null ? other.getCategory() == null : this.getCategory().equals(other.getCategory()))
                 && (this.getTags() == null ? other.getTags() == null : this.getTags().equals(other.getTags()))
                 && (this.getPicSize() == null ? other.getPicSize() == null : this.getPicSize().equals(other.getPicSize()))
+                && (this.getPicColor() == null ? other.getPicColor() == null : this.getPicColor().equals(other.getPicColor()))
                 && (this.getPicWidth() == null ? other.getPicWidth() == null : this.getPicWidth().equals(other.getPicWidth()))
                 && (this.getPicHeight() == null ? other.getPicHeight() == null : this.getPicHeight().equals(other.getPicHeight()))
                 && (this.getPicScale() == null ? other.getPicScale() == null : this.getPicScale().equals(other.getPicScale()))
@@ -185,6 +191,7 @@ public class Picture implements Serializable {
         result = prime * result + ((getCategory() == null) ? 0 : getCategory().hashCode());
         result = prime * result + ((getTags() == null) ? 0 : getTags().hashCode());
         result = prime * result + ((getPicSize() == null) ? 0 : getPicSize().hashCode());
+        result = prime * result + ((getPicColor() == null) ? 0 : getPicColor().hashCode());
         result = prime * result + ((getPicWidth() == null) ? 0 : getPicWidth().hashCode());
         result = prime * result + ((getPicHeight() == null) ? 0 : getPicHeight().hashCode());
         result = prime * result + ((getPicScale() == null) ? 0 : getPicScale().hashCode());
@@ -215,6 +222,7 @@ public class Picture implements Serializable {
                 ", category=" + category +
                 ", tags=" + tags +
                 ", picSize=" + picSize +
+                ", picColor=" + picColor +
                 ", picWidth=" + picWidth +
                 ", picHeight=" + picHeight +
                 ", picScale=" + picScale +

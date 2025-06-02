@@ -101,6 +101,7 @@ public class CosManager {
             // 如果压缩成功就把压缩图返回, 否则就只返回原始图
             int picWidth = res ? compressedCiObject.getWidth() : imageInfo.getWidth(); // TODO: 如果下次改动了这段代码, 就提取进行重构
             int picHeight = res ? compressedCiObject.getHeight() : imageInfo.getHeight();
+            String ave = imageInfo.getAve();
             String url = cosClientConfig.getHost() + "/" + compressedCiObject.getKey();
             String thumbnailUrl = cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey();
             String originalUrl = cosClientConfig.getHost() + "/" + uploadPath;
@@ -110,6 +111,7 @@ public class CosManager {
             uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
             uploadPictureResult.setPicScale(NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue()); // 将浮点数数四舍五入后保留两位小数, 然后把高精度的类型转化为低精度类型
             uploadPictureResult.setPicSize(res ? compressedCiObject.getSize().longValue() : FileUtil.size(file));
+            uploadPictureResult.setPicColor(ave);
             uploadPictureResult.setUrl(res ? url : originalUrl);
             uploadPictureResult.setThumbnailUrl(res ? thumbnailUrl : null);
             uploadPictureResult.setOriginalUrl(originalUrl); // 把原始图也保留下来
@@ -161,6 +163,7 @@ public class CosManager {
             // 如果压缩成功就把压缩图返回, 否则就只放回原始图
             int picWidth = res ? compressedCiObject.getWidth() : imageInfo.getWidth();
             int picHeight = res ? compressedCiObject.getHeight() : imageInfo.getHeight();
+            String ave = imageInfo.getAve();
             String url = cosClientConfig.getHost() + "/" + compressedCiObject.getKey();
             String thumbnailUrl = cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey();
             String originalUrl = cosClientConfig.getHost() + "/" + uploadPath;
@@ -170,6 +173,7 @@ public class CosManager {
             uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
             uploadPictureResult.setPicScale(NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue()); // 将浮点数数四舍五入后保留两位小数, 然后把高精度的类型转化为低精度类型
             uploadPictureResult.setPicSize(res ? compressedCiObject.getSize().longValue() : FileUtil.size(file));
+            uploadPictureResult.setPicColor(ave);
             uploadPictureResult.setUrl(res ? url : originalUrl);
             uploadPictureResult.setThumbnailUrl(res ? thumbnailUrl : null);
             uploadPictureResult.setOriginalUrl(originalUrl); // 把原始图也保留下来

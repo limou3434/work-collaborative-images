@@ -72,6 +72,7 @@ CREATE TABLE `picture`
     `category`       VARCHAR(64)     NULL COMMENT '分类',
     `tags`           VARCHAR(512)    NULL COMMENT '标签(JSON 数组)',
     `pic_size`       BIGINT          NULL COMMENT '图片体积',
+    `pic_color`      VARCHAR(16)     NULL COMMENT '图片主色调',
     `pic_width`      INT             NULL COMMENT '图片宽度',
     `pic_height`     INT             NULL COMMENT '图片高度',
     `pic_scale`      DOUBLE          NULL COMMENT '图片宽高比例',

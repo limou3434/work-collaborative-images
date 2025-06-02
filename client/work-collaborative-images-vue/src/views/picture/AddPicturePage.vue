@@ -16,7 +16,6 @@ const router = useRouter()
 
 // 上传表单参数
 const pictureForm = reactive<WorkCollaborativeImagesAPI.pictureUploadParams>({
-  spaceId: 0,
   pictureName: '',
   pictureCategory: '',
   pictureIntroduction: '',
@@ -36,7 +35,7 @@ watch(joinPrivateSpace, async (val) => {
       joinPrivateSpace.value = false
     }
   } else {
-    pictureForm.spaceId = 0
+    pictureForm.spaceId = undefined
   }
 })
 

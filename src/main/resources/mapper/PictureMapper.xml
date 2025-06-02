@@ -14,6 +14,7 @@
         <result property="category" column="category"/>
         <result property="tags" column="tags"/>
         <result property="picSize" column="pic_size"/>
+        <result property="picColor" column="pic_color"/>
         <result property="picWidth" column="pic_width"/>
         <result property="picHeight" column="pic_height"/>
         <result property="picScale" column="pic_scale"/>
@@ -31,8 +32,8 @@
 
     <sql id="Base_Column_List">
         id
-        ,url,thumbnail_url, original_url,name,introduction,category,tags,
-        pic_size,pic_width,pic_height,pic_scale,pic_format,
+        ,url,thumbnail_url,original_url,name,introduction,category,tags,
+        pic_size,pic_color,pic_width,pic_height,pic_scale,pic_format,
         user_id,space_id,deleted,create_time,update_time
     </sql>
 </mapper>

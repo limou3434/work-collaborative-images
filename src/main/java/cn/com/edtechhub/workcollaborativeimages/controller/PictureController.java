@@ -93,9 +93,9 @@ import java.util.List;
  * 3. 拓展功能
  * 还有一些额外的拓展功能我们也可以实现
  * a. 多样搜索, 组合多个图片关键字做关键字索引
- * b. 以图搜图, 可以使用百度的 API 临时顶一顶
- * c. 以色搜图
- * d. 智能编辑
+ * b. 以图搜图, 可以使用百度的 API 临时顶一顶, 后续再来更换
+ * c. 以色搜图, 在用户上传图片的瞬间就把主色调提取出来, 然后使用相似度算法进行匹配(欧几里得距离法、余弦相似度、曼哈顿距离、Jaccard 相似度、平均颜色差异、哈希算法、色调饱和亮度差异)
+ * d. 智能编辑,
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
@@ -202,6 +202,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
             @RequestParam(value = "pictureFileUrl", required = false) String pictureFileUrl,
             @RequestPart(value = "pictureFile", required = false) MultipartFile multipartFile
     ) {
+        System.out.println(spaceId);
         // 如果有传递空间标识就需要检查该用户是否有权限上传图片
         if (spaceId != null) {
             ThrowUtils.throwIf(spaceType == null, CodeBindMessageEnums.PARAMS_ERROR, "必须指定用户上传的是私有空间还是协作空间");
@@ -290,8 +291,14 @@ public class PictureController { // 通常控制层有服务层中的所有方�
 
     @Operation(summary = "利用某个图片的唯一标识来搜索相似的图片")
     @PostMapping("/search/picture")
-    public BaseResponse<List<ImageSearchResult>> searchPictureByPicture(@RequestBody PictureSimilarSearchRequest pictureSimilarSearchRequest) {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetSimilarPictureList(pictureSimilarSearchRequest.getPictureId()));
+    public BaseResponse<List<ImageSearchResult>> pictureSearchPicture(@RequestBody PictureSearchPictureRequest pictureSearchPictureRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureGetSimilarPictureList(pictureSearchPictureRequest.getPictureId()));
+    }
+
+    @Operation(summary = "利用某个图片的唯一标识来搜索同色的图片")
+    @PostMapping("/search/color")
+    public BaseResponse<List<PictureVO>> pictureSearchColor(@RequestBody PictureSearchColorRequest pictureSearchColorRequest) {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, PictureVO.removeSensitiveData(pictureService.pictureGetSameColorPictureList(pictureSearchColorRequest.getPictureId())));
     }
 
 }

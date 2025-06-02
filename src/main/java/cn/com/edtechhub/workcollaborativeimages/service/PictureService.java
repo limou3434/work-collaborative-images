@@ -8,6 +8,7 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.Pic
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;
@@ -86,8 +87,13 @@ public interface PictureService extends IService<Picture> {
     List<String> pictureGetCategorys();
 
     /**
-     * 获取类似图片服务
+     * 获取相似图片服务
      */
     List<ImageSearchResult> pictureGetSimilarPictureList(Long pictureId);
+
+    /**
+     * 获取同色图片服务
+     */
+    List<Picture> pictureGetSameColorPictureList(Long pictureId);
 
 }

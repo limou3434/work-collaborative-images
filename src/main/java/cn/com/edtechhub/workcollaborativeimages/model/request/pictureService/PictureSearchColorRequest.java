@@ -8,12 +8,11 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true) // 实现链式调用
-public class PictureSimilarSearchRequest extends PageRequest implements Serializable {
+public class PictureSearchColorRequest extends PageRequest implements Serializable {
 
     /**
      * 图片 id
