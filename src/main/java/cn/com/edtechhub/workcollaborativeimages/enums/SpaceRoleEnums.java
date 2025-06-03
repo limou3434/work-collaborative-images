@@ -14,17 +14,17 @@ public enum SpaceRoleEnums { // 由于效率问题, 这里手动缓存了数据�
     /**
      * 封号角色枚举实例
      */
-    BAN_ROLE(0, "viewer"),
+    VIEWER_ROLE(0, "viewer"),
 
     /**
      * 用户角色枚举实例
      */
-    USER_ROLE(1, "editor"),
+    EDITOR_ROLE(1, "editor"),
 
     /**
      * 管理角色枚举实例
      */
-    ADMIN_ROLE(2, "manger");
+    MANGER_ROLE(2, "manger");
 
     /**
      * 角色码值

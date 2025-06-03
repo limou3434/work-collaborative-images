@@ -64,14 +64,8 @@ public interface SpaceService extends IService<Space> {
     List<SpaceLevelInfo> spaceGetLevelInfo();
 
     /**
-     * 获取当前登陆用户的专属私有空间服务
+     * 获取当前登陆用户的专属空间(私有空间/专属空间)服务
      */
-    Space spaceGetCurrentLoginUserSelfSpaces();
-
-    /**
-     * 获取当前登陆用户的所有协作空间服务
-     */
-    Page<Space> spaceGetCurrentLoginUserCollaborativeSpacesList();
-
+    Space spaceGetCurrentLoginUserSelfSpace(Integer spaceType);
 
 }

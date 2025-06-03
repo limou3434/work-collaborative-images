@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService;
 
+import cn.com.edtechhub.workcollaborativeimages.constant.SpaceUserConstant;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -32,9 +33,9 @@ public class SpaceUserAddRequest implements Serializable {
     private Long userId;
 
     /**
-     * 空间角色：viewer/editor/admin
+     * 空间角色: 0-viewer 1-editor 2-manger
      */
-    private String spaceRole;
+    private Integer spaceRole = SpaceUserConstant.DEFAULT_ROLE;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;

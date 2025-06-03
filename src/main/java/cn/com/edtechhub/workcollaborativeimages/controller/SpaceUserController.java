@@ -6,6 +6,7 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.S
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.vo.SpaceUserVO;
 import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceUserService;
@@ -14,10 +15,7 @@ import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -72,5 +70,55 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     public BaseResponse<Page<SpaceUser>> adminSpaceUserSearch(@RequestBody SpaceUserSearchRequest spaceUserSearchRequest) {
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceUserService.spaceUserSearch(spaceUserSearchRequest)); // 这个接口只是获取用户 id 不用获取详细的用户信息
     }
+
+    /// 普通接口 ///
+//    @Operation(summary = "在属于当前登录用户的协作空间中添加用户网络接口")
+//    @SaCheckLogin
+//    @PostMapping("/add_user")
+//    public BaseResponse<Long> spaceUserAddUser(@RequestBody SpaceUserAddUserRequest spaceUserAddUserRequest) {
+//        // 只能在自己的协作空间中操作
+//        long id = spaceUserService.spaceUserAdd();
+//        return TheResult.success(, );
+//    }
+//
+//    @Operation(summary = "在属于当前登录用户的协作空间中移除用户网络接口")
+//    @SaCheckLogin
+//    @PostMapping("/delete_user")
+//    public BaseResponse<Boolean> spaceUserDeleteUser(@RequestBody) {
+//        // 只能在自己的协作空间中操作
+//        return null;
+//    }
+//
+//    @Operation(summary = "在属于当前登录用户的协作空间中编辑权限网络接口")
+//    @SaCheckLogin
+//    @PostMapping("/edit_user")
+//    public BaseResponse<SpaceUserVO> spaceUserEditUser(@RequestBody) {
+//        // 只能在自己的协作空间中操作
+//        return null;
+//    }
+//
+//    @Operation(summary = "在属于当前登录用户的协作空间中获取单个用户网络接口")
+//    @SaCheckLogin
+//    @GetMapping("/get/user")
+//    public BaseResponse<SpaceUserVO> spaceUserGetUser(Long userId) {
+//        // 只能在自己的协作空间中操作
+//        return null;
+//    }
+//
+//    @Operation(summary = "在属于当前登录用户的协作空间中获取用户页面网络接口")
+//    @SaCheckLogin
+//    @GetMapping("/get/user_page")
+//    public BaseResponse<Page<SpaceUserVO>> spaceListUserPage(Long spaceId) {
+//        // 只能在自己的协作空间中操作
+//        return null;
+//    }
+//
+//    @Operation(summary = "查询当前登录用户已经加入的协作空间列表网络接口")
+//    @SaCheckLogin
+//    @GetMapping("/get/my_collaborative_space")
+//    public BaseResponse<Page<SpaceUserVO>> pageMyCollaborativeSpace() {
+//        // 只能获取和自己相关的协作空间
+//        return null;
+//    }
 
 }

@@ -1,21 +1,18 @@
 package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
-import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.mapper.SpaceUserMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
-import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserUpdateRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceUserService;
+import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -43,24 +40,48 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     @Resource
     TransactionTemplate transactionTemplate;
 
+    /**
+     * 注入空间服务依赖
+     */
+    @Resource
+    SpaceService spaceService;
+
+    /**
+     * 注入用户服务依赖
+     */
+    @Resource
+    UserService userService;
+
     /// 服务实现 ///
 
     /**
      * 空间用户关联添加服务
      */
     public SpaceUser spaceUserAdd(SpaceUserAddRequest spaceUserAddRequest) {
+        // 检查参数
         ThrowUtils.throwIf(spaceUserAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
+
         Long spaceId = spaceUserAddRequest.getSpaceId();
-        Long userId = spaceUserAddRequest.getUserId();
         ThrowUtils.throwIf(
                 spaceId == null,
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "空间标识不能为空"
         );
+        ThrowUtils.throwIf(spaceService.spaceSearchById(spaceId) == null, CodeBindMessageEnums.PARAMS_ERROR, "该空间不存在");
+
+        Long userId = spaceUserAddRequest.getUserId();
         ThrowUtils.throwIf(
                 userId == null,
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "用户标识不能为空"
+        );
+        ThrowUtils.throwIf(userService.userSearchById(userId) == null, CodeBindMessageEnums.PARAMS_ERROR, "该用户不存在");
+
+        Integer spaceUserRole = spaceUserAddRequest.getSpaceRole();
+        ThrowUtils.throwIf(
+                spaceUserRole != null && SpaceRoleEnums.getEnums(spaceUserRole) == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "不存在该空间角色"
         );
 
         // 服务实现
@@ -112,6 +133,27 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
                 id <= 0,
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "标识不得非法, 必须是正整数"
+        );
+
+        Long spaceId = spaceUserUpdateRequest.getSpaceId();
+        ThrowUtils.throwIf(
+                spaceId != null && spaceService.spaceSearchById(spaceId) == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "该空间不存在"
+        );
+
+        Long userId = spaceUserUpdateRequest.getUserId();
+        ThrowUtils.throwIf(
+                userId != null && userService.userSearchById(userId) == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "该用户不存在"
+        );
+
+        Integer spaceUserRole = spaceUserUpdateRequest.getSpaceRole();
+        ThrowUtils.throwIf(
+                spaceUserRole != null && SpaceRoleEnums.getEnums(spaceUserRole) == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "不存在该空间角色"
         );
 
         // 服务实现
@@ -170,7 +212,6 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         );
         return this.getById(id);
     }
-
 
     /// 私有方法 ///
 

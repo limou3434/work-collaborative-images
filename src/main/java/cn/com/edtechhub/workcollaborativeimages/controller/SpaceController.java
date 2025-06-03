@@ -105,7 +105,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @PostMapping("/create")
     public BaseResponse<SpaceVO> spaceCreateSelf(@RequestBody SpaceCreateSelfRequest spaceCreateSelfRequest) {
         // 如果当前登录用户是否已经具有私有空间则不允许创建
-        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpaces() != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个私有空间");
+        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()) != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个私有空间");
 
         // 先创建请求实例
         var spaceAddRequest = new SpaceAddRequest();
@@ -125,10 +125,10 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @PostMapping("/destroy")
     public BaseResponse<Boolean> spaceDestroySelf() {
         // 如果用户本来就没有私有空间就不允许删除
-        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpaces() == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有私有空间");
+        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有私有空间");
 
         // 销毁用户的私有空间
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceDelete(new SpaceDeleteRequest().setId(spaceService.spaceGetCurrentLoginUserSelfSpaces().getId())));
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceDelete(new SpaceDeleteRequest().setId(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()).getId())));
     }
 
     @Operation(summary = "编辑用户空间(私有空间/协作空间)网络接口")
@@ -136,7 +136,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @PostMapping("/edit")
     public BaseResponse<SpaceVO> spaceEditSelf(@RequestBody SpaceEditRequestSelf spaceEditRequest) {
         // 如果用户本来就没有私有空间就不允许修改
-        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpaces() == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有私有空间");
+        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有私有空间");
 
         // 先创建请求实例
         var spaceUpdateRequest = new SpaceUpdateRequest();
@@ -151,10 +151,10 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @PostMapping("/query")
     public BaseResponse<SpaceVO> spaceQuerySelf() {
         // 如果用户本来就没有私有空间就不允许查询
-        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpaces() == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有私有空间");
+        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有私有空间");
 
         // 查询私有空间信息
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceGetCurrentLoginUserSelfSpaces()));
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode())));
     }
 
     @Operation(summary = "获取空间等级描述网络接口")

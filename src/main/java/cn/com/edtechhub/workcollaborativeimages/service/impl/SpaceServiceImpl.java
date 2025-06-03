@@ -15,8 +15,6 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.Space
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceUpdateRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.vo.SpaceVO;
-import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
@@ -27,7 +25,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -312,28 +309,21 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
     @Override
     @LogParams
-    public Space spaceGetCurrentLoginUserSelfSpaces() {
+    public Space spaceGetCurrentLoginUserSelfSpace(Integer spaceType) {
+        // 如果是查询私有空间
         Long userId = userService.userGetCurrentLonginUserId();
-        List<Space> spaceList = this.spaceSearch(
-                new SpaceSearchRequest()
-                        .setUserId(userId)
-                        .setType(SpaceTypeEnums.SELF.getCode())
-        ).getRecords();
+        var spaceSearchRequest = new SpaceSearchRequest().setUserId(userId);
+        if (SpaceTypeEnums.getEnums(spaceType) == SpaceTypeEnums.SELF) {
+            spaceSearchRequest.setType(SpaceTypeEnums.SELF.getCode());
+        } else if (SpaceTypeEnums.getEnums(spaceType) == SpaceTypeEnums.COLLABORATIVE) {
+            spaceSearchRequest.setType(SpaceTypeEnums.COLLABORATIVE.getCode());
+        } else {
+            ThrowUtils.throwIf(true, CodeBindMessageEnums.PARAMS_ERROR, "不支持的空间类型, 只能获取私有空间和共享空间");
+        }
+
+        List<Space> spaceList = this.spaceSearch(spaceSearchRequest).getRecords();
         if (spaceList.isEmpty()) return null;
         return spaceList.get(0);
-    }
-
-    @Override
-    @LogParams
-    public Page<Space> spaceGetCurrentLoginUserCollaborativeSpacesList() {
-        Long userId = userService.userGetCurrentLonginUserId();
-        Page<Space> spacePage = this.spaceSearch(
-                new SpaceSearchRequest()
-                        .setUserId(userId)
-                        .setType(SpaceTypeEnums.COLLABORATIVE.getCode())
-        );
-        if (spacePage.getRecords().isEmpty()) return null;
-        return spacePage;
     }
 
     /// 私有方法 ///

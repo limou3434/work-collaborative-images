@@ -1,6 +1,5 @@
 package cn.com.edtechhub.workcollaborativeimages.model.vo;
 
-import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -10,7 +9,6 @@ import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
