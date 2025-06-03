@@ -11,7 +11,12 @@ public class SpaceCreateSelfRequest implements Serializable {
     /**
      * 空间名称
      */
-    private String name = SpaceConstant.DEFAULT_NAME;
+    private String spaceName = SpaceConstant.DEFAULT_NAME;
+
+    /**
+     * 空间类型
+     */
+    private Integer spaceType = SpaceConstant.DEFAULT_TYPE;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;

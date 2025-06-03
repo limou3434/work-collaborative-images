@@ -357,7 +357,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return lambdaQueryWrapper;
     }
 
-
     /**
      * 检查账号是否符合要求
      */

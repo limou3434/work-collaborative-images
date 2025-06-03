@@ -15,6 +15,8 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.Space
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.vo.SpaceVO;
+import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
@@ -25,6 +27,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -132,8 +135,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
             List<Picture> pictureList = picturePage.getRecords();
             if (pictureList.isEmpty()) {
                 log.debug("该空间下没有图片资源, 无需清空");
-            }
-            else {
+            } else {
                 log.debug("该空间下存在图片资源, 需要清空");
                 // 这里调用远端图库删除图片
                 for (Picture pic : pictureList) {
@@ -229,6 +231,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         return this.getById(id);
     }
 
+    @Override
+    @LogParams
     public void spaceCheckAndIncreaseCurrent(Picture picture) {
         if (picture.getSpaceId() == null) {
             log.debug("该图片属于公有图库无需改动额度");
@@ -254,6 +258,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         log.debug("额度充足");
     }
 
+    @Override
+    @LogParams
     public void spaceCheckAndDecreaseCurrent(Picture picture) {
         if (picture.getSpaceId() == null) {
             log.debug("该图片属于公有图库无需改动额度");
@@ -288,6 +294,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         log.debug("额度充足");
     }
 
+    @Override
+    @LogParams
     public List<SpaceLevelInfo> spaceGetLevelInfo() {
         return Arrays
                 .stream(SpaceLevelEnums.values()) // 获取所有枚举
@@ -302,11 +310,30 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 );
     }
 
-    public Space spaceGetCurrentLoginUserPrivateSpaces() {
+    @Override
+    @LogParams
+    public Space spaceGetCurrentLoginUserSelfSpaces() {
         Long userId = userService.userGetCurrentLonginUserId();
-        List<Space> spaceList = this.spaceSearch(new SpaceSearchRequest().setUserId(userId).setType(SpaceTypeEnums.SELF.getCode())).getRecords();
+        List<Space> spaceList = this.spaceSearch(
+                new SpaceSearchRequest()
+                        .setUserId(userId)
+                        .setType(SpaceTypeEnums.SELF.getCode())
+        ).getRecords();
         if (spaceList.isEmpty()) return null;
         return spaceList.get(0);
+    }
+
+    @Override
+    @LogParams
+    public Page<Space> spaceGetCurrentLoginUserCollaborativeSpacesList() {
+        Long userId = userService.userGetCurrentLonginUserId();
+        Page<Space> spacePage = this.spaceSearch(
+                new SpaceSearchRequest()
+                        .setUserId(userId)
+                        .setType(SpaceTypeEnums.COLLABORATIVE.getCode())
+        );
+        if (spacePage.getRecords().isEmpty()) return null;
+        return spacePage;
     }
 
     /// 私有方法 ///

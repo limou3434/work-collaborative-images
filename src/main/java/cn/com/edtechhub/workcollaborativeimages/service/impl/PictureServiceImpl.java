@@ -415,7 +415,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
         // 尝试获取目标图的所属空间, 若为私有空间图片则需要校验权限, 否则只查询公有图库中的图片
         Long spaceId = targetPicture.getSpaceId();
-        Long mySpaceId = spaceService.spaceGetCurrentLoginUserPrivateSpaces().getId();
+        Long mySpaceId = spaceService.spaceGetCurrentLoginUserSelfSpaces().getId();
         PictureSearchRequest searchRequest = new PictureSearchRequest();
         if (spaceId != null) {
             log.debug("该图片具有私有空间为 {}", spaceId);

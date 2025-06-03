@@ -26,7 +26,7 @@ public interface SpaceConstant {
     /**
      * 默认类型
      */
-    Integer DEFAULT_TYPE = SpaceTypeEnums.PUBLIC.getCode();
+    Integer DEFAULT_TYPE = SpaceTypeEnums.SELF.getCode();
 
     /**
      * 默认等级

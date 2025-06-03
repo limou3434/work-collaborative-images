@@ -121,6 +121,21 @@ CREATE TABLE IF NOT EXISTS `space`
 ) COLLATE = `utf8mb4_unicode_ci` COMMENT '空间表'
 ;
 
+CREATE TABLE IF NOT EXISTS `space_user`
+(
+    `id`          BIGINT UNSIGNED AUTO_INCREMENT COMMENT '本空间用户关联唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)',
+    `space_id`    BIGINT    NOT NULL COMMENT '空间标识',
+    `user_id`     BIGINT    NOT NULL COMMENT '用户标识',
+    `space_role`  TINYINT        DEFAULT 0 NULL COMMENT '空间角色 0-viewer 1-editor 2-manager',
+    `create_time` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间(受时区影响)',
+    `update_time` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间(受时区影响)',
+    PRIMARY KEY (`id`) COMMENT '主键',
+    UNIQUE KEY `uk_space_id_user_id` (`space_id`, `user_id`), -- 唯一索引，用户在一个空间中只能有一个角色
+    INDEX `idx_space_id` (`space_id`),                       -- 提升按空间查询的性能
+    INDEX `idx_user_id` (`user_id`)                          -- 提升按用户查询的性能
+) COLLATE = `utf8mb4_unicode_ci` COMMENT '空间用户关联表'
+;
+
 -- 项目数据
 INSERT INTO `user_role` (`id`, `name`)
 VALUES (-1, '封号'),
