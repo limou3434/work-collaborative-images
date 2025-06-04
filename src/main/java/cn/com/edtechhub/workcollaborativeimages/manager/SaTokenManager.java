@@ -2,7 +2,6 @@ package cn.com.edtechhub.workcollaborativeimages.manager;
 
 import cn.com.edtechhub.workcollaborativeimages.auth.SpaceUserAuthContext;
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
@@ -79,15 +78,17 @@ public class SaTokenManager implements StpInterface {
 
         // 返回权限码值集合
         SpaceUserAuthContext authContext = this.getSpaceUserAuthContextByRequest(); // 利用上下文来获取重要的 id 值以支持某些接口可以在某些情况下绕过权限码值集合的判断
-        if (isAllFieldsNull(authContext)) { // 如果上下文字段全为 NULL 则直接允许该接口使用, 在本项目中就是指允许公共图库中的接口操作
+        if (isAllFieldsNull(authContext)) {
             return spaceUserAuthManager.getPermissionsByRole(SpaceUserRoleEnums.MANGER_ROLE);
-        } else { // 否则说明就是协作空间中使用了接口
-            User user = (User) StpUtil.getSessionByLoginId(loginId).get(UserConstant.USER_LOGIN_STATE); // 直接从会话缓存中获取用户的所有信息
-            List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(new SpaceUserSearchRequest().setUserId(user.getId())).getRecords();
-            if (spaceUserList != null) {
-                Integer spaceRole = spaceUserList.get(0).getSpaceRole();
-                list = spaceUserAuthManager.getPermissionsByRole(Objects.requireNonNull(SpaceUserRoleEnums.getEnums(spaceRole)));
-            }
+        }
+        // TODO: 如果是协作空间相关的请求
+        // TODO: 如果是空间用户关联接口则需要根据空间用户关联记录来判断是否有权限
+        // TODO: 如果是图片接口则需要根据空间用户关联记录来判断是否有权限
+        User user = (User) StpUtil.getSessionByLoginId(loginId).get(UserConstant.USER_LOGIN_STATE); // 直接从会话缓存中获取用户的所有信息
+        List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(new SpaceUserSearchRequest().setUserId(user.getId())).getRecords();
+        if (spaceUserList != null) {
+            Integer spaceRole = spaceUserList.get(0).getSpaceRole();
+            list = spaceUserAuthManager.getPermissionsByRole(Objects.requireNonNull(SpaceUserRoleEnums.getEnums(spaceRole)));
         }
         log.debug("本次调用用户携带的的权限码值集合为 {}", list);
         return list;
@@ -113,6 +114,27 @@ public class SaTokenManager implements StpInterface {
             log.debug("这是一个 GET 请求, 正在尝试获取 SpaceUserAuthContext");
             Map<String, String> paramMap = ServletUtil.getParamMap(request);
             spaceUserAuthContext = BeanUtil.toBean(paramMap, SpaceUserAuthContext.class);
+        }
+        Long id = spaceUserAuthContext.getId();
+        if (ObjUtil.isNotNull(id)) { // 根据请求路径区分 id 字段的含义
+            log.debug("尝试填充临时的 id 值");
+            String requestUri = request.getRequestURI(); // 获取当前 HTTP 请求的 URI
+            String partUri = StrUtil.removePrefix(requestUri , "/"); // 去除 URL 最前面的 "/"
+            String moduleName = StrUtil.subBefore(partUri, "/", false);
+            log.debug("本次请求的 URL 提取过程为 {} -> {} -> {}", requestUri, partUri, moduleName);
+            log.debug("本次上下中的临时 id 是 {} 接口中的请求 id", moduleName);
+            switch (moduleName) {
+                case "picture":
+                    spaceUserAuthContext.setPictureId(id);
+                    break;
+                case "space":
+                    spaceUserAuthContext.setSpaceId(id);
+                    break;
+                case "space_user":
+                    spaceUserAuthContext.setSpaceUserId(id);
+                    break;
+                default:
+            }
         }
         log.debug("最终得到的上下文请求 SpaceUserAuthContext 为 {}", spaceUserAuthContext);
         return spaceUserAuthContext;

@@ -20,6 +20,7 @@ import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.PageUtils;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
@@ -201,11 +202,11 @@ public class PictureController { // 通常控制层有服务层中的所有方�
 
     @Operation(summary = "用户上传图片网络接口")
     @SaCheckLogin
+    @SaCheckPermission({"picture:upload"})
     @PostMapping("/upload")
     public BaseResponse<PictureVO> pictureUpload(
             @RequestParam(value = "pictureId", required = false) Long pictureId,
             @RequestParam(value = "spaceId", required = false) Long spaceId,
-            @RequestParam(value = "spaceType", required = false) Integer spaceType,
             @RequestParam(value = "pictureCategory", required = false, defaultValue = PictureConstant.DEFAULT_CATEGORT) String pictureCategory,
             @RequestParam(value = "pictureName", required = false, defaultValue = PictureConstant.DEFAULT_NAME) String pictureName,
             @RequestParam(value = "pictureIntroduction", required = false, defaultValue = PictureConstant.DEFAULT_INTRODUCTION) String pictureIntroduction,
@@ -216,19 +217,17 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         System.out.println(spaceId);
         // 如果有传递空间标识就需要检查该用户是否有权限上传图片
         if (spaceId != null) {
-            ThrowUtils.throwIf(spaceType == null, CodeBindMessageEnums.PARAMS_ERROR, "必须指定用户上传的是私有空间还是协作空间");
-
             Space space = spaceService.spaceSearchById(spaceId); // 获取空间
             ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "不存在该私有空间无法上传图片");
 
-            if (SpaceTypeEnums.getEnums(spaceType) == SpaceTypeEnums.SELF) {
+            if (SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.SELF) {
                 log.debug("该图片需要上传到私有空间");
                 Space selfSpace = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.SELF); // 获取私有空间
-                ThrowUtils.throwIf(space.getId() != selfSpace.getId(), CodeBindMessageEnums.NOT_FOUND_ERROR, "该私有空间不属于您");
-            } else if (SpaceTypeEnums.getEnums(spaceType) == SpaceTypeEnums.COLLABORATIVE) {
+                ThrowUtils.throwIf(space.getUserId() != userService.userGetCurrentLonginUserId(), CodeBindMessageEnums.NOT_FOUND_ERROR, "该私有空间不属于您");
+            } else if (SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.COLLABORATIVE) {
                 log.debug("该图片需要上传到协作空间");
                 Space collaborativeSpace = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.SELF); // 获取协作空间
-                // TODO: 协作空间逻辑
+                // TODO: 利用权限码值集合来判断能否上传到协作空间就可以, 这里无需判断
             } else {
                 ThrowUtils.throwIf(true, CodeBindMessageEnums.PARAMS_ERROR, "未知的空间类型");
             }
@@ -241,6 +240,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
 
     @Operation(summary = "根据指定标识销毁图片网络接口")
     @SaCheckLogin
+    @SaCheckPermission({"picture:delete"})
     @PostMapping("/destroy")
     public BaseResponse<Boolean> pictureDestroy(@RequestBody PictureDestroyRequest pictureDestroyRequest) {
         // 如果图片有所属空间则需要检查该用户是否有权限上传图片
@@ -258,8 +258,9 @@ public class PictureController { // 通常控制层有服务层中的所有方�
 
     @Operation(summary = "查找公有图库或私有空间中图片的网络接口")
     @SaCheckLogin
+    @SaCheckPermission({"picture:view"})
+    // @CacheSearchOptimization(ttl = 60)
     @PostMapping("/query")
-//    @CacheSearchOptimization(ttl = 60)
     public BaseResponse<Page<PictureVO>> pictureQuery(@RequestBody PictureQueryRequest pictureQueryRequest) {
         // 先把搜索实例请求构建出来
         var pictureSearchRequest = new PictureSearchRequest();

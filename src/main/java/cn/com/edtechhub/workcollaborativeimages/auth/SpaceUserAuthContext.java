@@ -13,8 +13,23 @@ import lombok.extern.slf4j.Slf4j;
 public class SpaceUserAuthContext {
 
     /**
-     * 空间类型
+     * 临时标识(不同请求的 id 可能不同, 但是这个 id 最终的目的是为了填充后面的某个 id)
      */
-    private Integer spaceType;
+    private Long id;
+
+    /**
+     * 图片 ID
+     */
+    private Long pictureId;
+
+    /**
+     * 空间 ID
+     */
+    private Long spaceId;
+
+    /**
+     * 空间用户 ID
+     */
+    private Long spaceUserId;
 
 }
