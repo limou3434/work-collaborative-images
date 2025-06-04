@@ -67,7 +67,11 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "空间标识不能为空"
         );
-        ThrowUtils.throwIf(spaceService.spaceSearchById(spaceId) == null, CodeBindMessageEnums.PARAMS_ERROR, "该空间不存在");
+        ThrowUtils.throwIf(
+                spaceService.spaceSearchById(spaceId) == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "该空间不存在"
+        );
 
         Long userId = spaceUserAddRequest.getUserId();
         ThrowUtils.throwIf(
@@ -75,13 +79,22 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "用户标识不能为空"
         );
-        ThrowUtils.throwIf(userService.userSearchById(userId) == null, CodeBindMessageEnums.PARAMS_ERROR, "该用户不存在");
+        ThrowUtils.throwIf(
+                userService.userSearchById(userId) == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "该用户不存在"
+        );
 
         Integer spaceUserRole = spaceUserAddRequest.getSpaceRole();
         ThrowUtils.throwIf(
-                spaceUserRole != null && SpaceRoleEnums.getEnums(spaceUserRole) == null,
+                spaceUserRole == null,
                 CodeBindMessageEnums.PARAMS_ERROR,
-                "不存在该空间角色"
+                "空间权限不能为空"
+        );
+        ThrowUtils.throwIf(
+                SpaceRoleEnums.getEnums(spaceUserRole) == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "该角色不存在"
         );
 
         // 服务实现

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class SpaceCreateSelfRequest implements Serializable {
+public class SpaceCreateRequest implements Serializable {
 
     /**
      * 空间名称

@@ -256,6 +256,14 @@
                     <includeSystemScope>true</includeSystemScope> <!-- 将作用域为 system 的依赖也包含在打包中 -->
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>16</source>
+                    <target>16</target>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

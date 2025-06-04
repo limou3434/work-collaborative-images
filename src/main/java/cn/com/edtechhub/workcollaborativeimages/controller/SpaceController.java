@@ -17,7 +17,6 @@ import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 空间控制层
@@ -35,7 +35,7 @@ import java.util.List;
  * (3) 公共图库没有额度限制, 私有空间会有图片大小、数量等方面的限制, 从而管理用户的存储资源和空间配额, 而公共图库完全不受这些限制
  * (4) 公有图库需要经过审核, 但是私有图库没有审核的说法, 只需要是拥有者就可以看到
  * (5) space 私有图库最终会在远端 COS 中使用 space 目录来存储, 和公有图库中的 public 不同
- *
+ * <p>
  * 2. 协作空间
  * 协作空间是上述两个功能的衍生, 需要实现以下目标:
  * (1) 数据关联表及管理服务
@@ -43,6 +43,7 @@ import java.util.List;
  * a. 基于 用户、角色、权限 三个对象的角色访问控制, 一个用户可以有多个角色, 一个角色可以有多个权限
  * b. 因此正常来说标准实现需要 5 张表: 用户表、角色表、权限表、用户角色关联表、角色权限关联表
  * (3) 使用 Apache ShardingSphere 框架实现动态分表, 对高级用户的协作空间进行单独表维护
+ *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @RestController // 返回值默认为 json 类型
@@ -100,61 +101,50 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
 
     /// 普通接口 ///
 
-    @Operation(summary = "创建用户空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "创建用户专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/create")
-    public BaseResponse<SpaceVO> spaceCreateSelf(@RequestBody SpaceCreateSelfRequest spaceCreateSelfRequest) {
-        // 如果当前登录用户是否已经具有私有空间则不允许创建
-        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()) != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个私有空间");
-
-        // 先创建请求实例
-        var spaceAddRequest = new SpaceAddRequest();
-        BeanUtils.copyProperties(spaceCreateSelfRequest, spaceAddRequest);
-
-        // 创建私有空间
-        spaceAddRequest
-                .setUserId(userService.userGetCurrentLonginUserId()) // 强制用户只能创建属于自己的私有空间
-                .setLevel(SpaceLevelEnums.COMMON.getCode()) // 强制用户只能得到普通版本私有空间
-                .setType(SpaceTypeEnums.SELF.getCode()) // 设置类型为私有空间类型
-        ;
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceAdd(spaceAddRequest)));
+    public BaseResponse<SpaceVO> spaceCreate(@RequestBody SpaceCreateRequest spaceCreateRequest) {
+        Integer spaceType = spaceCreateRequest.getSpaceType();
+        SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(spaceType);
+        ThrowUtils.throwIf(spaceTypeEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "不存在该空间类型");
+        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums) != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个" + spaceTypeEnums.getDescription());
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceSetCurrentLoginUserSpace(spaceTypeEnums, SpaceLevelEnums.COMMON, spaceCreateRequest.getSpaceName())));
     }
 
-    @Operation(summary = "销毁私有空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "销毁用户专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/destroy")
-    public BaseResponse<Boolean> spaceDestroySelf() {
-        // 如果用户本来就没有私有空间就不允许删除
-        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有私有空间");
-
-        // 销毁用户的私有空间
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceDelete(new SpaceDeleteRequest().setId(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()).getId())));
+    public BaseResponse<Boolean> spaceDestroy(@RequestBody SpaceDestroyRequest spaceDestroyRequest) {
+        Integer spaceType = spaceDestroyRequest.getSpaceType();
+        SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(spaceType);
+        ThrowUtils.throwIf(spaceTypeEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "不存在该空间类型");
+        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有" + spaceTypeEnums.getDescription() + ", 无需做删除操作");
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceDelete(new SpaceDeleteRequest().setId(spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums).getId())));
     }
 
-    @Operation(summary = "编辑用户空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "编辑用户专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/edit")
-    public BaseResponse<SpaceVO> spaceEditSelf(@RequestBody SpaceEditRequestSelf spaceEditRequest) {
-        // 如果用户本来就没有私有空间就不允许修改
-        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有私有空间");
-
-        // 先创建请求实例
-        var spaceUpdateRequest = new SpaceUpdateRequest();
-        BeanUtils.copyProperties(spaceEditRequest, spaceUpdateRequest);
-
-        // 修改空间的信息
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceUpdate(spaceUpdateRequest)));
+    public BaseResponse<SpaceVO> spaceEdit(@RequestBody SpaceEditRequest spaceEditRequest) {
+        Long spaceId = spaceEditRequest.getId();
+        Space space = spaceService.spaceSearchById(spaceId);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.PARAMS_ERROR, "指定标识的空间不存在");
+        ThrowUtils.throwIf(!Objects.equals(space.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该空间的所属者无法修改该空间");
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceUpdate(new SpaceUpdateRequest().setId(spaceId).setName(spaceEditRequest.getName()))));
+        // TODO: 目前最多就修改个名字, 后续可以添加修改空间类型或是修改空间等级, 或者是提供捐赠公共空间模式
     }
 
-    @Operation(summary = "查找用户空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "查找用户专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/query")
-    public BaseResponse<SpaceVO> spaceQuerySelf() {
-        // 如果用户本来就没有私有空间就不允许查询
-        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有私有空间");
-
-        // 查询私有空间信息
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode())));
+    public BaseResponse<SpaceVO> spaceQuery(@RequestBody SpaceQueryRequest spaceEditRequest) {
+        Integer spaceType = spaceEditRequest.getSpaceType();
+        SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(spaceType);
+        ThrowUtils.throwIf(spaceTypeEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "不存在该空间类型");
+        Space space = spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有" + spaceTypeEnums.getDescription() + ", 无需做查看操作");
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(space));
     }
 
     @Operation(summary = "获取空间等级描述网络接口")

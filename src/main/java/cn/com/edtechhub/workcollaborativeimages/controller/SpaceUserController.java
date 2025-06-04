@@ -1,15 +1,22 @@
 package cn.com.edtechhub.workcollaborativeimages.controller;
 
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserDeleteRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserSearchRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.*;
+import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.SpaceUserVO;
+import cn.com.edtechhub.workcollaborativeimages.model.vo.SpaceVO;
+import cn.com.edtechhub.workcollaborativeimages.model.vo.UserVO;
 import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;
+import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceUserService;
+import cn.com.edtechhub.workcollaborativeimages.service.UserService;
+import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -18,6 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 空间用户关联控制层
@@ -36,6 +45,18 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
      */
     @Resource
     private SpaceUserService spaceUserService;
+
+    /**
+     * 注入空间服务依赖
+     */
+    @Resource
+    private SpaceService spaceService;
+
+    /**
+     * 注入用户服务依赖
+     */
+    @Resource
+    private UserService userService;
 
     /// 管理接口 ///
 
@@ -72,53 +93,166 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     }
 
     /// 普通接口 ///
-//    @Operation(summary = "在属于当前登录用户的协作空间中添加用户网络接口")
-//    @SaCheckLogin
-//    @PostMapping("/add_user")
-//    public BaseResponse<Long> spaceUserAddUser(@RequestBody SpaceUserAddUserRequest spaceUserAddUserRequest) {
-//        // 只能在自己的协作空间中操作
-//        long id = spaceUserService.spaceUserAdd();
-//        return TheResult.success(, );
-//    }
-//
-//    @Operation(summary = "在属于当前登录用户的协作空间中移除用户网络接口")
-//    @SaCheckLogin
-//    @PostMapping("/delete_user")
-//    public BaseResponse<Boolean> spaceUserDeleteUser(@RequestBody) {
-//        // 只能在自己的协作空间中操作
-//        return null;
-//    }
-//
-//    @Operation(summary = "在属于当前登录用户的协作空间中编辑权限网络接口")
-//    @SaCheckLogin
-//    @PostMapping("/edit_user")
-//    public BaseResponse<SpaceUserVO> spaceUserEditUser(@RequestBody) {
-//        // 只能在自己的协作空间中操作
-//        return null;
-//    }
-//
-//    @Operation(summary = "在属于当前登录用户的协作空间中获取单个用户网络接口")
-//    @SaCheckLogin
-//    @GetMapping("/get/user")
-//    public BaseResponse<SpaceUserVO> spaceUserGetUser(Long userId) {
-//        // 只能在自己的协作空间中操作
-//        return null;
-//    }
-//
-//    @Operation(summary = "在属于当前登录用户的协作空间中获取用户页面网络接口")
-//    @SaCheckLogin
-//    @GetMapping("/get/user_page")
-//    public BaseResponse<Page<SpaceUserVO>> spaceListUserPage(Long spaceId) {
-//        // 只能在自己的协作空间中操作
-//        return null;
-//    }
-//
-//    @Operation(summary = "查询当前登录用户已经加入的协作空间列表网络接口")
-//    @SaCheckLogin
-//    @GetMapping("/get/my_collaborative_space")
-//    public BaseResponse<Page<SpaceUserVO>> pageMyCollaborativeSpace() {
-//        // 只能获取和自己相关的协作空间
-//        return null;
-//    }
+    @Operation(summary = "在当前登录用户的协作空间中移进用户网络接口")
+    @SaCheckLogin
+    @PostMapping("/move/in")
+    public BaseResponse<SpaceUser> spaceUserMoveIn(@RequestBody SpaceUserMoveInRequest spaceUserMoveInRequest) {
+        Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做添加成员操作");
+        return TheResult.success(
+                CodeBindMessageEnums.SUCCESS,
+                spaceUserService.spaceUserAdd(
+                        new SpaceUserAddRequest()
+                                .setSpaceId(space.getId())
+                                .setUserId(spaceUserMoveInRequest.getUserId())
+                                .setSpaceRole(spaceUserMoveInRequest.getSpaceRole())
+                )
+        );
+    }
+
+    @Operation(summary = "在当前登录用户的协作空间中移出用户网络接口")
+    @SaCheckLogin
+    @PostMapping("/move/out")
+    public BaseResponse<Boolean> spaceUserMoveOut(@RequestBody SpaceUserMoveOutRequest spaceUserMoveOutRequest) {
+        Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做移除成员操作");
+        List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
+                new SpaceUserSearchRequest()
+                        .setSpaceId(space.getId())
+                        .setUserId(spaceUserMoveOutRequest.getUserId())
+        ).getRecords();
+        ThrowUtils.throwIf(spaceUserList.isEmpty(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户不存在于您的协作空间中, 无需移除");
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceUserService.spaceUserDelete(new SpaceUserDeleteRequest().setId(spaceUserList.get(0).getId())));
+    }
+
+    @Operation(summary = "在当前登录用户的协作空间中编辑权限网络接口")
+    @SaCheckLogin
+    @PostMapping("/edit")
+    public BaseResponse<SpaceUserVO> spaceUserEdit(@RequestBody SpaceUserEditRequest spaceUserEditRequest) {
+        Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做编辑成员操作");
+        List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
+                new SpaceUserSearchRequest()
+                        .setSpaceId(space.getId())
+                        .setUserId(spaceUserEditRequest.getUserId())
+        ).getRecords();
+        ThrowUtils.throwIf(spaceUserList.isEmpty(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户不存在于您的协作空间中, 无需编辑");
+        return TheResult.success(
+                CodeBindMessageEnums.SUCCESS,
+                SpaceUserVO.removeSensitiveData(
+                        spaceUserService.spaceUserUpdate(
+                                new SpaceUserUpdateRequest()
+                                        .setId(spaceUserList.get(0).getId())
+                                        .setSpaceRole(spaceUserEditRequest.getSpaceRole()
+                                        ))
+                )
+        );
+    }
+
+    @Operation(summary = "在当前登录用户的协作空间中获取单个用户网络接口")
+    @SaCheckLogin
+    @GetMapping("/get/user")
+    public BaseResponse<UserVO> spaceUserGetUser(Long userId) {
+        User user = userService.userSearchById(userId);
+        ThrowUtils.throwIf(user == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该用户不存在");
+
+        Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做查询成员操作");
+        List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
+                new SpaceUserSearchRequest()
+                        .setSpaceId(space.getId())
+                        .setUserId(userId)
+        ).getRecords();
+        ThrowUtils.throwIf(spaceUserList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "该用户不是协作空间的成员");
+
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, UserVO.removeSensitiveData(user));
+    }
+
+    @Operation(summary = "在当前登录用户的协作空间中获取用户页面网络接口")
+    @SaCheckLogin
+    @GetMapping("/page/user")
+    public BaseResponse<Page<UserVO>> spaceUserPageUser() {
+        // 获取协作空间
+        Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做查询成员操作");
+
+        // 查询协作空间下所有成员记录
+        List<SpaceUser> spaceUserList = Optional.ofNullable(
+                        spaceUserService.spaceUserSearch(new SpaceUserSearchRequest().setSpaceId(space.getId()))
+                                .getRecords())
+                .orElse(Collections.emptyList());
+
+        if (spaceUserList.isEmpty()) {
+            return TheResult.success(CodeBindMessageEnums.SUCCESS, new Page<>());
+        }
+
+        // 构造用户ID到空间角色的映射
+        Map<Long, Integer> userRoleMap = spaceUserList.stream()
+                .collect(Collectors.toMap(SpaceUser::getUserId, SpaceUser::getSpaceRole));
+
+        Set<Long> userIdSet = userRoleMap.keySet();
+
+        // 查询所有用户, 并过滤出属于该空间的用户
+        Page<User> userPage = userService.userSearch(new UserSearchRequest());
+        List<UserVO> filteredList = userPage.getRecords().stream()
+                .filter(user -> userIdSet.contains(user.getId()))
+                .map(user -> {
+                    UserVO vo = UserVO.removeSensitiveData(user);
+                    // 把空间角色设置进去，假设UserVO有setSpaceRole方法
+                    vo.setSpaceRole(userRoleMap.get(user.getId()));
+                    return vo;
+                })
+                .toList();
+
+        // 构造分页对象
+        Page<UserVO> voPage = new Page<>();
+        voPage.setCurrent(userPage.getCurrent());
+        voPage.setSize(userPage.getSize());
+        voPage.setTotal(filteredList.size());
+        voPage.setRecords(filteredList);
+
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, voPage);
+    }
+
+    @Operation(summary = "查询当前登录用户已经加入的协作空间列表网络接口")
+    @SaCheckLogin
+    @GetMapping("/page/my_collaborative_space")
+    public BaseResponse<Page<SpaceVO>> spaceUserPageMyCollaborativeSpace() {
+        // 查询当前登录用户的用户空间关联记录
+        List<SpaceUser> spaceUserList = Optional
+                .ofNullable(spaceUserService.spaceUserSearch(new SpaceUserSearchRequest().setUserId(userService.userGetCurrentLonginUserId())).getRecords())
+                .orElse(Collections.emptyList());
+
+        // 获取这些关联记录中记载的空间标识
+        Set<Long> joinedSpaceIdSet = spaceUserList
+                .stream()
+                .map(SpaceUser::getSpaceId)
+                .collect(Collectors.toSet());
+
+        // 如果提前获取空则直接放回空页面
+        if (joinedSpaceIdSet.isEmpty()) {
+            return TheResult.success(CodeBindMessageEnums.SUCCESS, new Page<>());
+        }
+
+        // 查询所有空间分页数据
+        Page<Space> spacePage = spaceService.spaceSearch(new SpaceSearchRequest());
+        List<Space> spaceList = Optional.ofNullable(spacePage.getRecords()).orElse(Collections.emptyList());
+
+        // 过滤符合条件的空间
+        List<SpaceVO> matchedList = spaceList
+                .stream()
+                .filter(space -> joinedSpaceIdSet.contains(space.getId()))
+                .filter(space -> Objects.equals(space.getType(), SpaceTypeEnums.COLLABORATIVE.getCode()))
+                .map(SpaceVO::removeSensitiveData)
+                .collect(Collectors.toList());
+
+        // 构造新的分页结果
+        Page<SpaceVO> resultPage = new Page<>();
+        resultPage.setRecords(matchedList);
+        resultPage.setTotal(matchedList.size());
+        resultPage.setCurrent(spacePage.getCurrent());
+        resultPage.setSize(spacePage.getSize());
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, resultPage);
+    }
 
 }

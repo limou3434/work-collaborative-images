@@ -30,10 +30,13 @@ public class SaTokenManager implements StpInterface {
     private UserService userService;
 
     /**
-     * 返回一个账号所拥有的权限码值集合(暂时没有用到)
+     * 返回一个账号所拥有的权限码值集合
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) { // loginType 可以用来区分不同客户端
+        // 直接从会话缓存中获取用户的所有信息
+        User user = (User) StpUtil.getSessionByLoginId(loginId).get(UserConstant.USER_LOGIN_STATE);
+
         return new ArrayList<>();
     }
 

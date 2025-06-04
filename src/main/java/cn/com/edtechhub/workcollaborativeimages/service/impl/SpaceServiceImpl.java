@@ -184,7 +184,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         return transactionTemplate.execute(status -> {
             // 创建实例
             Space space = SpaceUpdateRequest.copyProperties2Entity(spaceUpdateRequest);
-            this.fillSpaceBySpaceLevel(space);
+            if (spaceUpdateRequest.getLevel() != null) this.fillSpaceBySpaceLevel(space);
             // 操作数据库
             this.updateById(space);
             return this.getById(id);
@@ -309,21 +309,50 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
     @Override
     @LogParams
-    public Space spaceGetCurrentLoginUserSelfSpace(Integer spaceType) {
-        // 如果是查询私有空间
-        Long userId = userService.userGetCurrentLonginUserId();
-        var spaceSearchRequest = new SpaceSearchRequest().setUserId(userId);
-        if (SpaceTypeEnums.getEnums(spaceType) == SpaceTypeEnums.SELF) {
-            spaceSearchRequest.setType(SpaceTypeEnums.SELF.getCode());
-        } else if (SpaceTypeEnums.getEnums(spaceType) == SpaceTypeEnums.COLLABORATIVE) {
-            spaceSearchRequest.setType(SpaceTypeEnums.COLLABORATIVE.getCode());
-        } else {
+    public Space spaceGetCurrentLoginUserSpace(SpaceTypeEnums spaceType) {
+        // 检查参数
+        ThrowUtils.throwIf(spaceType == null, CodeBindMessageEnums.PARAMS_ERROR, "查询空间的类型不能为空");
+
+        // 设置查询请求体
+        var spaceSearchRequest = new SpaceSearchRequest().setUserId(userService.userGetCurrentLonginUserId());
+        if (spaceType == SpaceTypeEnums.SELF) { // 如果是查询私有空间
+            log.debug("查询当前登录用户的私有空间");
+            spaceSearchRequest.setType(spaceType.getCode());
+        } else if (spaceType == SpaceTypeEnums.COLLABORATIVE) { // 如果是查询协作空间
+            log.debug("查询当前登录用户的协作空间");
+            spaceSearchRequest.setType(spaceType.getCode());
+        } else { // 如果是其他类型
             ThrowUtils.throwIf(true, CodeBindMessageEnums.PARAMS_ERROR, "不支持的空间类型, 只能获取私有空间和共享空间");
         }
 
+        // 查询对应的空间
         List<Space> spaceList = this.spaceSearch(spaceSearchRequest).getRecords();
-        if (spaceList.isEmpty()) return null;
-        return spaceList.get(0);
+        if (spaceList.isEmpty()) {
+            log.debug("不存在对应的专属空间");
+            return null;
+        }
+        Space space = spaceList.get(0);
+        log.debug("查询到的专属空间为 {}", space);
+        return space;
+    }
+
+    @Override
+    @LogParams
+    public Space spaceSetCurrentLoginUserSpace(SpaceTypeEnums spaceType, SpaceLevelEnums spaceLevel, String spaceName) {
+        // 检查参数
+        log.debug("用户需要查看 {}", spaceType);
+        ThrowUtils.throwIf(spaceType == null, CodeBindMessageEnums.PARAMS_ERROR, "添加空间的类型不能为空");
+        ThrowUtils.throwIf(this.spaceGetCurrentLoginUserSpace(spaceType) != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "一个用户不允许拥有多个" + spaceType.getDescription());
+
+        // 先创建请求实例
+        var spaceAddRequest = new SpaceAddRequest()
+                .setType(spaceType.getCode())
+                .setLevel(spaceLevel.getCode())
+                .setUserId(userService.userGetCurrentLonginUserId())
+                .setName(spaceName);
+
+        // 添加新的空间
+        return this.spaceAdd(spaceAddRequest);
     }
 
     /// 私有方法 ///

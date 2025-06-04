@@ -17,7 +17,7 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true) // 实现链式调用
-public class SpaceUserSearchRequest  extends PageRequest implements Serializable {
+public class SpaceUserSearchRequest extends PageRequest implements Serializable {
 
     /**
      * 本空间用户关联唯一标识(业务层需要考虑使用雪花算法用户标识的唯一性)

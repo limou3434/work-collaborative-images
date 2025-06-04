@@ -1,5 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.spaceService;
 
+import cn.com.edtechhub.workcollaborativeimages.constant.SpaceConstant;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
@@ -7,18 +8,12 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class SpaceEditRequestSelf implements Serializable {
+public class SpaceQueryRequest implements Serializable {
 
     /**
-     * id
+     * 空间类型, 用来指定修改用户的哪一个专属空间
      */
-    @JsonSerialize(using = ToStringSerializer.class) // 避免 id 过大前端出错
-    private Long id;
-
-    /**
-     * 空间名称
-     */
-    private String name;
+    private Integer spaceType = SpaceConstant.DEFAULT_TYPE;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;

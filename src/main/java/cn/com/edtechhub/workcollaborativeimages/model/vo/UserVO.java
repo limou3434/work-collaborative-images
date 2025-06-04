@@ -106,6 +106,11 @@ public class UserVO implements Serializable {
     private Integer level;
 
     /**
+     * 用户空间权限(0-viewer 1-editor 2-manger)
+     */
+    private Integer spaceRole;
+
+    /**
      * 用户性别(业务层需知 0 为未知, 1 为男性, 2 为女性)
      */
     private Integer gender;

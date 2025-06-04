@@ -223,11 +223,11 @@ public class PictureController { // 通常控制层有服务层中的所有方�
 
             if (SpaceTypeEnums.getEnums(spaceType) == SpaceTypeEnums.SELF) {
                 log.debug("该图片需要上传到私有空间");
-                Space selfSpace = spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()); // 获取私有空间
+                Space selfSpace = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.SELF); // 获取私有空间
                 ThrowUtils.throwIf(space.getId() != selfSpace.getId(), CodeBindMessageEnums.NOT_FOUND_ERROR, "该私有空间不属于您");
             } else if (SpaceTypeEnums.getEnums(spaceType) == SpaceTypeEnums.COLLABORATIVE) {
                 log.debug("该图片需要上传到协作空间");
-                Space collaborativeSpace = spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()); // 获取协作空间
+                Space collaborativeSpace = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.SELF); // 获取协作空间
                 // TODO: 协作空间逻辑
             } else {
                 ThrowUtils.throwIf(true, CodeBindMessageEnums.PARAMS_ERROR, "未知的空间类型");
@@ -285,7 +285,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         if (spaceId == null) { // 用户只能看到审核通过的公共图库图片
             pictureSearchRequest.setReviewStatus(PictureReviewStatusEnums.PASS.getCode());
         } else { // 用户只能看到自己私有空间的图片并且无需走审核逻辑
-            ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSelfSpace(SpaceTypeEnums.SELF.getCode()).getId() != spaceId, CodeBindMessageEnums.PARAMS_ERROR, "您没有访问该私有空间的权力");
+            ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.SELF).getId() != spaceId, CodeBindMessageEnums.PARAMS_ERROR, "您没有访问该私有空间的权力");
             pictureSearchRequest.setSpaceId(spaceId);
         }
 
