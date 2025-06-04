@@ -6,6 +6,7 @@ import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceCreateRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.*;
@@ -270,7 +271,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     @SaCheckLogin
     @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/test")
-    public BaseResponse<String> test(@RequestBody SpaceDeleteRequest spaceDeleteRequest) {
+    public BaseResponse<String> test(@RequestBody SpaceCreateRequest r) {
         return TheResult.notyet("允许");
     }
 
