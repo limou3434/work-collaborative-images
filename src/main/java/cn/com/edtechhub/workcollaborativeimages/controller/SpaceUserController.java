@@ -5,6 +5,8 @@ import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDestroyRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureQueryRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceCreateRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceDeleteRequest;
@@ -270,11 +272,35 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         return TheResult.success(CodeBindMessageEnums.SUCCESS, resultPage);
     }
 
-    @Operation(summary = "测试接口")
+    @Operation(summary = "测试接口1")
+    @SaCheckLogin
+    @SaCheckPermission({"spaceUser:manager"})
+    @PostMapping("/test1")
+    public BaseResponse<String> test1(@RequestParam(value = "spaceId", required = false) Long spaceId) {
+        return TheResult.notyet("允许");
+    }
+
+    @Operation(summary = "测试接口2")
+    @SaCheckLogin
+    @SaCheckPermission({"spaceUser:manager"})
+    @PostMapping("/test2")
+    public BaseResponse<String> test2(@RequestParam(value = "pictureId", required = false) Long pictureId) {
+        return TheResult.notyet("允许");
+    }
+
+    @Operation(summary = "测试接口3")
+    @SaCheckLogin
+    @SaCheckPermission({"spaceUser:manager"})
+    @PostMapping("/test3")
+    public BaseResponse<String> test3(@RequestBody PictureDestroyRequest pictureDestroyRequest) {
+        return TheResult.notyet("允许");
+    }
+
+    @Operation(summary = "测试接口4")
     @SaCheckLogin
     @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/test")
-    public BaseResponse<String> test(@RequestBody SpaceCreateRequest r) {
+    public BaseResponse<String> test4(@RequestBody PictureQueryRequest pictureQueryRequest) {
         return TheResult.notyet("允许");
     }
 

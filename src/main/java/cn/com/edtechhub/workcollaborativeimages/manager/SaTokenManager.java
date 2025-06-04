@@ -78,10 +78,10 @@ public class SaTokenManager implements StpInterface {
 
         // 返回权限码值集合
         SpaceUserAuthContext authContext = this.getSpaceUserAuthContextByRequest(); // 利用上下文来获取重要的 id 值以支持某些接口可以在某些情况下绕过权限码值集合的判断
-        if (isAllFieldsNull(authContext)) {
+        if (isAllFieldsNull(authContext)) { // 如果上下文什么都没有则直接放开所有权限
             return spaceUserAuthManager.getPermissionsByRole(SpaceUserRoleEnums.MANGER_ROLE);
         }
-        // TODO: 如果是协作空间相关的请求
+        // TODO: 如果是和协作空间相关的请求(有 pictureId 就查看这个图片是不是协作图库的图片, 有 spaceId 就查看这个图库是不是协作图库, 有 spaceUserId 就查看该用户的权限是否允许对关联表进行操作)
         // TODO: 如果是空间用户关联接口则需要根据空间用户关联记录来判断是否有权限
         // TODO: 如果是图片接口则需要根据空间用户关联记录来判断是否有权限
         User user = (User) StpUtil.getSessionByLoginId(loginId).get(UserConstant.USER_LOGIN_STATE); // 直接从会话缓存中获取用户的所有信息
