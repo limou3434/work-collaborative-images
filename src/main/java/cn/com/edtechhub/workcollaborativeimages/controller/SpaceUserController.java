@@ -18,6 +18,7 @@ import cn.com.edtechhub.workcollaborativeimages.service.SpaceUserService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
@@ -95,6 +96,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     /// 普通接口 ///
     @Operation(summary = "在当前登录用户的协作空间中移进用户网络接口")
     @SaCheckLogin
+    @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/move/in")
     public BaseResponse<SpaceUser> spaceUserMoveIn(@RequestBody SpaceUserMoveInRequest spaceUserMoveInRequest) {
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
@@ -112,6 +114,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
 
     @Operation(summary = "在当前登录用户的协作空间中移出用户网络接口")
     @SaCheckLogin
+    @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/move/out")
     public BaseResponse<Boolean> spaceUserMoveOut(@RequestBody SpaceUserMoveOutRequest spaceUserMoveOutRequest) {
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
@@ -127,14 +130,21 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
 
     @Operation(summary = "在当前登录用户的协作空间中编辑权限网络接口")
     @SaCheckLogin
+    @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/edit")
     public BaseResponse<SpaceUserVO> spaceUserEdit(@RequestBody SpaceUserEditRequest spaceUserEditRequest) {
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
         ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做编辑成员操作");
+
+        Long userId = spaceUserEditRequest.getUserId();
+        ThrowUtils.throwIf(userId == null, CodeBindMessageEnums.PARAMS_ERROR, "该用户不存在");
+
+        Integer spaceRole = spaceUserEditRequest.getSpaceRole();
+
         List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
                 new SpaceUserSearchRequest()
                         .setSpaceId(space.getId())
-                        .setUserId(spaceUserEditRequest.getUserId())
+                        .setUserId(userId)
         ).getRecords();
         ThrowUtils.throwIf(spaceUserList.isEmpty(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户不存在于您的协作空间中, 无需编辑");
         return TheResult.success(
@@ -143,9 +153,11 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
                         spaceUserService.spaceUserUpdate(
                                 new SpaceUserUpdateRequest()
                                         .setId(spaceUserList.get(0).getId())
-                                        .setSpaceRole(spaceUserEditRequest.getSpaceRole()
-                                        ))
+                                        .setSpaceRole(spaceRole)
+                        )
                 )
+                .setSpaceVO(SpaceVO.removeSensitiveData(space))
+                .setUserVO(UserVO.removeSensitiveData(userService.userSearchById(userId)).setSpaceRole(spaceRole))
         );
     }
 

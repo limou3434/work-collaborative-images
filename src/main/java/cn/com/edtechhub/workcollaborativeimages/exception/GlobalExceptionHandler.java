@@ -57,21 +57,21 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 权限认证异常处理方法(权限码值认证, 由 Sa-token 框架自己来触发)
-     */
-    @ExceptionHandler(NotPermissionException.class)
-    public BaseResponse<?> notPermissionExceptionHandler() {
-        log.warn("触发权限认证异常处理方法(权限码值认证)");
-        return TheResult.error(CodeBindMessageEnums.NO_AUTH_ERROR, "用户当前权限不允许使用该功能");
-    }
-
-    /**
      * 权限认证异常处理方法(角色标识认证, 由 Sa-token 框架自己来触发)
      */
     @ExceptionHandler(NotRoleException.class)
     public BaseResponse<?> notRoleExceptionHandler() {
         log.warn("触发权限认证异常处理方法(角色标识认证)");
         return TheResult.error(CodeBindMessageEnums.NO_ROLE_ERROR, "用户当前角色不允许使用该功能");
+    }
+
+    /**
+     * 权限认证异常处理方法(权限码值认证, 由 Sa-token 框架自己来触发)
+     */
+    @ExceptionHandler(NotPermissionException.class)
+    public BaseResponse<?> notPermissionExceptionHandler() {
+        log.warn("触发权限认证异常处理方法(权限码值认证)");
+        return TheResult.error(CodeBindMessageEnums.NO_AUTH_ERROR, "用户当前权限不允许使用该功能, 请申请权限");
     }
 
     /**

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Data
+@Accessors(chain = true) // 实现链式调用
 public class PictureVO implements Serializable {
 
     /**

@@ -1,19 +1,18 @@
 package cn.com.edtechhub.workcollaborativeimages.model.vo;
 
-import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
-import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Data
+@Accessors(chain = true) // 实现链式调用
 public class SpaceVO implements Serializable {
     /**
      * id

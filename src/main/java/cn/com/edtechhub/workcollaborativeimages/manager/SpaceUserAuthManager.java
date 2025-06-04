@@ -41,6 +41,7 @@ public class SpaceUserAuthManager {
      * 根据角色获取对应的权限列表
      */
     public List<String> getPermissionsByRole(SpaceUserRoleEnums spaceUserRoleEnums) {
+        ThrowUtils.throwIf(spaceUserRoleEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "空间角色枚举参数不能为空");
         String spaceUserRole = spaceUserRoleEnums.getDescription();
         ThrowUtils.throwIf(StrUtil.isBlank(spaceUserRole), CodeBindMessageEnums.SYSTEM_ERROR, "空间角色非法");
         // 找到匹配的角色

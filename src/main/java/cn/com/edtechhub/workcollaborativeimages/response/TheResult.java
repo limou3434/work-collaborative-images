@@ -29,7 +29,10 @@ public class TheResult {
      * 构造等待开发响应体
      */
     public static <T> BaseResponse<T> notyet() {
-        return new BaseResponse<>(-1, "该接口尚在开发中...", null);
+        return new BaseResponse<>(-1, "该接口尚在开发中", null);
+    }
+    public static <T> BaseResponse<T> notyet(String test) {
+        return new BaseResponse<>(-1, "该接口尚在开发中, 测试文本: " + test, null);
     }
 
 }
