@@ -50,7 +50,7 @@
       "key": "manager",
       "name": "管理者",
       "permissions": [
-        "spaceUser:manage",
+        "spaceUser:manager",
         "picture:upload",
         "picture:delete",
         "picture:edit",

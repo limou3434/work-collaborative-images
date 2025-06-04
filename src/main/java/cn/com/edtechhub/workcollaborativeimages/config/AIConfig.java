@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.annotation.PostConstruct;
 
 /**
- * 对象存储配置
+ * AI 配置
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
@@ -16,7 +16,7 @@ import javax.annotation.PostConstruct;
 @ConfigurationProperties(prefix = "aliyunai")
 @Data
 @Slf4j
-public class AiConfig {
+public class AIConfig {
 
     /**
      * 密钥的值

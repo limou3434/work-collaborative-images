@@ -1,6 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.manager;
 
-import cn.com.edtechhub.workcollaborativeimages.config.AiConfig;
+import cn.com.edtechhub.workcollaborativeimages.config.AIConfig;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.CreateOutPaintingTaskRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.CreateOutPaintingTaskResponse;
@@ -25,11 +25,11 @@ import javax.annotation.Resource;
  */
 @Slf4j
 @Component
-public class AiManager {
+public class AIManager {
 
     // 读取配置文件
     @Resource
-    AiConfig aiConfig;
+    AIConfig aiConfig;
 
     // 创建扩图任务地址
     public static final String CREATE_OUT_PAINTING_TASK_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/out-painting";

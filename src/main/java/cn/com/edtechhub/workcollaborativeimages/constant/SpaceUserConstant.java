@@ -1,8 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.constant;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceRoleEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnums;
 
 /**
  * 空间常量
@@ -14,6 +12,6 @@ public interface SpaceUserConstant {
     /**
      * 默认角色
      */
-    Integer DEFAULT_ROLE = SpaceRoleEnums.VIEWER_ROLE.getCode();
+    Integer DEFAULT_ROLE = SpaceUserRoleEnums.VIEWER_ROLE.getCode();
 
 }

@@ -1,0 +1,24 @@
+package cn.com.edtechhub.workcollaborativeimages.auth;
+
+import lombok.Data;
+
+import java.io.Serializable;
+import java.util.List;
+
+@Data
+public class SpaceUserAuth implements Serializable {
+
+    /**
+     * 权限列表
+     */
+    private List<SpaceUserPermission> permissions;
+
+    /**
+     * 角色列表
+     */
+    private List<SpaceUserRole> roles;
+
+    /// 序列化字段 ///
+    private static final long serialVersionUID = 1L;
+
+}

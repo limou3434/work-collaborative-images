@@ -1,6 +1,5 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceRoleEnums;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;

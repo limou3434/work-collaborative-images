@@ -6,7 +6,7 @@ import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
-import cn.com.edtechhub.workcollaborativeimages.manager.AiManager;
+import cn.com.edtechhub.workcollaborativeimages.manager.AIManager;
 import cn.com.edtechhub.workcollaborativeimages.manager.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.manager.SearchManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
@@ -74,7 +74,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
      * 注入 AI 管理器依赖
      */
     @Resource
-    AiManager aiManager;
+    AIManager aiManager;
 
     /**
      * 注入用户服务依赖
