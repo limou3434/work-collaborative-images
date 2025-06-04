@@ -5,6 +5,8 @@ import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.*;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
@@ -96,7 +98,6 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     /// 普通接口 ///
     @Operation(summary = "在当前登录用户的协作空间中移进用户网络接口")
     @SaCheckLogin
-    @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/move/in")
     public BaseResponse<SpaceUser> spaceUserMoveIn(@RequestBody SpaceUserMoveInRequest spaceUserMoveInRequest) {
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
@@ -114,7 +115,6 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
 
     @Operation(summary = "在当前登录用户的协作空间中移出用户网络接口")
     @SaCheckLogin
-    @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/move/out")
     public BaseResponse<Boolean> spaceUserMoveOut(@RequestBody SpaceUserMoveOutRequest spaceUserMoveOutRequest) {
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
@@ -130,7 +130,6 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
 
     @Operation(summary = "在当前登录用户的协作空间中编辑权限网络接口")
     @SaCheckLogin
-    @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/edit")
     public BaseResponse<SpaceUserVO> spaceUserEdit(@RequestBody SpaceUserEditRequest spaceUserEditRequest) {
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
@@ -265,6 +264,14 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         resultPage.setCurrent(spacePage.getCurrent());
         resultPage.setSize(spacePage.getSize());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, resultPage);
+    }
+
+    @Operation(summary = "测试")
+    @SaCheckLogin
+    @SaCheckPermission({"spaceUser:manager"})
+    @PostMapping("/test")
+    public BaseResponse<String> test(@RequestBody SpaceDeleteRequest spaceDeleteRequest) {
+        return TheResult.notyet("允许");
     }
 
 }
