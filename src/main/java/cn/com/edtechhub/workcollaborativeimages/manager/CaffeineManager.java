@@ -8,6 +8,11 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 线程缓存管理器
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
 @Component
 @Slf4j
 public class CaffeineManager {
