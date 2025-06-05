@@ -4,6 +4,7 @@ import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.SpaceConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.mapper.SpaceMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
@@ -15,8 +16,10 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.Space
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceUpdateRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserAddRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
+import cn.com.edtechhub.workcollaborativeimages.service.SpaceUserService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.hutool.core.util.StrUtil;
@@ -64,6 +67,13 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @Resource
     @Lazy
     PictureService pictureService;
+
+    /**
+     * 注入空间用户服务依赖
+     */
+    @Resource
+    @Lazy
+    SpaceUserService spaceUserService;
 
     @Override
     @LogParams
@@ -345,14 +355,28 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         ThrowUtils.throwIf(this.spaceGetCurrentLoginUserSpace(spaceType) != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "一个用户不允许拥有多个" + spaceType.getDescription());
 
         // 先创建请求实例
+        Long userId = userService.userGetCurrentLonginUserId();
         var spaceAddRequest = new SpaceAddRequest()
                 .setType(spaceType.getCode())
                 .setLevel(spaceLevel.getCode())
-                .setUserId(userService.userGetCurrentLonginUserId())
+                .setUserId(userId)
                 .setName(spaceName);
 
+        // 添加新的专属空间
+        Space space = this.spaceAdd(spaceAddRequest);
+
+        // 特殊情况下协作空间需要添加当前登录用户为管理员
+        if (SpaceTypeEnums.getEnums(spaceType.getCode()) == SpaceTypeEnums.COLLABORATIVE) {
+            spaceUserService.spaceUserAdd(
+                    new SpaceUserAddRequest()
+                            .setSpaceId(space.getId())
+                            .setUserId(userId)
+                            .setSpaceRole(SpaceUserRoleEnums.MANGER_ROLE.getCode())
+            );
+        }
+
         // 添加新的空间
-        return this.spaceAdd(spaceAddRequest);
+        return space;
     }
 
     /// 私有方法 ///

@@ -7,9 +7,6 @@ import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDestroyRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureQueryRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceCreateRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.*;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
@@ -106,13 +103,24 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     public BaseResponse<SpaceUser> spaceUserMoveIn(@RequestBody SpaceUserMoveInRequest spaceUserMoveInRequest) {
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
         ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做添加成员操作");
+
+        Long spaceId = spaceUserMoveInRequest.getSpaceId(); // TODO: 这么做的主要目的是方便后续拓展多个协作空间
+        ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
+        ThrowUtils.throwIf(!Objects.equals(spaceId, space.getId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户无法操作该协作空间, 因为该协作空间不属于您");
+
+        Long userId = spaceUserMoveInRequest.getUserId();
+        ThrowUtils.throwIf(userService.userSearchById(userId) == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的用户不存在无法操作");
+        ThrowUtils.throwIf(Objects.equals(userId, space.getUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不允许对协作空间的拥有者进行操作");
+
+        Integer spaceRole = spaceUserMoveInRequest.getSpaceRole();
+
         return TheResult.success(
                 CodeBindMessageEnums.SUCCESS,
                 spaceUserService.spaceUserAdd(
                         new SpaceUserAddRequest()
-                                .setSpaceId(space.getId())
-                                .setUserId(spaceUserMoveInRequest.getUserId())
-                                .setSpaceRole(spaceUserMoveInRequest.getSpaceRole())
+                                .setSpaceId(spaceId)
+                                .setUserId(userId)
+                                .setSpaceRole(spaceRole)
                 )
         );
     }
@@ -124,10 +132,19 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     public BaseResponse<Boolean> spaceUserMoveOut(@RequestBody SpaceUserMoveOutRequest spaceUserMoveOutRequest) {
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
         ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做移除成员操作");
+
+        Long spaceId = spaceUserMoveOutRequest.getSpaceId(); // TODO: 这么做的主要目的是方便后续拓展多个协作空间
+        ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
+        ThrowUtils.throwIf(!Objects.equals(spaceId, space.getId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户无法操作该协作空间, 因为该协作空间不属于您");
+
+        Long userId = spaceUserMoveOutRequest.getUserId();
+        ThrowUtils.throwIf(userService.userSearchById(userId) == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的用户不存在无法操作");
+        ThrowUtils.throwIf(Objects.equals(userId, space.getUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不允许对协作空间的拥有者进行操作");
+
         List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
                 new SpaceUserSearchRequest()
-                        .setSpaceId(space.getId())
-                        .setUserId(spaceUserMoveOutRequest.getUserId())
+                        .setSpaceId(spaceId)
+                        .setUserId(userId)
         ).getRecords();
         ThrowUtils.throwIf(spaceUserList.isEmpty(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户不存在于您的协作空间中, 无需移除");
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceUserService.spaceUserDelete(new SpaceUserDeleteRequest().setId(spaceUserList.get(0).getId())));
@@ -139,30 +156,37 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     @PostMapping("/edit")
     public BaseResponse<SpaceUserVO> spaceUserEdit(@RequestBody SpaceUserEditRequest spaceUserEditRequest) {
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
-        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做编辑成员操作");
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前用户没有协作空间无法做编辑成员操作");
+
+        Long spaceId = spaceUserEditRequest.getSpaceId(); // TODO: 这么做的主要目的是方便后续拓展多个协作空间
+        ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
+        ThrowUtils.throwIf(!Objects.equals(spaceId, space.getId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户无法操作该协作空间, 因为该协作空间不属于您");
 
         Long userId = spaceUserEditRequest.getUserId();
-        ThrowUtils.throwIf(userId == null, CodeBindMessageEnums.PARAMS_ERROR, "该用户不存在");
+        User user = userService.userSearchById(userId);
+        ThrowUtils.throwIf(user == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该用户不存在");
 
         Integer spaceRole = spaceUserEditRequest.getSpaceRole();
 
         List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
                 new SpaceUserSearchRequest()
-                        .setSpaceId(space.getId())
+                        .setSpaceId(spaceId)
                         .setUserId(userId)
         ).getRecords();
         ThrowUtils.throwIf(spaceUserList.isEmpty(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户不存在于您的协作空间中, 无需编辑");
+        Long spaceUserId = spaceUserList.get(0).getId();
+
         return TheResult.success(
                 CodeBindMessageEnums.SUCCESS,
                 SpaceUserVO.removeSensitiveData(
-                        spaceUserService.spaceUserUpdate(
-                                new SpaceUserUpdateRequest()
-                                        .setId(spaceUserList.get(0).getId())
-                                        .setSpaceRole(spaceRole)
+                                spaceUserService.spaceUserUpdate(
+                                        new SpaceUserUpdateRequest()
+                                                .setId(spaceUserId)
+                                                .setSpaceRole(spaceRole)
+                                )
                         )
-                )
-                .setSpaceVO(SpaceVO.removeSensitiveData(space))
-                .setUserVO(UserVO.removeSensitiveData(userService.userSearchById(userId)).setSpaceRole(spaceRole))
+                        .setSpaceVO(SpaceVO.removeSensitiveData(space))
+                        .setUserVO(UserVO.removeSensitiveData(user))
         );
     }
 
@@ -270,38 +294,6 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         resultPage.setCurrent(spacePage.getCurrent());
         resultPage.setSize(spacePage.getSize());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, resultPage);
-    }
-
-    @Operation(summary = "测试接口1")
-    @SaCheckLogin
-    @SaCheckPermission({"spaceUser:manager"})
-    @PostMapping("/test1")
-    public BaseResponse<String> test1(@RequestParam(value = "spaceId", required = false) Long spaceId) {
-        return TheResult.notyet("允许");
-    }
-
-    @Operation(summary = "测试接口2")
-    @SaCheckLogin
-    @SaCheckPermission({"spaceUser:manager"})
-    @PostMapping("/test2")
-    public BaseResponse<String> test2(@RequestParam(value = "pictureId", required = false) Long pictureId) {
-        return TheResult.notyet("允许");
-    }
-
-    @Operation(summary = "测试接口3")
-    @SaCheckLogin
-    @SaCheckPermission({"spaceUser:manager"})
-    @PostMapping("/test3")
-    public BaseResponse<String> test3(@RequestBody PictureDestroyRequest pictureDestroyRequest) {
-        return TheResult.notyet("允许");
-    }
-
-    @Operation(summary = "测试接口4")
-    @SaCheckLogin
-    @SaCheckPermission({"spaceUser:manager"})
-    @PostMapping("/test")
-    public BaseResponse<String> test4(@RequestBody PictureQueryRequest pictureQueryRequest) {
-        return TheResult.notyet("允许");
     }
 
 }

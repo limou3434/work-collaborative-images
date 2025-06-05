@@ -18,6 +18,11 @@ public class SpaceUserAuthContext {
     private Long id;
 
     /**
+     * 用户 ID
+     */
+    private Long userId;
+
+    /**
      * 图片 ID
      */
     private Long pictureId;
@@ -31,5 +36,11 @@ public class SpaceUserAuthContext {
      * 空间用户关联 ID
      */
     private Long spaceUserId;
+
+    /**
+     * 当前请求的控制器所属模块
+     */
+    private String controlModule;
+
 
 }

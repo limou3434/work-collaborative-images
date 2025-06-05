@@ -44,4 +44,9 @@ public interface SpaceUserService extends IService<SpaceUser> {
      */
     SpaceUser spaceUserSearchById(Long id);
 
+    /**
+     * 根据空间标识和用户标识查询单个空间用户关联服务
+     */
+    SpaceUser spaceUserSearchById(Long spaceId, Long userId);
+
 }

@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author ljp
@@ -54,9 +55,8 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
 
     /// 服务实现 ///
 
-    /**
-     * 空间用户关联添加服务
-     */
+    @Override
+    @LogParams
     public SpaceUser spaceUserAdd(SpaceUserAddRequest spaceUserAddRequest) {
         // 检查参数
         ThrowUtils.throwIf(spaceUserAddRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
@@ -112,9 +112,8 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         });
     }
 
-    /**
-     * 空间用户关联删除服务
-     */
+    @Override
+    @LogParams
     public Boolean spaceUserDelete(SpaceUserDeleteRequest spaceUserDeleteRequest) {
         // 检查参数
         ThrowUtils.throwIf(spaceUserDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
@@ -130,9 +129,8 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         });
     }
 
-    /**
-     * 空间用户关联更新服务
-     */
+    @Override
+    @LogParams
     public SpaceUser spaceUserUpdate(SpaceUserUpdateRequest spaceUserUpdateRequest) {
         // 检查参数
         ThrowUtils.throwIf(spaceUserUpdateRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
@@ -179,9 +177,8 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         });
     }
 
-    /**
-     * 空间用户关联查询服务
-     */
+    @Override
+    @LogParams
     public Page<SpaceUser> spaceUserSearch(SpaceUserSearchRequest spaceUserSearchRequest) {
         // 检查参数
         ThrowUtils.throwIf(spaceUserSearchRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
@@ -224,6 +221,35 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
                 "标识不得非法"
         );
         return this.getById(id);
+    }
+
+    @Override
+    @LogParams
+    public SpaceUser spaceUserSearchById(Long spaceId, Long userId) {
+        ThrowUtils.throwIf(
+                spaceId == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "空间标识不得为空"
+        );
+        ThrowUtils.throwIf(
+                spaceId <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "空间标识不得非法"
+        );
+        ThrowUtils.throwIf(
+                spaceId == null,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "用户标识不得为空"
+        );
+        ThrowUtils.throwIf(
+                spaceId <= 0,
+                CodeBindMessageEnums.PARAMS_ERROR,
+                "用户标识不得非法"
+        );
+
+        List<SpaceUser> spaceUserList = this.spaceUserSearch(new SpaceUserSearchRequest().setSpaceId(spaceId).setUserId(userId)).getRecords();
+        if (spaceUserList.isEmpty()) return null;
+        return spaceUserList.get(0);
     }
 
     /// 私有方法 ///
