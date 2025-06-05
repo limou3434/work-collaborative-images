@@ -3,20 +3,17 @@ package cn.com.edtechhub.workcollaborativeimages.manager;
 import cn.com.edtechhub.workcollaborativeimages.auth.SpaceUserAuthContext;
 import cn.com.edtechhub.workcollaborativeimages.auth.SpaceUserRole;
 import cn.com.edtechhub.workcollaborativeimages.config.SpaceUserAuthConfig;
-import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
-import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceUserService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -33,7 +30,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 空间用户关联认证管理器
@@ -60,7 +60,8 @@ public class SpaceUserAuthManager {
     /**
      * 注入图片服务依赖
      */
-    @Resource PictureService pictureService;
+    @Resource
+    PictureService pictureService;
 
     /**
      * 注入空间服务依赖
@@ -130,36 +131,59 @@ public class SpaceUserAuthManager {
      */
     public List<String> getPermissionListById(SpaceUserAuthContext authContext, Long currentLonginUserId) {
         Long spaceId = authContext.getSpaceId();
-        Long picture = authContext.getPictureId();
+        Long pictureId = authContext.getPictureId();
         Long userId = authContext.getUserId();
         String controlModule = authContext.getControlModule();
-        List<String> list = new ArrayList<>();
         List<String> pass = this.getPermissionsByRole(SpaceUserRoleEnums.MANGER_ROLE);
 
         // 如果上下文什么字段都没有则直接放开所有权限
         if (this.isAllFieldsNull(authContext)) {
-            list = pass;
+            return pass;
         }
 
         // 如果是和空间用户关联控制器相关的请求(例如 移入用户、移出用户、编辑用户 这些请求必定会携带 spaceId, 必定会携带 userId)
         if (controlModule.equals("space_user") && spaceId != null) {
             Space space = spaceService.spaceSearchById(spaceId);
+            ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该空间不存在");
             ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) != SpaceTypeEnums.COLLABORATIVE, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该空间不是协作空间无法操作");
             if (space != null && SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.COLLABORATIVE) {
                 SpaceUser spaceUser = spaceUserService.spaceUserSearchById(spaceId, currentLonginUserId);
                 ThrowUtils.throwIf(spaceUser == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该协作空间的相关成员无法进行相关操作");
-                list = this.getPermissionsByRole(SpaceUserRoleEnums.getEnums(spaceUser.getSpaceRole()));
+                return this.getPermissionsByRole(SpaceUserRoleEnums.getEnums(spaceUser.getSpaceRole()));
             }
         }
         // 如果是和图片相关的请求(例如 上传图片、删除图片、查看图片 这些请求可能会携带 pictureId, 可能会携带 spaceId)
         if (controlModule.equals("picture")) {
-            // TODO: 设计思路如下
             // 上传图片需要检测是否有 spaceId, 并且判断是协作空间后, 有权限才可以上传；
+            if (spaceId != null) {
+                Space space = spaceService.spaceSearchById(spaceId);
+                ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该空间不存在");
+                if (SpaceTypeEnums.getEnums(space.getType()) != SpaceTypeEnums.COLLABORATIVE) {
+                    return pass;
+                }
+                SpaceUser spaceUser = spaceUserService.spaceUserSearchById(spaceId, currentLonginUserId);
+                ThrowUtils.throwIf(spaceUser == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该协作空间的相关成员无法进行相关操作");
+                return this.getPermissionsByRole(SpaceUserRoleEnums.getEnums(spaceUser.getSpaceRole()));
+            }
+
             // 销毁图片需要获取图片记录, 检查图片是否有所属空间, 如果有所属空间就检查是否为协作空间, 如果是则需要有权限才可以销毁；
-            // 查看图片需要获取图片记录, 检查图片是否有所属空间, 如果有所属空间就检查是否为协作空间, 如果是则需要有权限才可以查看
+            if (pictureId != null) {
+                Picture picture = pictureService.pictureSearchById(pictureId);
+                ThrowUtils.throwIf(picture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该图片不存在");
+                Space space = spaceService.spaceSearchById(picture.getSpaceId());
+                if (SpaceTypeEnums.getEnums(space.getType()) != SpaceTypeEnums.COLLABORATIVE) {
+                    return pass;
+                }
+                SpaceUser spaceUser = spaceUserService.spaceUserSearchById(space.getId(), currentLonginUserId);
+                ThrowUtils.throwIf(spaceUser == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该协作空间的相关成员无法进行相关操作");
+                return this.getPermissionsByRole(SpaceUserRoleEnums.getEnums(spaceUser.getSpaceRole()));
+            }
+
+            // 查看图片需要获取图片记录, 如果有携带 pictureId 则需要检查图片是否有所属空间, 如果有所属空间就检查是否为协作空间, 如果是则需要有权限才可以查看, 那么可以和前面的销毁图片复用代码
+            // 不过查看图片有可能没有指定 pictureId 这种, 这种一般都是获取多个图片的接口, 因此就需要看是否有指定 spaceId, 那么又可以复用前面上传图片的代码...妙吖...这我竟然也写得出来
         }
 
-        return list;
+        return pass;
     }
 
     /**

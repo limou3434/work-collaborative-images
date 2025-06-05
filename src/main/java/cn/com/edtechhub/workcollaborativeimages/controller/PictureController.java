@@ -200,7 +200,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
 
     /// 普通接口 ///
 
-    @Operation(summary = "用户上传图片网络接口")
+    @Operation(summary = "上传图片网络接口")
     @SaCheckLogin
     @SaCheckPermission({"picture:upload"})
     @PostMapping("/upload")
@@ -235,10 +235,10 @@ public class PictureController { // 通常控制层有服务层中的所有方�
 
         // 上传图片
         Picture picture = pictureService.pictureUpload(pictureId, spaceId, pictureCategory, pictureName, pictureIntroduction, pictureTags, pictureFileUrl, multipartFile);
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, PictureVO.removeSensitiveData(picture));
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, PictureVO.removeSensitiveData(picture).setUserVO(UserVO.removeSensitiveData(userService.userSearchById(picture.getUserId()))));
     }
 
-    @Operation(summary = "根据指定标识销毁图片网络接口")
+    @Operation(summary = "销毁图片网络接口")
     @SaCheckLogin
     @SaCheckPermission({"picture:delete"})
     @PostMapping("/destroy")
@@ -249,14 +249,17 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         Long spaceId = picture.getSpaceId();
         if (spaceId != null) {
             Space space = spaceService.spaceSearchById(spaceId);
-            ThrowUtils.throwIf(space.getUserId() != userService.userGetCurrentLonginUserId(), CodeBindMessageEnums.NO_ROLE_ERROR, "无法销毁图片, 因为该图片属于他人得私有空间");
+            if (space != null) {
+                ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.SELF && space.getUserId() != userService.userGetCurrentLonginUserId(), CodeBindMessageEnums.NO_ROLE_ERROR, "无法销毁图片, 因为该图片属于他人得私有空间");
+                // 如果走到这里说明就是协作空间, 这种情况下交给 SpaceUserAuthManger 就可以
+            }
         }
 
         // 删除文件
         return TheResult.success(CodeBindMessageEnums.SUCCESS, pictureService.pictureUnLink(pictureId));
     }
 
-    @Operation(summary = "查找公有图库或私有空间中图片的网络接口")
+    @Operation(summary = "查找图片网络接口")
     @SaCheckLogin
     @SaCheckPermission({"picture:view"})
     // @CacheSearchOptimization(ttl = 60)
@@ -266,7 +269,7 @@ public class PictureController { // 通常控制层有服务层中的所有方�
         var pictureSearchRequest = new PictureSearchRequest();
         BeanUtils.copyProperties(pictureQueryRequest, pictureSearchRequest);
 
-        // 如果用户只搜索自己的图片则允许不通过审核
+        // 如果用户只搜索自己的图片则允许不通过审核就可以查看
         Long id = pictureQueryRequest.getId();
         if (id != null) {
             Picture picture = pictureService.pictureSearchById(id);
@@ -281,12 +284,14 @@ public class PictureController { // 通常控制层有服务层中的所有方�
             }
         }
 
-        // 根据是否传递 id 来决定搜索请求的限制
+        // 用户可能不传递图片 id 就进行查看, 有可能就会传递 spaceId
         Long spaceId = pictureQueryRequest.getSpaceId();
         if (spaceId == null) { // 用户只能看到审核通过的公共图库图片
             pictureSearchRequest.setReviewStatus(PictureReviewStatusEnums.PASS.getCode());
-        } else { // 用户只能看到自己私有空间的图片并且无需走审核逻辑
-            ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.SELF).getId() != spaceId, CodeBindMessageEnums.PARAMS_ERROR, "您没有访问该私有空间的权力");
+        } else { // 有可能访问私有空间或协作空间
+            // 如果是私有空间就需要检查是不是当前登录用户的
+            Space space = spaceService.spaceSearchById(spaceId);
+            ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.SELF && space.getId() != spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.SELF).getId(), CodeBindMessageEnums.PARAMS_ERROR, "这个私有空间不是您的, 您没有访问该私有空间的权力");
             pictureSearchRequest.setSpaceId(spaceId);
         }
 
