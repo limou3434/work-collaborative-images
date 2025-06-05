@@ -19,7 +19,7 @@ import javax.annotation.Resource;
 
 
 /**
- * AI 管理器
+ * AI 相关接口管理器
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
