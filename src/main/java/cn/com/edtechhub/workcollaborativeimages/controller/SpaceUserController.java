@@ -96,7 +96,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     }
 
     /// 普通接口 ///
-    @Operation(summary = "在当前登录用户的协作空间中移进用户网络接口")
+    @Operation(summary = "对指定的协作空间移进成员网络接口")
     @SaCheckLogin
     @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/move/in")
@@ -125,7 +125,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         );
     }
 
-    @Operation(summary = "在当前登录用户的协作空间中移出用户网络接口")
+    @Operation(summary = "对指定的协作空间移出成员网络接口")
     @SaCheckLogin
     @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/move/out")
@@ -150,7 +150,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceUserService.spaceUserDelete(new SpaceUserDeleteRequest().setId(spaceUserList.get(0).getId())));
     }
 
-    @Operation(summary = "在当前登录用户的协作空间中编辑权限网络接口")
+    @Operation(summary = "对指定的协作空间编辑成员网络接口")
     @SaCheckLogin
     @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/edit")
@@ -190,26 +190,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         );
     }
 
-    @Operation(summary = "在当前登录用户的协作空间中获取单个用户网络接口")
-    @SaCheckLogin
-    @GetMapping("/get/user")
-    public BaseResponse<UserVO> spaceUserGetUser(Long userId) {
-        User user = userService.userSearchById(userId);
-        ThrowUtils.throwIf(user == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该用户不存在");
-
-        Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
-        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做查询成员操作");
-        List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
-                new SpaceUserSearchRequest()
-                        .setSpaceId(space.getId())
-                        .setUserId(userId)
-        ).getRecords();
-        ThrowUtils.throwIf(spaceUserList.isEmpty(), CodeBindMessageEnums.NOT_FOUND_ERROR, "该用户不是协作空间的成员");
-
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, UserVO.removeSensitiveData(user));
-    }
-
-    @Operation(summary = "在当前登录用户的协作空间中获取用户页面网络接口")
+    @Operation(summary = "获取当前登录用户的协作空间中所有的成员信息网络接口")
     @SaCheckLogin
     @GetMapping("/page/user")
     public BaseResponse<Page<UserVO>> spaceUserPageUser() {
@@ -255,7 +236,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         return TheResult.success(CodeBindMessageEnums.SUCCESS, voPage);
     }
 
-    @Operation(summary = "查询当前登录用户已经加入的协作空间列表网络接口")
+    @Operation(summary = "获取当前登录用户已经加入的所有协作空间")
     @SaCheckLogin
     @GetMapping("/page/my_collaborative_space")
     public BaseResponse<Page<SpaceVO>> spaceUserPageMyCollaborativeSpace() {
