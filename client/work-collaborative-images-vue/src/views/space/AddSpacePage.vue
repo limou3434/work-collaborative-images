@@ -3,9 +3,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import {
-  spaceCreateSelf,
-  spaceEditSelf,
-  spaceQuerySelf,
+  spaceCreate,
+  spaceEdit,
+  spaceQuery,
   spaceLevel,
 } from '@/api/work-collaborative-images/spaceController.ts'
 import { formatSize } from '@/utils'
@@ -31,12 +31,12 @@ const spaceFormParams = reactive<
 const handleSubmit = async () => {
   let res
   if (isEdit.value) {
-    res = await spaceEditSelf({
+    res = await spaceEdit({
       id,
       name: spaceFormParams.name,
     })
   } else {
-    res = await spaceCreateSelf({
+    res = await spaceCreate({
       name: spaceFormParams.name,
     })
   }
@@ -51,7 +51,7 @@ const handleSubmit = async () => {
 
 // 获取旧数据
 const getOldSpace = async () => {
-  const res = await spaceQuerySelf({ id })
+  const res = await spaceQuery({ id })
   if (res.data.code === 20000 && res.data.data) {
     spaceFormParams.name = res.data.data.name
   } else {

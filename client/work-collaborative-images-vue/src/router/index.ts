@@ -56,18 +56,6 @@ const router = createRouter({
       ],
     },
     {
-      path: '/space',
-      name: '空间页面',
-      children: [
-        {
-          path: ':id',
-          name: '空间详情',
-          component: () => import('../views/space/SpaceDetailPage.vue'), // 懒加载页面
-          props: true,
-        },
-      ],
-    },
-    {
       path: '/operate',
       name: '操作页面',
       children: [

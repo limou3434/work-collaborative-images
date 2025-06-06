@@ -1,121 +1,38 @@
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import {
-  spaceDestroy,
-  spaceQuery,
-} from '@/api/work-collaborative-images/spaceController.ts'
-import { message } from 'ant-design-vue'
-import PictureOverview from '@/components/PictureOverview.vue'
-import { pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
-import SpaceDashboard from '@/components/SpaceDashboard.vue'
+import SpaceDetails from '@/components/SpaceDetails.vue'
 import { SPACE_TYPE_ENUM } from '@/constants/space.ts'
+import { spaceQuery } from '@/api/work-collaborative-images/spaceController.ts'
+import { onMounted, ref } from 'vue'
+import { message } from 'ant-design-vue'
+import router from '@/router'
 
-// 路由对象
-const router = useRouter()
+/// 变量 ///
+const spaceVO = ref<WorkCollaborativeImagesAPI.SpaceVO>()
 
-// 空间信息
-const space = ref<WorkCollaborativeImagesAPI.SpaceVO>()
-
-// 图片分页状态
-const pagination = reactive({
-  pageCurrent: 1,
-  pageSize: 10,
-  total: 0,
-})
-
-// 图片数据列表和加载状态
-const dataList = ref<WorkCollaborativeImagesAPI.PictureVO[]>([])
-const loading = ref(false)
-
-// 获取图片数据（关键：始终注入 spaceId）
-const getTableData = async (
-  params: Omit<WorkCollaborativeImagesAPI.PictureQueryRequest, 'spaceId'>,
-) => {
-  if (!space.value?.id) return
-  loading.value = true
-  const res = await pictureQuery({
-    ...params,
-    spaceId: space.value.id,
+/// 获取私有空间的调用 ///
+const handGetSpace = async () => {
+  // 获取用户空间信息
+  const res = await spaceQuery({
+    spaceType: SPACE_TYPE_ENUM.SELF
   })
-  if (res.data.code === 20000 && res.data.data && res.data.data.records) {
-    dataList.value = res.data.data.records ?? []
-    pagination.total = res.data.data.total ?? 0
+  if (res.data.code === 20000 && res.data.data) {
+    spaceVO.value = res.data.data
+    message.success('获取空间成功')
   } else {
     message.error(res.data.message)
-  }
-  loading.value = false
-}
-
-// 页面加载时
-onMounted(async () => {
-  // 获取用户空间信息
-  const res = await spaceQuery({ spaceType: SPACE_TYPE_ENUM.SELF })
-  if (res.data.code === 20000 && res.data.data) {
-    space.value = res.data.data
-    message.success('获取私有空间成功')
-
-    // 初次加载数据
-    await getTableData({
-      pageCurrent: pagination.pageCurrent,
-      pageSize: pagination.pageSize,
-      introduction: '',
-      category: undefined,
-    })
-  } else {
-    message.warn(res.data.message)
     await router.replace('/operate/space/add/')
   }
-})
-
-// 跳转到添加私有图片的页面
-const handleAddPicture = () => {
-  router.push({ path: '/operate/picture/add/', query: { from: 'mySpace' } })
 }
 
-// 删除本空间的调用
-const handleDelSpace = async () => {
-  const res = await spaceDestroy({spaceType: SPACE_TYPE_ENUM.SELF})
-  if (res.data.code === 20000) {
-    message.success('销毁成功')
-    await router.push('/self')
-  } else {
-    message.error(res.data.message)
-  }
-}
-
-// 默认显示空间名字 3 秒
-const showTooltip = ref(true)
+/// 挂载页面时执行 ///
 onMounted(() => {
-  setTimeout(() => {
-    showTooltip.value = false
-  }, 3000)
+  handGetSpace()
 })
 </script>
 
 <template>
-  <div id="mySpace">
-    <!-- 空间信息 -->
-    <a-flex justify="space-between">
-      <a-tooltip :title="space?.name || ''" :open="showTooltip" placement="right">
-        <h2>私有空间</h2>
-      </a-tooltip>
-      <a-space>
-        <a-button type="primary" @click="handleAddPicture">添加图片到图库</a-button>
-        <a-popconfirm cancel-text="取消" ok-text="确认" title="确认销毁?" @confirm="handleDelSpace">
-          <a-button danger type="default">销毁本图库内容</a-button>
-        </a-popconfirm>
-      </a-space>
-    </a-flex>
-    <!-- 空间仪表 -->
-    <SpaceDashboard :space="space" style="margin-bottom: 24px" />
-    <!-- 图片概览 -->
-    <PictureOverview
-      :data-list="dataList"
-      :loading="loading"
-      :pagination="pagination"
-      @search="getTableData"
-    />
+  <div id="SelfSpace">
+    <SpaceDetails :spaceVO="spaceVO"></SpaceDetails>
   </div>
 </template>
 

@@ -8,7 +8,7 @@ import {
   pictureQuery,
   pictureUpload,
 } from '@/api/work-collaborative-images/pictureController.ts'
-import { spaceQuerySelf } from '@/api/work-collaborative-images/spaceController.ts'
+import { spaceQuery } from '@/api/work-collaborative-images/spaceController.ts'
 import { SPACE_TYPE_ENUM } from '@/constants/space.ts' // 获取私有空间 ID 接口
 
 const route = useRoute()
@@ -23,16 +23,15 @@ const pictureForm = reactive<WorkCollaborativeImagesAPI.pictureUploadParams>({
 })
 
 // 是否加入私有空间开关
-const joinPrivateSpace = ref(false)
-watch(joinPrivateSpace, async (val) => {
+const joinSlefSpace = ref(false)
+watch(joinSlefSpace, async (val) => {
   if (val) {
-    const res = await spaceQuerySelf()
+    const res = await spaceQuery({ spaceType: SPACE_TYPE_ENUM.SELF })
     if (res.data.code === 20000 && res.data.data?.id) {
       pictureForm.spaceId = res.data.data.id
-      pictureForm.spaceType = SPACE_TYPE_ENUM.SELF
     } else {
       message.error(res.data.message)
-      joinPrivateSpace.value = false
+      joinSlefSpace.value = false
     }
   } else {
     pictureForm.spaceId = undefined
@@ -60,7 +59,7 @@ const getOldPicture = async () => {
       pictureForm.pictureCategory = data.category
       pictureForm.pictureTags = JSON.parse(data.tags || '[]')
       if (data.spaceId && data.spaceId !== 0) {
-        joinPrivateSpace.value = true
+        joinSlefSpace.value = true
         pictureForm.spaceId = data.spaceId
       }
     }
@@ -79,7 +78,7 @@ const handleSubmit = async () => {
   const res = await pictureUpload(pictureForm)
   if (res.data.code === 20000 && res.data.data) {
     message.success('上传成功')
-    if (route.query.from === 'mySpace') {
+    if (route.query.from === 'self') {
       // 如果是从我的空间跳转过来的，则跳转到我的空间
       await router.push('/self')
     }
@@ -104,8 +103,8 @@ const getCategoryList = async () => {
 }
 
 onMounted(() => {
-  if (route.query.from === 'mySpace') {
-    joinPrivateSpace.value = true
+  if (route.query.from === 'self') {
+    joinSlefSpace.value = true
     nextTick() // 强制触发 watch 逻辑自动设置 spaceId
   }
   getOldPicture()
@@ -122,7 +121,7 @@ onMounted(() => {
 
     <a-form :model="pictureForm" layout="vertical" @finish="handleSubmit">
       <a-form-item label="加入私有空间">
-        <a-switch v-model:checked="joinPrivateSpace" />
+        <a-switch v-model:checked="joinSlefSpace" />
       </a-form-item>
 
       <a-form-item label="名称" name="name">

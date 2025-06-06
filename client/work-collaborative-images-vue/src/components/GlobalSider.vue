@@ -1,6 +1,9 @@
 <script lang="ts" setup>
+/**
+ * 全局侧边栏组件, 用来切换多个空间或其他的已参加团队的空间
+ */
 import { h, ref } from 'vue'
-import { PictureOutlined, UserOutlined, TeamOutlined } from '@ant-design/icons-vue'
+import { PictureOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
 
@@ -9,18 +12,31 @@ const menuItems = [
   {
     key: '/',
     label: '公共图库',
-    icon: () => h(PictureOutlined),
+    icon: () => h(PictureOutlined)
   },
   {
-    key: '/self',
-    label: '私有空间',
-    icon: () => h(UserOutlined),
+    label: '我的空间',
+    type: 'group',
+    children: [
+      {
+        key: '/self',
+        label: '私有空间',
+        icon: () => h(UserOutlined)
+      },
+      {
+        key: '/collaborative',
+        label: '协作空间',
+        icon: () => h(TeamOutlined)
+      }
+    ]
   },
   {
-    key: '/collaborative',
     label: '协作空间',
-    icon: () => h(TeamOutlined),
-  },
+    type: 'group',
+    children: [
+      // TODO: 等待后续加载
+    ]
+  }
 ]
 
 const router = useRouter()

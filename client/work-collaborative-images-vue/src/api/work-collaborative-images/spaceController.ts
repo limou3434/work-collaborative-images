@@ -62,7 +62,7 @@ export async function adminSpaceUpdate(
   })
 }
 
-/** 创建用户专属空间(私有空间/协作空间)网络接口 POST /space/create */
+/** 创建当前用户专属空间(私有空间/协作空间)网络接口 POST /space/create */
 export async function spaceCreate(
   body: WorkCollaborativeImagesAPI.SpaceCreateRequest,
   options?: { [key: string]: any }
@@ -77,7 +77,7 @@ export async function spaceCreate(
   })
 }
 
-/** 销毁用户专属空间(私有空间/协作空间)网络接口 POST /space/destroy */
+/** 销毁当前用户专属空间(私有空间/协作空间)网络接口 POST /space/destroy */
 export async function spaceDestroy(
   body: WorkCollaborativeImagesAPI.SpaceDestroyRequest,
   options?: { [key: string]: any }
@@ -92,7 +92,7 @@ export async function spaceDestroy(
   })
 }
 
-/** 编辑用户专属空间(私有空间/协作空间)网络接口 POST /space/edit */
+/** 编辑当前用户专属空间(私有空间/协作空间)网络接口 POST /space/edit */
 export async function spaceEdit(
   body: WorkCollaborativeImagesAPI.SpaceEditRequest,
   options?: { [key: string]: any }
@@ -115,12 +115,27 @@ export async function spaceLevel(options?: { [key: string]: any }) {
   })
 }
 
-/** 查找用户专属空间(私有空间/协作空间)网络接口 POST /space/query */
+/** 查找当前用户专属空间(私有空间/协作空间)网络接口 POST /space/query */
 export async function spaceQuery(
   body: WorkCollaborativeImagesAPI.SpaceQueryRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseSpaceVO>('/space/query', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
+/** 查找指定的专属空间(私有空间/协作空间)网络接口 POST /space/query/id */
+export async function spaceQueryById(
+  body: WorkCollaborativeImagesAPI.SpaceQueryByIdRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseSpaceVO>('/space/query/id', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

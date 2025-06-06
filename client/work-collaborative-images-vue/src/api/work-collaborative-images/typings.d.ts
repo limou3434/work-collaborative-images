@@ -504,7 +504,7 @@ declare namespace WorkCollaborativeImagesAPI {
   }
 
   type SpaceEditRequest = {
-    id?: number
+    spaceType?: number
     name?: string
   }
 
@@ -513,6 +513,10 @@ declare namespace WorkCollaborativeImagesAPI {
     text?: string
     maxCount?: number
     maxSize?: number
+  }
+
+  type SpaceQueryByIdRequest = {
+    spaceId?: number
   }
 
   type SpaceQueryRequest = {
@@ -611,6 +615,7 @@ declare namespace WorkCollaborativeImagesAPI {
     id?: number
     name?: string
     level?: number
+    type?: number
     maxSize?: number
     maxCount?: number
     totalSize?: number
