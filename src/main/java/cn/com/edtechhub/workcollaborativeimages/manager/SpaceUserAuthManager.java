@@ -141,20 +141,19 @@ public class SpaceUserAuthManager {
             return pass;
         }
 
-        // 如果是和空间用户关联控制器相关的请求(例如 移入用户、移出用户、编辑用户 这些请求必定会携带 spaceId, 必定会携带 userId)
-        if (controlModule.equals("space_user") && spaceId != null) {
+        // 如果是和空间用户关联控制器相关的请求(例如 移入用户、移出用户、编辑用户 接口)
+        if (controlModule.equals("space_user")) {
+            // 无论是哪一个请求都必定会要求携带 spaceId
             Space space = spaceService.spaceSearchById(spaceId);
             ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该空间不存在");
-            ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) != SpaceTypeEnums.COLLABORATIVE, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该空间不是协作空间无法操作");
-            if (space != null && SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.COLLABORATIVE) {
-                SpaceUser spaceUser = spaceUserService.spaceUserSearchById(spaceId, currentLonginUserId);
-                ThrowUtils.throwIf(spaceUser == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该协作空间的相关成员无法进行相关操作");
-                return this.getPermissionsByRole(SpaceUserRoleEnums.getEnums(spaceUser.getSpaceRole()));
-            }
+            ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) != SpaceTypeEnums.COLLABORATIVE, CodeBindMessageEnums.PARAMS_ERROR, "该空间不是协作空间无法操作");
+            SpaceUser spaceUser = spaceUserService.spaceUserSearchById(spaceId, currentLonginUserId);
+            ThrowUtils.throwIf(spaceUser == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该协作空间的相关成员无法进行相关操作");
+            return this.getPermissionsByRole(SpaceUserRoleEnums.getEnums(spaceUser.getSpaceRole()));
         }
-        // 如果是和图片相关的请求(例如 上传图片、删除图片、查看图片 这些请求可能会携带 pictureId, 可能会携带 spaceId)
+        // 如果是和图片相关的请求(例如 上传图片、删除图片、查看图片 接口)
         if (controlModule.equals("picture")) {
-            // 上传图片需要检测是否有 spaceId, 并且判断是协作空间后, 有权限才可以上传；
+            // 上传图片可能携带 spaceId, 如果有则有可能是要上传到协作空间, 有权限才可以上传
             if (spaceId != null) {
                 Space space = spaceService.spaceSearchById(spaceId);
                 ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该空间不存在");
@@ -166,12 +165,16 @@ public class SpaceUserAuthManager {
                 return this.getPermissionsByRole(SpaceUserRoleEnums.getEnums(spaceUser.getSpaceRole()));
             }
 
-            // 销毁图片需要获取图片记录, 检查图片是否有所属空间, 如果有所属空间就检查是否为协作空间, 如果是则需要有权限才可以销毁；
+            // 销毁图片只需要携带 pictureId, 查验这张图片有没有所属空间
             if (pictureId != null) {
                 Picture picture = pictureService.pictureSearchById(pictureId);
                 ThrowUtils.throwIf(picture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该图片不存在");
-                Space space = spaceService.spaceSearchById(picture.getSpaceId());
-                if (SpaceTypeEnums.getEnums(space.getType()) != SpaceTypeEnums.COLLABORATIVE) {
+                Long spaceIdOfPicture = picture.getSpaceId();
+                if (spaceIdOfPicture == null) { // 没有所属空间就放行所有权限
+                    return pass;
+                }
+                Space space = spaceService.spaceSearchById(spaceIdOfPicture);
+                if (SpaceTypeEnums.getEnums(space.getType()) != SpaceTypeEnums.COLLABORATIVE) { // 所属空间不为协作空间就放行所有权限
                     return pass;
                 }
                 SpaceUser spaceUser = spaceUserService.spaceUserSearchById(space.getId(), currentLonginUserId);
@@ -179,15 +182,18 @@ public class SpaceUserAuthManager {
                 return this.getPermissionsByRole(SpaceUserRoleEnums.getEnums(spaceUser.getSpaceRole()));
             }
 
-            // 查看图片需要获取图片记录, 如果有携带 pictureId 则需要检查图片是否有所属空间, 如果有所属空间就检查是否为协作空间, 如果是则需要有权限才可以查看, 那么可以和前面的销毁图片复用代码
-            // 不过查看图片有可能没有指定 pictureId 这种, 这种一般都是获取多个图片的接口, 因此就需要看是否有指定 spaceId, 那么又可以复用前面上传图片的代码...妙吖...这我竟然也写得出来
+            // 查看图片需要获取图片记录
+            // (1)如果有携带 pictureId 则需要检查图片是否有所属空间, 所属空间为协作空间则需要检查权限
+            // (2)如果没携带 pictureId 一般都是获取多个图片的接口, 因此就需要看是否有携带 spaceId, 那么又可以复用前面上传图片的代码...妙吖...这我竟然也写得出来
+
+            // TODO: 不过这里有个点权限校验之前就查询了一次数据库, 后续请求还需要查询数据库, 可以使用线程缓存来解决这个问题, 线程缓存管理器我已经做好, 有时间可以过来优化
         }
 
         return pass;
     }
 
     /**
-     * 根据角色获取对应的权限列表
+     * 根据角色获取对应的权限列表(必须要求记录不为 null, 提高权限的安全性)
      */
     private List<String> getPermissionsByRole(SpaceUserRoleEnums spaceUserRoleEnums) {
         ThrowUtils.throwIf(spaceUserRoleEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "空间角色枚举参数不能为空");
