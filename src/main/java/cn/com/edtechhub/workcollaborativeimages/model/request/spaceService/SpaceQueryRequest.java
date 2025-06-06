@@ -11,9 +11,9 @@ import java.io.Serializable;
 public class SpaceQueryRequest implements Serializable {
 
     /**
-     * 空间类型, 用来指定修改用户的哪一个专属空间
+     * 空间类型
      */
-    private Integer spaceType = SpaceConstant.DEFAULT_TYPE;
+    private Integer spaceType;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;

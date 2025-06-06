@@ -110,14 +110,14 @@ public class SpaceUserAuthManager {
         if (ObjUtil.isNotNull(id)) { // 根据请求路径区分 id 字段的含义
             log.debug("尝试填充临时的 id 值");
             switch (moduleName) {
+                case "space_user":
+                    spaceUserAuthContext.setSpaceUserId(id);
+                    break;
                 case "picture":
                     spaceUserAuthContext.setPictureId(id);
                     break;
                 case "space":
                     spaceUserAuthContext.setSpaceId(id);
-                    break;
-                case "space_user":
-                    spaceUserAuthContext.setSpaceUserId(id);
                     break;
                 default:
             }
@@ -142,6 +142,7 @@ public class SpaceUserAuthManager {
         }
 
         // 如果是和空间用户关联控制器相关的请求(例如 移入用户、移出用户、编辑用户 接口)
+        // 如果是和空间控制器相关的请求(例如 团队成员查询查询协作空间 接口)
         if (controlModule.equals("space_user")) {
             // 无论是哪一个请求都必定会要求携带 spaceId
             Space space = spaceService.spaceSearchById(spaceId);
@@ -151,8 +152,9 @@ public class SpaceUserAuthManager {
             ThrowUtils.throwIf(spaceUser == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该协作空间的相关成员无法进行相关操作");
             return this.getPermissionsByRole(SpaceUserRoleEnums.getEnums(spaceUser.getSpaceRole()));
         }
+
         // 如果是和图片相关的请求(例如 上传图片、删除图片、查看图片 接口)
-        if (controlModule.equals("picture")) {
+        if (controlModule.equals("picture") || controlModule.equals("space")) {
             // 上传图片可能携带 spaceId, 如果有则有可能是要上传到协作空间, 有权限才可以上传
             if (spaceId != null) {
                 Space space = spaceService.spaceSearchById(spaceId);
