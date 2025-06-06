@@ -78,8 +78,6 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @Resource
     @Lazy
     SpaceUserService spaceUserService;
-    @Autowired
-    private SpaceService spaceService;
 
     @Override
     @LogParams
