@@ -10,6 +10,7 @@ import cn.com.edtechhub.workcollaborativeimages.mapper.SpaceMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceAddRequest;
@@ -17,6 +18,7 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.Space
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceUserService;
@@ -123,6 +125,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     public Boolean spaceDelete(SpaceDeleteRequest spaceDeleteRequest) {
         // 检查参数
         ThrowUtils.throwIf(spaceDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
+
         Long id = spaceDeleteRequest.getId();
         ThrowUtils.throwIf(
                 id == null,
@@ -134,6 +137,14 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "标识不得非法, 必须是正整数"
         );
+
+        Space space = spaceSearchById(id);
+        ThrowUtils.throwIf(
+                space == null,
+                CodeBindMessageEnums.NOT_FOUND_ERROR,
+                "对应的空间并不存在"
+        );
+
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -154,7 +165,23 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 }
             }
 
-            // 再把图库本身删除
+            // 如果是协作空间还需要把所有的成员记录都删除
+            if (SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.COLLABORATIVE) {
+                List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
+                        new SpaceUserSearchRequest()
+                                .setSpaceId(id)
+                ).getRecords();
+                if (!spaceUserList.isEmpty()) {
+                    List<Long> spaceUserIds = spaceUserList
+                            .stream()
+                            .map(SpaceUser::getId)
+                            .toList();
+                    boolean result = spaceUserService.removeByIds(spaceUserIds); // 批量删除
+                    ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除协作空间的成员记录失败");
+                }
+            }
+
+            // 最后才把图库本身删除
             boolean result = this.removeById(id);
             ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除空间失败, 也许该空间不存在或者已经被删除");
 
@@ -423,19 +450,6 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         space.setMaxSize(spaceLevelEnums.getMaxSize());
         space.setMaxCount(spaceLevelEnums.getMaxCount());
         return space;
-    }
-
-    /**
-     * 检查 name
-     */
-    private void checkName(String name) {
-        ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > SpaceConstant.MAX_NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "名字不得大于" + SpaceConstant.MAX_NAME_LENGTH + "位字符");
-    }
-
-    /**
-     * 检查 level
-     */
-    private void checkLevel(Integer level) {
     }
 
 }

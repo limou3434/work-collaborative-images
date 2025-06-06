@@ -109,7 +109,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceGetLevelInfo());
     }
 
-    @Operation(summary = "创建当前用户专属空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "根据类型来创建当前用户的专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/create")
     public BaseResponse<SpaceVO> spaceCreate(@RequestBody SpaceCreateRequest spaceCreateRequest) {
@@ -118,11 +118,11 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         ThrowUtils.throwIf(spaceTypeEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "不存在该空间类型");
         ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums) != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个当前登录用户仅能为自己创建一个" + spaceTypeEnums.getDescription());
 
-        Space space =spaceService.spaceSetCurrentLoginUserSpace(spaceTypeEnums, SpaceLevelEnums.COMMON, spaceCreateRequest.getSpaceName());
+        Space space = spaceService.spaceSetCurrentLoginUserSpace(spaceTypeEnums, SpaceLevelEnums.COMMON, spaceCreateRequest.getSpaceName());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(space));
     }
 
-    @Operation(summary = "销毁当前用户专属空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "根据类型来销毁当前用户的专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/destroy")
     public BaseResponse<Boolean> spaceDestroy(@RequestBody SpaceDestroyRequest spaceDestroyRequest) {
@@ -136,7 +136,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
 
-    @Operation(summary = "编辑当前用户专属空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "根据类型来编辑当前用户的专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/edit")
     public BaseResponse<SpaceVO> spaceEdit(@RequestBody SpaceEditRequest spaceEditRequest) {
@@ -150,12 +150,12 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         Space myspace = spaceService.spaceUpdate(
                 new SpaceUpdateRequest()
                         .setId(space.getId())
-                        .setName(spaceEditRequest.getName())
+                        .setName(spaceEditRequest.getSpaceName())
         );
         return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(myspace));
     }
 
-    @Operation(summary = "查找当前用户专属空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "根据类型来查找当前用户的专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/query")
     public BaseResponse<SpaceVO> spaceQuery(@RequestBody SpaceQueryRequest spaceEditRequest) {
@@ -168,7 +168,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(space));
     }
 
-    @Operation(summary = "查找指定的专属空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "根据具体的空间标识值来查找指定的协作空间网络接口, 注意需要这种查询只能查看当前用户加入的协作空间")
     @SaCheckLogin
     @SaCheckPermission({"picture:view"})
     @PostMapping("/query/id")
