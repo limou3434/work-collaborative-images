@@ -1,17 +1,16 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.spaceService;
 
-import cn.com.edtechhub.workcollaborativeimages.constant.SpaceConstant;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class SpaceDestroyRequest implements Serializable {
+public class SpaceQueryByIdRequest implements Serializable {
 
     /**
-     * 空间类型
+     * 指定的空间标识
      */
-    private Integer spaceType;
+    private Long spaceId;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;

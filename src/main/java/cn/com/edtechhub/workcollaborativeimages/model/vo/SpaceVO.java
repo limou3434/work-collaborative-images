@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 @Data
 @Accessors(chain = true) // 实现链式调用
 public class SpaceVO implements Serializable {
+
     /**
      * id
      */
@@ -25,9 +26,14 @@ public class SpaceVO implements Serializable {
     private String name;
 
     /**
-     * 空间级别：0-普通版 1-专业版 2-旗舰版
+     * 空间级别: 0-普通版 1-专业版 2-旗舰版
      */
     private Integer level;
+
+    /**
+     * 空间类被: 0-公共图库 1-私有空间 2-协作空间
+     */
+    private Integer type;
 
     /**
      * 空间图片的最大总大小

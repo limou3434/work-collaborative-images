@@ -13,6 +13,7 @@ import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
@@ -101,57 +102,82 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
 
     /// 普通接口 ///
 
-    @Operation(summary = "创建用户专属空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "获取空间等级描述网络接口")
+    @SaCheckLogin
+    @PostMapping("/level")
+    public BaseResponse<List<SpaceLevelInfo>> spaceLevel() {
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceGetLevelInfo());
+    }
+
+    @Operation(summary = "创建当前用户专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/create")
     public BaseResponse<SpaceVO> spaceCreate(@RequestBody SpaceCreateRequest spaceCreateRequest) {
         Integer spaceType = spaceCreateRequest.getSpaceType();
         SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(spaceType);
         ThrowUtils.throwIf(spaceTypeEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "不存在该空间类型");
-        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums) != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个用户仅能有一个" + spaceTypeEnums.getDescription());
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceSetCurrentLoginUserSpace(spaceTypeEnums, SpaceLevelEnums.COMMON, spaceCreateRequest.getSpaceName())));
+        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums) != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个当前登录用户仅能为自己创建一个" + spaceTypeEnums.getDescription());
+
+        Space space =spaceService.spaceSetCurrentLoginUserSpace(spaceTypeEnums, SpaceLevelEnums.COMMON, spaceCreateRequest.getSpaceName());
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(space));
     }
 
-    @Operation(summary = "销毁用户专属空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "销毁当前用户专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/destroy")
     public BaseResponse<Boolean> spaceDestroy(@RequestBody SpaceDestroyRequest spaceDestroyRequest) {
         Integer spaceType = spaceDestroyRequest.getSpaceType();
         SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(spaceType);
-        ThrowUtils.throwIf(spaceTypeEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "不存在该空间类型");
-        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有" + spaceTypeEnums.getDescription() + ", 无需做删除操作");
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceDelete(new SpaceDeleteRequest().setId(spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums).getId())));
+        Space space = spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前登录用户空间不存在" + spaceTypeEnums.getDescription() + "无法进行销毁");
+        ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.SELF && !Objects.equals(space.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该空间的所属者无法修改该空间");
+
+        boolean result = spaceService.spaceDelete(new SpaceDeleteRequest().setId(space.getId()));
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
 
-    @Operation(summary = "编辑用户专属空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "编辑当前用户专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/edit")
     public BaseResponse<SpaceVO> spaceEdit(@RequestBody SpaceEditRequest spaceEditRequest) {
-        Long spaceId = spaceEditRequest.getId();
-        Space space = spaceService.spaceSearchById(spaceId);
-        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.PARAMS_ERROR, "指定标识的空间不存在");
-        ThrowUtils.throwIf(!Objects.equals(space.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该空间的所属者无法修改该空间");
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(spaceService.spaceUpdate(new SpaceUpdateRequest().setId(spaceId).setName(spaceEditRequest.getName()))));
+        Integer spaceType = spaceEditRequest.getSpaceType();
+        SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(spaceType);
+        Space space = spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前登录用户空间不存在" + spaceTypeEnums.getDescription() + "无法进行编辑");
+        ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.SELF && !Objects.equals(space.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该空间的所属者无法修改该空间");
+
         // TODO: 目前最多就修改个名字, 后续可以添加修改空间类型或是修改空间等级, 或者是提供捐赠公共空间模式
+        Space myspace = spaceService.spaceUpdate(
+                new SpaceUpdateRequest()
+                        .setId(space.getId())
+                        .setName(spaceEditRequest.getName())
+        );
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(myspace));
     }
 
-    @Operation(summary = "查找用户专属空间(私有空间/协作空间)网络接口")
+    @Operation(summary = "查找当前用户专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
     @PostMapping("/query")
     public BaseResponse<SpaceVO> spaceQuery(@RequestBody SpaceQueryRequest spaceEditRequest) {
         Integer spaceType = spaceEditRequest.getSpaceType();
         SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(spaceType);
-        ThrowUtils.throwIf(spaceTypeEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "不存在该空间类型");
         Space space = spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums);
-        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户并没有" + spaceTypeEnums.getDescription() + ", 无需做查看操作");
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前登录用户空间不存在" + spaceTypeEnums.getDescription() + "无法进行查找");
+        ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.SELF && !Objects.equals(space.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该空间的所属者无法修改该空间");
+
         return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(space));
     }
 
-    @Operation(summary = "获取空间等级描述网络接口")
+    @Operation(summary = "查找指定的专属空间(私有空间/协作空间)网络接口")
     @SaCheckLogin
-    @PostMapping("/level")
-    public BaseResponse<List<SpaceLevelInfo>> spaceLevel() {
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceService.spaceGetLevelInfo());
+    @SaCheckPermission({"picture:view"})
+    @PostMapping("/query/id")
+    public BaseResponse<SpaceVO> spaceQueryById(@RequestBody SpaceQueryByIdRequest spaceQueryByIdRequest) {
+        Long spaceId = spaceQueryByIdRequest.getSpaceId();
+        Space space = spaceService.spaceSearchById(spaceId);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该空间不存在");
+        ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.SELF && space.getUserId() != userService.userGetCurrentLonginUserId(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户无法查看该私有空间");
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(space));
     }
 
 }

@@ -237,12 +237,12 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
                 "空间标识不得非法"
         );
         ThrowUtils.throwIf(
-                spaceId == null,
+                userId == null,
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "用户标识不得为空"
         );
         ThrowUtils.throwIf(
-                spaceId <= 0,
+                userId <= 0,
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "用户标识不得非法"
         );
