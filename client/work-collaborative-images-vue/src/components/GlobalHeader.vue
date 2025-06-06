@@ -1,15 +1,15 @@
 <script lang="ts" setup>
-import { computed, h, ref } from 'vue'
+import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   CrownOutlined,
   HomeOutlined,
   LogoutOutlined,
   PictureOutlined,
-  UserOutlined,
   QuestionCircleOutlined,
   SnippetsOutlined,
+  UserOutlined
 } from '@ant-design/icons-vue'
-import { type MenuProps, message } from 'ant-design-vue'
+import { type MenuProps, message, notification } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
 import { userLogout } from '@/api/work-collaborative-images/userController.ts'
@@ -20,7 +20,7 @@ const originItems = [
     key: '/',
     title: '主页',
     label: '主页',
-    icon: () => h(HomeOutlined),
+    icon: () => h(HomeOutlined)
   },
   {
     key: '/operate',
@@ -31,14 +31,14 @@ const originItems = [
       {
         key: '/operate/picture/add',
         title: '添加图片',
-        label: '添加图片',
+        label: '添加图片'
       },
       {
         key: '/operate/space/add',
         title: '添加空间',
-        label: '添加空间',
-      },
-    ],
+        label: '添加空间'
+      }
+    ]
   },
   {
     key: '/admin',
@@ -49,25 +49,25 @@ const originItems = [
       {
         key: '/admin/user',
         title: '用户管理',
-        label: '用户管理',
+        label: '用户管理'
       },
       {
         key: '/admin/picture',
         title: '图片管理',
-        label: '图片管理',
+        label: '图片管理'
       },
       {
         key: '/admin/space',
         title: '空间管理',
-        label: '空间管理',
-      },
-    ],
+        label: '空间管理'
+      }
+    ]
   },
   {
     key: '/about',
     title: '关于',
     label: '关于',
-    icon: () => h(QuestionCircleOutlined),
+    icon: () => h(QuestionCircleOutlined)
   },
   {
     key: 'others',
@@ -76,12 +76,12 @@ const originItems = [
       'a',
       {
         href: 'https://limou3434.github.io/work-blog-website/',
-        target: '_blank',
+        target: '_blank'
       },
-      '博客',
+      '博客'
     ),
-    icon: () => h(SnippetsOutlined),
-  },
+    icon: () => h(SnippetsOutlined)
+  }
 ] // 在不考虑权限的情况下设置跳转菜单选项
 const filterMenus = (menus = [] as MenuProps['items']) => {
   return menus?.filter((menu) => {
@@ -99,7 +99,7 @@ const items = computed<MenuProps['items']>(() => filterMenus(originItems)) // �
 // 点击菜单后对应跳转事件
 const doMenuClick = ({ key }: { key: string }) => {
   router.push({
-    path: key,
+    path: key
   })
 }
 
@@ -119,7 +119,7 @@ const doLogout = async () => {
   console.log(res)
   if (res.data.code === 20000) {
     await loginUserStore.setLoginUser({
-      account: '尚未登录',
+      account: '尚未登录'
     })
     message.success('登出成功')
     await router.push('/user/login')
@@ -127,13 +127,43 @@ const doLogout = async () => {
     message.error(res.data.message)
   }
 }
+
+// 解决屏幕国小无法显示全部导航栏的问题
+const isMobile = ref(false)
+const checkIsMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
+onMounted(() => {
+  checkIsMobile()
+  window.addEventListener('resize', checkIsMobile)
+
+  if (isMobile.value) {
+    notification.open({
+      message: '欢迎来到工作室协作图库',
+      description: () =>
+        h('div', [
+          h('img', {
+            src: new URL('../assets/logo.svg', import.meta.url).href,
+            alt: 'logo',
+            style: 'width: 24px; margin-right: 8px;',
+          }),
+          h('span', '专属于您的支持智能编辑的团队协作图库'),
+        ]),
+      placement: 'bottomLeft',
+      duration: 3,
+    })
+  }
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', checkIsMobile)
+})
 </script>
 
 <template>
   <div id="globalHeader">
     <a-row :wrap="false">
       <!-- 网站图标 -->
-      <a-col flex="200px">
+      <a-col v-if="!isMobile" flex="200px">
         <RouterLink to="/">
           <div class="title-bar">
             <img alt="logo" class="logo" src="../assets/logo.svg" />

@@ -2,13 +2,14 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  spaceDestroySelf,
-  spaceQuerySelf,
+  spaceDestroy,
+  spaceQuery,
 } from '@/api/work-collaborative-images/spaceController.ts'
 import { message } from 'ant-design-vue'
 import PictureOverview from '@/components/PictureOverview.vue'
 import { pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
 import SpaceDashboard from '@/components/SpaceDashboard.vue'
+import { SPACE_TYPE_ENUM } from '@/constants/space.ts'
 
 // 路由对象
 const router = useRouter()
@@ -49,7 +50,7 @@ const getTableData = async (
 // 页面加载时
 onMounted(async () => {
   // 获取用户空间信息
-  const res = await spaceQuerySelf()
+  const res = await spaceQuery({ spaceType: SPACE_TYPE_ENUM.SELF })
   if (res.data.code === 20000 && res.data.data) {
     space.value = res.data.data
     message.success('获取私有空间成功')
@@ -74,7 +75,7 @@ const handleAddPicture = () => {
 
 // 删除本空间的调用
 const handleDelSpace = async () => {
-  const res = await spaceDestroySelf()
+  const res = await spaceDestroy({spaceType: SPACE_TYPE_ENUM.SELF})
   if (res.data.code === 20000) {
     message.success('销毁成功')
     await router.push('/self')

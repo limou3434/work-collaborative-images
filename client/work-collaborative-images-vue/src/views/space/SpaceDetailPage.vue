@@ -1,11 +1,9 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { spaceQuerySelf } from '@/api/work-collaborative-images/spaceController.ts'
-import {
-  // pictureCategorys,
-  pictureQuery,
-} from '@/api/work-collaborative-images/pictureController.ts'
+import { spaceQuery } from '@/api/work-collaborative-images/spaceController.ts'
+import { pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
+import { SPACE_TYPE_ENUM } from '@/constants/space.ts'
 
 // // 获取从路径上得到的空间 id 参数
 // const props = defineProps<{
@@ -26,7 +24,7 @@ const space = ref<WorkCollaborativeImagesAPI.SpaceVO>({
 // 拉取空间详情
 const fetchSpaceDetail = async () => {
   try {
-    const res = await spaceQuerySelf()
+    const res = await spaceQuery({ spaceType: SPACE_TYPE_ENUM.SELF })
     if (res.data.code === 20000 && res.data.data) {
       space.value = res.data.data
       searchParams.spaceId = space.value.id

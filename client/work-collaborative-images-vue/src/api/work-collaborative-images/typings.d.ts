@@ -9,10 +9,34 @@ declare namespace WorkCollaborativeImagesAPI {
     data?: boolean
   }
 
+  type BaseResponseCreateOutPaintingTaskResponse = {
+    code?: number
+    message?: string
+    data?: CreateOutPaintingTaskResponse
+  }
+
+  type BaseResponseGetOutPaintingTaskResponse = {
+    code?: number
+    message?: string
+    data?: GetOutPaintingTaskResponse
+  }
+
   type BaseResponseInteger = {
     code?: number
     message?: string
     data?: number
+  }
+
+  type BaseResponseListImageSearchResult = {
+    code?: number
+    message?: string
+    data?: ImageSearchResult[]
+  }
+
+  type BaseResponseListPictureVO = {
+    code?: number
+    message?: string
+    data?: PictureVO[]
   }
 
   type BaseResponseListSpaceLevelInfo = {
@@ -45,10 +69,28 @@ declare namespace WorkCollaborativeImagesAPI {
     data?: PageSpace
   }
 
+  type BaseResponsePageSpaceUser = {
+    code?: number
+    message?: string
+    data?: PageSpaceUser
+  }
+
+  type BaseResponsePageSpaceVO = {
+    code?: number
+    message?: string
+    data?: PageSpaceVO
+  }
+
   type BaseResponsePageUser = {
     code?: number
     message?: string
     data?: PageUser
+  }
+
+  type BaseResponsePageUserVO = {
+    code?: number
+    message?: string
+    data?: PageUserVO
   }
 
   type BaseResponsePicture = {
@@ -67,6 +109,18 @@ declare namespace WorkCollaborativeImagesAPI {
     code?: number
     message?: string
     data?: Space
+  }
+
+  type BaseResponseSpaceUser = {
+    code?: number
+    message?: string
+    data?: SpaceUser
+  }
+
+  type BaseResponseSpaceUserVO = {
+    code?: number
+    message?: string
+    data?: SpaceUserVO
   }
 
   type BaseResponseSpaceVO = {
@@ -93,9 +147,31 @@ declare namespace WorkCollaborativeImagesAPI {
     data?: UserVO
   }
 
+  type CreateOutPaintingTaskResponse = {
+    code?: string
+    message?: string
+    requestId?: string
+    output?: Output
+  }
+
+  type GetOutPaintingTaskResponse = {
+    requestId?: string
+    output?: Output
+  }
+
+  type ImageSearchResult = {
+    thumbUrl?: string
+    fromUrl?: string
+  }
+
   type OrderItem = {
     column?: string
     asc?: boolean
+  }
+
+  type Output = {
+    taskId?: string
+    taskStatus?: string
   }
 
   type PagePicture = {
@@ -140,6 +216,34 @@ declare namespace WorkCollaborativeImagesAPI {
     pages?: number
   }
 
+  type PageSpaceUser = {
+    records?: SpaceUser[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PageSpaceUser
+    searchCount?: PageSpaceUser
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
+  }
+
+  type PageSpaceVO = {
+    records?: SpaceVO[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PageSpaceVO
+    searchCount?: PageSpaceVO
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
+  }
+
   type PageUser = {
     records?: User[]
     total?: number
@@ -154,15 +258,45 @@ declare namespace WorkCollaborativeImagesAPI {
     pages?: number
   }
 
+  type PageUserVO = {
+    records?: UserVO[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PageUserVO
+    searchCount?: PageUserVO
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
+  }
+
+  type Parameters = {
+    angle?: number
+    outputRatio?: string
+    topOffset?: number
+    bottomOffset?: number
+    leftOffset?: number
+    rightOffset?: number
+    bestQuality?: boolean
+    limitImageSize?: boolean
+    addWatermark?: boolean
+    xScale?: number
+    yScale?: number
+  }
+
   type Picture = {
     id?: number
     url?: string
     thumbnailUrl?: string
+    originalUrl?: string
     name?: string
     introduction?: string
     category?: string
     tags?: string
     picSize?: number
+    picColor?: string
     picWidth?: number
     picHeight?: number
     picScale?: number
@@ -204,12 +338,21 @@ declare namespace WorkCollaborativeImagesAPI {
     tags?: string
   }
 
+  type PictureCreateOutPaintingTaskRequest = {
+    pictureId?: number
+    parameters?: Parameters
+  }
+
   type PictureDeleteRequest = {
     id?: number
   }
 
   type PictureDestroyRequest = {
     id?: number
+  }
+
+  type pictureOutPaintingGetTaskParams = {
+    taskId: string
   }
 
   type PictureQueryRequest = {
@@ -228,12 +371,30 @@ declare namespace WorkCollaborativeImagesAPI {
     picHeight?: number
     picScale?: number
     picFormat?: string
+    startEditTime?: string
+    endEditTime?: string
   }
 
   type PictureReviewRequest = {
     id?: number
     reviewStatus?: number
     reviewMessage?: string
+  }
+
+  type PictureSearchColorRequest = {
+    pageCurrent?: number
+    pageSize?: number
+    sortField?: string
+    sortOrder?: string
+    pictureId?: number
+  }
+
+  type PictureSearchPictureRequest = {
+    pageCurrent?: number
+    pageSize?: number
+    sortField?: string
+    sortOrder?: string
+    pictureId?: number
   }
 
   type PictureSearchRequest = {
@@ -256,6 +417,8 @@ declare namespace WorkCollaborativeImagesAPI {
     reviewStatus?: number
     reviewMessage?: string
     reviewerId?: number
+    startEditTime?: string
+    endEditTime?: string
   }
 
   type PictureUpdateRequest = {
@@ -276,7 +439,6 @@ declare namespace WorkCollaborativeImagesAPI {
   type pictureUploadParams = {
     pictureId?: number
     spaceId?: number
-    spaceType?: number
     pictureCategory?: string
     pictureName?: string
     pictureIntroduction?: string
@@ -303,7 +465,6 @@ declare namespace WorkCollaborativeImagesAPI {
     updateTime?: string
     userVO?: UserVO
     reviewStatus?: number
-    reviewMessage?: string
     reviewerId?: number
   }
 
@@ -329,15 +490,20 @@ declare namespace WorkCollaborativeImagesAPI {
     userId?: number
   }
 
-  type SpaceCreateSelfRequest = {
-    name?: string
+  type SpaceCreateRequest = {
+    spaceName?: string
+    spaceType?: number
   }
 
   type SpaceDeleteRequest = {
     id?: number
   }
 
-  type SpaceEditRequestSelf = {
+  type SpaceDestroyRequest = {
+    spaceType?: number
+  }
+
+  type SpaceEditRequest = {
     id?: number
     name?: string
   }
@@ -349,6 +515,10 @@ declare namespace WorkCollaborativeImagesAPI {
     maxSize?: number
   }
 
+  type SpaceQueryRequest = {
+    spaceType?: number
+  }
+
   type SpaceSearchRequest = {
     pageCurrent?: number
     pageSize?: number
@@ -358,6 +528,7 @@ declare namespace WorkCollaborativeImagesAPI {
     userId?: number
     name?: string
     level?: number
+    type?: number
   }
 
   type SpaceUpdateRequest = {
@@ -366,6 +537,74 @@ declare namespace WorkCollaborativeImagesAPI {
     level?: number
     maxSize?: number
     maxCount?: number
+  }
+
+  type SpaceUser = {
+    id?: number
+    spaceId?: number
+    userId?: number
+    spaceRole?: number
+    createTime?: string
+    updateTime?: string
+  }
+
+  type SpaceUserAddRequest = {
+    spaceId?: number
+    userId?: number
+    spaceRole?: number
+  }
+
+  type SpaceUserDeleteRequest = {
+    id?: number
+  }
+
+  type SpaceUserEditRequest = {
+    userId?: number
+    spaceId?: number
+    spaceRole?: number
+  }
+
+  type spaceUserGetUserParams = {
+    userId: number
+  }
+
+  type SpaceUserMoveInRequest = {
+    userId?: number
+    spaceId?: number
+    spaceRole?: number
+  }
+
+  type SpaceUserMoveOutRequest = {
+    userId?: number
+    spaceId?: number
+  }
+
+  type SpaceUserSearchRequest = {
+    pageCurrent?: number
+    pageSize?: number
+    sortField?: string
+    sortOrder?: string
+    id?: number
+    spaceId?: number
+    userId?: number
+  }
+
+  type SpaceUserUpdateRequest = {
+    id?: number
+    spaceId?: number
+    userId?: number
+    spaceRole?: number
+  }
+
+  type SpaceUserVO = {
+    id?: number
+    spaceId?: number
+    userId?: number
+    spaceRole?: number
+    createTime?: string
+    updateTime?: string
+    userVO?: UserVO
+    spaceVO?: SpaceVO
   }
 
   type SpaceVO = {
@@ -517,6 +756,7 @@ declare namespace WorkCollaborativeImagesAPI {
     address?: string
     role?: number
     level?: number
+    spaceRole?: number
     gender?: number
   }
 }

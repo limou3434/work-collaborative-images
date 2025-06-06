@@ -7,7 +7,7 @@ import {
   adminSpaceSearch,
 } from '@/api/work-collaborative-images/spaceController.ts'
 import { formatSize } from '@/utils'
-import { SPACE_LEVEL_MAP } from '@/constants/space.ts'
+import { SPACE_TYPE_MAP, SPACE_LEVEL_MAP } from '@/constants/space.ts'
 
 // 定义表格的列名和对应字段
 const columns = [
@@ -18,6 +18,10 @@ const columns = [
   {
     title: '空间名称',
     dataIndex: 'spaceName',
+  },
+  {
+    title: '空间类型',
+    dataIndex: 'spaceType',
   },
   {
     title: '空间级别',
@@ -171,6 +175,10 @@ const doDelete = async (id: string) => {
         <!-- 空间名称 -->
         <template v-if="column.dataIndex === 'spaceName'">
           {{record.name}}
+        </template>
+        <!-- 空间类型 -->
+        <template v-if="column.dataIndex === 'spaceType'">
+          {{ SPACE_TYPE_MAP[record.type as 0 | 1 | 2] }}
         </template>
         <!-- 空间级别 -->
         <template v-if="column.dataIndex === 'spaceLevel'">

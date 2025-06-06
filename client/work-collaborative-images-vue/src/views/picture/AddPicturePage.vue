@@ -9,7 +9,7 @@ import {
   pictureUpload,
 } from '@/api/work-collaborative-images/pictureController.ts'
 import { spaceQuerySelf } from '@/api/work-collaborative-images/spaceController.ts'
-import { SPACE_PUBLIC_ENUM } from '@/constants/space.ts' // 获取私有空间 ID 接口
+import { SPACE_TYPE_ENUM } from '@/constants/space.ts' // 获取私有空间 ID 接口
 
 const route = useRoute()
 const router = useRouter()
@@ -29,7 +29,7 @@ watch(joinPrivateSpace, async (val) => {
     const res = await spaceQuerySelf()
     if (res.data.code === 20000 && res.data.data?.id) {
       pictureForm.spaceId = res.data.data.id
-      pictureForm.spaceType = SPACE_PUBLIC_ENUM.SELF
+      pictureForm.spaceType = SPACE_TYPE_ENUM.SELF
     } else {
       message.error(res.data.message)
       joinPrivateSpace.value = false

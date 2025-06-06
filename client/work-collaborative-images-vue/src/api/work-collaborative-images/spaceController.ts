@@ -62,9 +62,9 @@ export async function adminSpaceUpdate(
   })
 }
 
-/** 创建私有空间网络接口 POST /space/create */
-export async function spaceCreateSelf(
-  body: WorkCollaborativeImagesAPI.SpaceCreateSelfRequest,
+/** 创建用户专属空间(私有空间/协作空间)网络接口 POST /space/create */
+export async function spaceCreate(
+  body: WorkCollaborativeImagesAPI.SpaceCreateRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseSpaceVO>('/space/create', {
@@ -77,17 +77,24 @@ export async function spaceCreateSelf(
   })
 }
 
-/** 销毁私有空间网络接口 POST /space/destroy */
-export async function spaceDestroySelf(options?: { [key: string]: any }) {
+/** 销毁用户专属空间(私有空间/协作空间)网络接口 POST /space/destroy */
+export async function spaceDestroy(
+  body: WorkCollaborativeImagesAPI.SpaceDestroyRequest,
+  options?: { [key: string]: any }
+) {
   return request<WorkCollaborativeImagesAPI.BaseResponseBoolean>('/space/destroy', {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
     ...(options || {}),
   })
 }
 
-/** 编辑私有空间网络接口 POST /space/edit */
-export async function spaceEditSelf(
-  body: WorkCollaborativeImagesAPI.SpaceEditRequestSelf,
+/** 编辑用户专属空间(私有空间/协作空间)网络接口 POST /space/edit */
+export async function spaceEdit(
+  body: WorkCollaborativeImagesAPI.SpaceEditRequest,
   options?: { [key: string]: any }
 ) {
   return request<WorkCollaborativeImagesAPI.BaseResponseSpaceVO>('/space/edit', {
@@ -108,10 +115,17 @@ export async function spaceLevel(options?: { [key: string]: any }) {
   })
 }
 
-/** 查找私有空间网络接口 POST /space/query */
-export async function spaceQuerySelf(options?: { [key: string]: any }) {
+/** 查找用户专属空间(私有空间/协作空间)网络接口 POST /space/query */
+export async function spaceQuery(
+  body: WorkCollaborativeImagesAPI.SpaceQueryRequest,
+  options?: { [key: string]: any }
+) {
   return request<WorkCollaborativeImagesAPI.BaseResponseSpaceVO>('/space/query', {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
     ...(options || {}),
   })
 }

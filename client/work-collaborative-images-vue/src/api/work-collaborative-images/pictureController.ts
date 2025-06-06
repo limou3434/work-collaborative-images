@@ -85,7 +85,7 @@ export async function pictureCategorys(options?: { [key: string]: any }) {
   })
 }
 
-/** 根据指定标识销毁图片网络接口 POST /picture/destroy */
+/** 销毁图片网络接口 POST /picture/destroy */
 export async function pictureDestroy(
   body: WorkCollaborativeImagesAPI.PictureDestroyRequest,
   options?: { [key: string]: any }
@@ -100,7 +100,43 @@ export async function pictureDestroy(
   })
 }
 
-/** 查找公有图库或私有空间中图片的网络接口 POST /picture/query */
+/** 创建智能绘画任务 POST /picture/out_painting/create_task */
+export async function pictureOutPaintingCreateTask(
+  body: WorkCollaborativeImagesAPI.PictureCreateOutPaintingTaskRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseCreateOutPaintingTaskResponse>(
+    '/picture/out_painting/create_task',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: body,
+      ...(options || {}),
+    }
+  )
+}
+
+/** 查询智能绘画任务 GET /picture/out_painting/get_task */
+export async function pictureOutPaintingGetTask(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: WorkCollaborativeImagesAPI.pictureOutPaintingGetTaskParams,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseGetOutPaintingTaskResponse>(
+    '/picture/out_painting/get_task',
+    {
+      method: 'GET',
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  )
+}
+
+/** 查找图片网络接口 POST /picture/query */
 export async function pictureQuery(
   body: WorkCollaborativeImagesAPI.PictureQueryRequest,
   options?: { [key: string]: any }
@@ -130,7 +166,40 @@ export async function adminPictureReview(
   })
 }
 
-/** 已脱敏的图片上传网络接口 POST /space/upload/ */
+/** 利用某个图片的唯一标识来搜索同色的图片 POST /picture/search/color */
+export async function pictureSearchColor(
+  body: WorkCollaborativeImagesAPI.PictureSearchColorRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseListPictureVO>('/picture/search/color', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
+/** 利用某个图片的唯一标识来搜索相似的图片 POST /picture/search/picture */
+export async function pictureSearchPicture(
+  body: WorkCollaborativeImagesAPI.PictureSearchPictureRequest,
+  options?: { [key: string]: any }
+) {
+  return request<WorkCollaborativeImagesAPI.BaseResponseListImageSearchResult>(
+    '/picture/search/picture',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: body,
+      ...(options || {}),
+    }
+  )
+}
+
+/** 上传图片网络接口 POST /picture/upload */
 export async function pictureUpload(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: WorkCollaborativeImagesAPI.pictureUploadParams,
