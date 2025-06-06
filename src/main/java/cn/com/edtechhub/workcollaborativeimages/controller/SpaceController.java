@@ -118,7 +118,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         ThrowUtils.throwIf(spaceTypeEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "不存在该空间类型");
         ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums) != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个当前登录用户仅能为自己创建一个" + spaceTypeEnums.getDescription());
 
-        Space space =spaceService.spaceSetCurrentLoginUserSpace(spaceTypeEnums, SpaceLevelEnums.COMMON, spaceCreateRequest.getSpaceName());
+        Space space = spaceService.spaceSetCurrentLoginUserSpace(spaceTypeEnums, SpaceLevelEnums.COMMON, spaceCreateRequest.getSpaceName());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(space));
     }
 

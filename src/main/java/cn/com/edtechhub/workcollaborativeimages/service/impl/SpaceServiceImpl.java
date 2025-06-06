@@ -10,6 +10,7 @@ import cn.com.edtechhub.workcollaborativeimages.mapper.SpaceMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
+import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceAddRequest;
@@ -17,6 +18,8 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.Space
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserAddRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserDeleteRequest;
+import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceUserService;
@@ -28,6 +31,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -74,6 +78,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @Resource
     @Lazy
     SpaceUserService spaceUserService;
+    @Autowired
+    private SpaceService spaceService;
 
     @Override
     @LogParams
@@ -154,7 +160,22 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 }
             }
 
-            // 再把图库本身删除
+            // 如果是协作空间还需要把所有的成员记录都删除
+            List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
+                    new SpaceUserSearchRequest()
+                            .setSpaceId(id)
+            ).getRecords();
+            if (spaceUserList != null) {
+                List<Long> spaceUserIds = spaceUserList
+                        .stream()
+                        .map(SpaceUser::getId)
+                        .toList()
+                ;
+                boolean result = userService.removeByIds(spaceUserIds); // 批量删除
+                ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除协作空间的成员记录失败");
+            }
+
+            // 最后才把图库本身删除
             boolean result = this.removeById(id);
             ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除空间失败, 也许该空间不存在或者已经被删除");
 
