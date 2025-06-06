@@ -15,7 +15,6 @@ import {
 } from '@/api/work-collaborative-images/spaceController.ts'
 import { formatSize } from '@/utils'
 import { SPACE_TYPE_ENUM } from '@/constants/space.ts'
-import * as path from 'node:path'
 
 /// 变量 ///
 const route = useRoute() // 存储路由读取器
@@ -48,7 +47,7 @@ const handleSetType = () => {
 
 // 用于提交创建空间/编辑空间表单调用
 const handleSubmit = async () => {
-  const spaceType = handleSetType ()
+  const spaceType = handleSetType()
   // 根据表单内容和路由参数来填充请求进行发送
   let res
   if (isCreate.value) { // 创建空间
@@ -74,7 +73,7 @@ const handleSubmit = async () => {
 
 // 用于获取专属空间的旧数据调用
 const handleGetOldSpace = async () => {
-  const spaceType = handleSetType ()
+  const spaceType = handleSetType()
   const res = await spaceQuery({
     spaceType: spaceType
   })
