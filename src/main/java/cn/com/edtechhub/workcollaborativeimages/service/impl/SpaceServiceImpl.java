@@ -18,7 +18,6 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.Space
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceUpdateRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserAddRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.SpaceUserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
@@ -31,7 +30,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -167,8 +165,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 List<Long> spaceUserIds = spaceUserList
                         .stream()
                         .map(SpaceUser::getId)
-                        .toList()
-                ;
+                        .toList();
                 boolean result = userService.removeByIds(spaceUserIds); // 批量删除
                 ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除协作空间的成员记录失败");
             }
@@ -442,19 +439,6 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         space.setMaxSize(spaceLevelEnums.getMaxSize());
         space.setMaxCount(spaceLevelEnums.getMaxCount());
         return space;
-    }
-
-    /**
-     * 检查 name
-     */
-    private void checkName(String name) {
-        ThrowUtils.throwIf(StrUtil.isNotBlank(name) && name.length() > SpaceConstant.MAX_NAME_LENGTH, CodeBindMessageEnums.PARAMS_ERROR, "名字不得大于" + SpaceConstant.MAX_NAME_LENGTH + "位字符");
-    }
-
-    /**
-     * 检查 level
-     */
-    private void checkLevel(Integer level) {
     }
 
 }
