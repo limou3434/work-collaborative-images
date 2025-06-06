@@ -83,13 +83,23 @@ const handleDelSpace = async () => {
     message.error(res.data.message)
   }
 }
+
+// 默认显示空间名字 3 秒
+const showTooltip = ref(true)
+onMounted(() => {
+  setTimeout(() => {
+    showTooltip.value = false
+  }, 3000)
+})
 </script>
 
 <template>
   <div id="mySpace">
     <!-- 空间信息 -->
     <a-flex justify="space-between">
-      <h2>私有空间: {{ space?.name }}</h2>
+      <a-tooltip :title="space?.name || ''" :open="showTooltip" placement="right">
+        <h2>私有空间</h2>
+      </a-tooltip>
       <a-space>
         <a-button type="primary" @click="handleAddPicture">添加图片到图库</a-button>
         <a-popconfirm cancel-text="取消" ok-text="确认" title="确认销毁?" @confirm="handleDelSpace">
