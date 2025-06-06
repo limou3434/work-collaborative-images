@@ -125,6 +125,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     public Boolean spaceDelete(SpaceDeleteRequest spaceDeleteRequest) {
         // 检查参数
         ThrowUtils.throwIf(spaceDeleteRequest == null, CodeBindMessageEnums.PARAMS_ERROR, "请求体不能为空");
+
         Long id = spaceDeleteRequest.getId();
         ThrowUtils.throwIf(
                 id == null,
@@ -136,6 +137,14 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "标识不得非法, 必须是正整数"
         );
+
+        Space space = spaceSearchById(id);
+        ThrowUtils.throwIf(
+                space == null,
+                CodeBindMessageEnums.NOT_FOUND_ERROR,
+                "对应的空间并不存在"
+        );
+
 
         // 服务实现
         return transactionTemplate.execute(status -> {
@@ -157,17 +166,19 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
             }
 
             // 如果是协作空间还需要把所有的成员记录都删除
-            List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
-                    new SpaceUserSearchRequest()
-                            .setSpaceId(id)
-            ).getRecords();
-            if (spaceUserList != null) {
-                List<Long> spaceUserIds = spaceUserList
-                        .stream()
-                        .map(SpaceUser::getId)
-                        .toList();
-                boolean result = userService.removeByIds(spaceUserIds); // 批量删除
-                ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除协作空间的成员记录失败");
+            if (SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.COLLABORATIVE) {
+                List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
+                        new SpaceUserSearchRequest()
+                                .setSpaceId(id)
+                ).getRecords();
+                if (!spaceUserList.isEmpty()) {
+                    List<Long> spaceUserIds = spaceUserList
+                            .stream()
+                            .map(SpaceUser::getId)
+                            .toList();
+                    boolean result = spaceUserService.removeByIds(spaceUserIds); // 批量删除
+                    ThrowUtils.throwIf(!result, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "删除协作空间的成员记录失败");
+                }
             }
 
             // 最后才把图库本身删除
