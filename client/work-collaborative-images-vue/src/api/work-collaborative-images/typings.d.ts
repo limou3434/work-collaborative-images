@@ -505,7 +505,7 @@ declare namespace WorkCollaborativeImagesAPI {
 
   type SpaceEditRequest = {
     spaceType?: number
-    name?: string
+    spaceName?: string
   }
 
   type SpaceLevelInfo = {
@@ -566,10 +566,6 @@ declare namespace WorkCollaborativeImagesAPI {
     userId?: number
     spaceId?: number
     spaceRole?: number
-  }
-
-  type spaceUserGetUserParams = {
-    userId: number
   }
 
   type SpaceUserMoveInRequest = {

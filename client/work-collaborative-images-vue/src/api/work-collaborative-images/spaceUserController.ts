@@ -62,7 +62,7 @@ export async function adminSpaceUserUpdate(
   })
 }
 
-/** 在当前登录用户的协作空间中编辑权限网络接口 POST /space_user/edit */
+/** 对指定的协作空间编辑成员网络接口 POST /space_user/edit */
 export async function spaceUserEdit(
   body: WorkCollaborativeImagesAPI.SpaceUserEditRequest,
   options?: { [key: string]: any }
@@ -77,22 +77,7 @@ export async function spaceUserEdit(
   })
 }
 
-/** 在当前登录用户的协作空间中获取单个用户网络接口 GET /space_user/get/user */
-export async function spaceUserGetUser(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: WorkCollaborativeImagesAPI.spaceUserGetUserParams,
-  options?: { [key: string]: any }
-) {
-  return request<WorkCollaborativeImagesAPI.BaseResponseUserVO>('/space_user/get/user', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
-    ...(options || {}),
-  })
-}
-
-/** 在当前登录用户的协作空间中移进用户网络接口 POST /space_user/move/in */
+/** 对指定的协作空间移进成员网络接口 POST /space_user/move/in */
 export async function spaceUserMoveIn(
   body: WorkCollaborativeImagesAPI.SpaceUserMoveInRequest,
   options?: { [key: string]: any }
@@ -107,7 +92,7 @@ export async function spaceUserMoveIn(
   })
 }
 
-/** 在当前登录用户的协作空间中移出用户网络接口 POST /space_user/move/out */
+/** 对指定的协作空间移出成员网络接口 POST /space_user/move/out */
 export async function spaceUserMoveOut(
   body: WorkCollaborativeImagesAPI.SpaceUserMoveOutRequest,
   options?: { [key: string]: any }
@@ -122,7 +107,7 @@ export async function spaceUserMoveOut(
   })
 }
 
-/** 查询当前登录用户已经加入的协作空间列表网络接口 GET /space_user/page/my_collaborative_space */
+/** 获取当前登录用户已经加入的所有协作空间 GET /space_user/page/my_collaborative_space */
 export async function spaceUserPageMyCollaborativeSpace(options?: { [key: string]: any }) {
   return request<WorkCollaborativeImagesAPI.BaseResponsePageSpaceVO>(
     '/space_user/page/my_collaborative_space',
@@ -133,7 +118,7 @@ export async function spaceUserPageMyCollaborativeSpace(options?: { [key: string
   )
 }
 
-/** 在当前登录用户的协作空间中获取用户页面网络接口 GET /space_user/page/user */
+/** 获取当前登录用户的协作空间中所有的成员信息网络接口 GET /space_user/page/user */
 export async function spaceUserPageUser(options?: { [key: string]: any }) {
   return request<WorkCollaborativeImagesAPI.BaseResponsePageUserVO>('/space_user/page/user', {
     method: 'GET',

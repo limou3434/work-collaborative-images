@@ -4,7 +4,7 @@
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { SPACE_TYPE_MAP } from '@/constants/space.ts'
@@ -14,6 +14,7 @@ import { pictureQuery } from '@/api/work-collaborative-images/pictureController.
 import { spaceDestroy } from '@/api/work-collaborative-images/spaceController.ts'
 
 /// 变量 ///
+
 const props = defineProps<{ // 外部属性
   spaceVO?: WorkCollaborativeImagesAPI.SpaceVO
 }>()
@@ -25,27 +26,21 @@ const pagination = reactive({ // 存储图片分页状态
 })
 const dataList = ref<WorkCollaborativeImagesAPI.PictureVO[]>([]) // 存储所有的图片数据的列表
 const loading = ref(false) // 存储加载状态
-const showTooltip = ref(true) // 存储是否显示空间名字提示的标识
 
-/// 调用时提示组件显示 3 秒的空间名字后消失 ///
-const handleShowTooltip = () => {
-  setTimeout(() => {
-    showTooltip.value = false
-  }, 3000)
-}
+/// 回调 ///
 
-/// 跳转到添加图片的页面 ///
+// 跳转到添加图片的页面
 const handleAddPicture = () => {
   router.push({ path: '/operate/picture/add/', query: { from: 'self' } })
 }
 
-/// 动态获取空间类型描述 ///
+// 动态获取空间类型描述
 const titleName = computed(() => {
   if (!props.spaceVO) return ''
   return SPACE_TYPE_MAP[props.spaceVO.type as 0 | 1 | 2] || ''
 })
 
-/// 调用时获取指定空间中的所有图片 ///
+// 调用时获取指定空间中的所有图片
 const getPictures = async () => {
   loading.value = true
   const res = await pictureQuery({
@@ -60,7 +55,7 @@ const getPictures = async () => {
   loading.value = false
 }
 
-/// 删除空间的调用 ///
+// 删除空间的调用
 const handleDeleteSpace = async () => {
   const res = await spaceDestroy({
     spaceType: props.spaceVO?.type
@@ -73,12 +68,12 @@ const handleDeleteSpace = async () => {
   }
 }
 
-/// 监控外部属性是否成功获取才能调用回调 ///
+/// 监控 ///
+
 watch(
   () => props.spaceVO, // 监听数据
   (newVal) => { // 监听回调
     if (newVal?.id) { // 验证是否收取了有效数据
-      handleShowTooltip()
       getPictures()
     }
   },
@@ -90,12 +85,13 @@ watch(
   <div id="SpaceDetails">
     <!-- 空间信息 -->
     <a-flex justify="space-between">
-      <a-tooltip :open="showTooltip" :title="spaceVO?.name || ''" placement="right">
-        <h2>{{ titleName }}</h2>
-      </a-tooltip>
+      <h2 style="max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        {{ titleName }} - {{ spaceVO?.name }}
+      </h2>
       <a-space>
         <a-button type="primary" @click="handleAddPicture">添加图片到图库</a-button>
-        <a-popconfirm cancel-text="取消" ok-text="确认" title="确认销毁?" @confirm="handleDeleteSpace">
+        <a-popconfirm cancel-text="取消" ok-text="确认" title="确认销毁?"
+                      @confirm="handleDeleteSpace">
           <a-button danger type="default">销毁本图库内容</a-button>
         </a-popconfirm>
       </a-space>

@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * 协作空间页面
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
 import SpaceDetails from '@/components/SpaceDetails.vue'
 import { SPACE_TYPE_ENUM } from '@/constants/space.ts'
 import { spaceQuery } from '@/api/work-collaborative-images/spaceController.ts'
@@ -19,7 +24,7 @@ const handGetSpace = async () => {
     spaceVO.value = res.data.data
     message.success('获取空间成功')
   } else {
-    message.error(res.data.message)
+    message.info(res.data.message)
     await router.replace('/operate/space/add/')
   }
 }

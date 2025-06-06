@@ -31,7 +31,7 @@ const menuItems = [
     ]
   },
   {
-    label: '协作空间',
+    label: '其他空间',
     type: 'group',
     children: [
       // TODO: 等待后续加载

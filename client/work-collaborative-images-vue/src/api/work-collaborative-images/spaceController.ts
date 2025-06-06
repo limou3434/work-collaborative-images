@@ -62,7 +62,7 @@ export async function adminSpaceUpdate(
   })
 }
 
-/** 创建当前用户专属空间(私有空间/协作空间)网络接口 POST /space/create */
+/** 根据类型来创建当前用户的专属空间(私有空间/协作空间)网络接口 POST /space/create */
 export async function spaceCreate(
   body: WorkCollaborativeImagesAPI.SpaceCreateRequest,
   options?: { [key: string]: any }
@@ -77,7 +77,7 @@ export async function spaceCreate(
   })
 }
 
-/** 销毁当前用户专属空间(私有空间/协作空间)网络接口 POST /space/destroy */
+/** 根据类型来销毁当前用户的专属空间(私有空间/协作空间)网络接口 POST /space/destroy */
 export async function spaceDestroy(
   body: WorkCollaborativeImagesAPI.SpaceDestroyRequest,
   options?: { [key: string]: any }
@@ -92,7 +92,7 @@ export async function spaceDestroy(
   })
 }
 
-/** 编辑当前用户专属空间(私有空间/协作空间)网络接口 POST /space/edit */
+/** 根据类型来编辑当前用户的专属空间(私有空间/协作空间)网络接口 POST /space/edit */
 export async function spaceEdit(
   body: WorkCollaborativeImagesAPI.SpaceEditRequest,
   options?: { [key: string]: any }
@@ -115,7 +115,7 @@ export async function spaceLevel(options?: { [key: string]: any }) {
   })
 }
 
-/** 查找当前用户专属空间(私有空间/协作空间)网络接口 POST /space/query */
+/** 根据类型来查找当前用户的专属空间(私有空间/协作空间)网络接口 POST /space/query */
 export async function spaceQuery(
   body: WorkCollaborativeImagesAPI.SpaceQueryRequest,
   options?: { [key: string]: any }
@@ -130,7 +130,7 @@ export async function spaceQuery(
   })
 }
 
-/** 查找指定的专属空间(私有空间/协作空间)网络接口 POST /space/query/id */
+/** 根据具体的空间标识值来查找指定的协作空间网络接口, 注意需要这种查询只能查看当前用户加入的协作空间 POST /space/query/id */
 export async function spaceQueryById(
   body: WorkCollaborativeImagesAPI.SpaceQueryByIdRequest,
   options?: { [key: string]: any }
