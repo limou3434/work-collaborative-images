@@ -17,7 +17,7 @@ const spaceVO = ref<WorkCollaborativeImagesAPI.SpaceVO>()
 
 // NOTE: 调用
 
-// 获取私有空间的调用
+// 获取私有空间数据调用
 const handGetSpace = async () => {
   const res = await spaceQuery({
     spaceType: SPACE_TYPE_ENUM.SELF
@@ -44,7 +44,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="SelfSpace">
+  <div id="SelfPage">
+    <!-- 网页标题 -->
+    <a-flex justify="space-between">
+      <h2>私有空间</h2>
+    </a-flex>
+    <!-- 空间概述 -->
     <SpaceDetails :spaceVO="spaceVO"></SpaceDetails>
   </div>
 </template>

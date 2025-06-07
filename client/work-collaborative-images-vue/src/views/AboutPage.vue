@@ -7,7 +7,15 @@
 </script>
 
 <template>
-<p>关于页面</p>
+  <div id="AboutPage">
+    <!-- 网页标题 -->
+    <a-flex justify="space-between">
+      <h2>关于其他</h2>
+    </a-flex>
+    <p>
+      本项目还在开发测试阶段，如有问题等待修复...
+    </p>
+  </div>
 </template>
 
 <style scoped>

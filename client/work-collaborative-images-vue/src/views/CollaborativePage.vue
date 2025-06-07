@@ -36,7 +36,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="SelfSpace">
+  <div id="CollaborativePage">
+    <!-- 网页标题 -->
+    <a-flex justify="space-between">
+      <h2>协作空间</h2>
+    </a-flex>
+    <!-- 空间概述 -->
     <SpaceDetails :spaceVO="spaceVO"></SpaceDetails>
   </div>
 </template>
