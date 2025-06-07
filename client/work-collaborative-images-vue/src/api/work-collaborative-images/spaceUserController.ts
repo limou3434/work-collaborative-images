@@ -107,9 +107,9 @@ export async function spaceUserMoveOut(
   })
 }
 
-/** 获取当前登录用户已经加入的所有协作空间 GET /space_user/page/my_collaborative_space */
+/** 获取当前登录用户已经加入的所有协作空间的相关记录 GET /space_user/page/my_collaborative_space */
 export async function spaceUserPageMyCollaborativeSpace(options?: { [key: string]: any }) {
-  return request<WorkCollaborativeImagesAPI.BaseResponsePageSpaceVO>(
+  return request<WorkCollaborativeImagesAPI.BaseResponseListSpaceUserVO>(
     '/space_user/page/my_collaborative_space',
     {
       method: 'GET',

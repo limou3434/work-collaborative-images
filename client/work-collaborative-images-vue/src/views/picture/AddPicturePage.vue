@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * 上传图片/修改图片页面
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
 import PictureUpload from '@/components/PictureUpload.vue'
 import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

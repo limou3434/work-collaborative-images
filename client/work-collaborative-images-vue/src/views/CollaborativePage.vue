@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 /**
- * 协作空间页面
+ * 协作页面
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
-import SpaceDetails from '@/components/SpaceDetails.vue'
+import SpaceDetails from '@/components/SpaceOverview.vue'
 import { SPACE_TYPE_ENUM } from '@/constants/space.ts'
 import { spaceQuery } from '@/api/work-collaborative-images/spaceController.ts'
 import { onMounted, ref } from 'vue'

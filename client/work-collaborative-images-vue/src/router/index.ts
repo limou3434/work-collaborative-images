@@ -2,7 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '../views/HomePage.vue'
 
 /**
- * 默认使用设置路由而不是约定路由
+ * Vue 默认使用设置路由而不是约定路由
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,6 +53,18 @@ const router = createRouter({
           path: ':id',
           name: '图片详情',
           component: () => import('../views/picture/PictureDetailPage.vue'), // 懒加载页面
+          props: true,
+        },
+      ],
+    },
+    {
+      path: '/space',
+      name: '空间页面',
+      children: [
+        {
+          path: ':id',
+          name: '空间详情',
+          component: () => import('../views/space/SpaceDetailPage.vue'), // 懒加载页面
           props: true,
         },
       ],

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /**
- * 空间详情组件, 可以通过外部传递的空间类型显示不同的组件, 同时根据外部传递的空间标识来显示不同的空间信息
+ * 空间概览组件
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
@@ -13,7 +13,7 @@ import SpaceDashboard from '@/components/SpaceDashboard.vue'
 import { pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
 import { spaceDestroy } from '@/api/work-collaborative-images/spaceController.ts'
 
-/// 变量 ///
+// NOTE: 变量
 
 const props = defineProps<{ // 外部属性
   spaceVO?: WorkCollaborativeImagesAPI.SpaceVO
@@ -27,7 +27,7 @@ const pagination = reactive({ // 存储图片分页状态
 const dataList = ref<WorkCollaborativeImagesAPI.PictureVO[]>([]) // 存储所有的图片数据的列表
 const loading = ref(false) // 存储加载状态
 
-/// 回调 ///
+// NOTE: 调用
 
 // 跳转到添加图片的页面
 const handleAddPicture = () => {
@@ -68,16 +68,14 @@ const handleDeleteSpace = async () => {
   }
 }
 
-/// 监控 ///
+// NOTE: 监听
 
 watch(
   () => props.spaceVO, // 监听数据
-  (newVal) => { // 监听回调
-    if (newVal?.id) { // 验证是否收取了有效数据
+  () => { // 对应回调
       getPictures()
-    }
   },
-  { immediate: true }           // immediate 表示“立即执行”，组件刚挂载时也会立刻执行一次回调（相当于 onMounted + watch 合体）
+  { immediate: true } // 立即执行
 )
 </script>
 

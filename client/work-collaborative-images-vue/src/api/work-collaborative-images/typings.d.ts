@@ -45,6 +45,12 @@ declare namespace WorkCollaborativeImagesAPI {
     data?: SpaceLevelInfo[]
   }
 
+  type BaseResponseListSpaceUserVO = {
+    code?: number
+    message?: string
+    data?: SpaceUserVO[]
+  }
+
   type BaseResponseListString = {
     code?: number
     message?: string
@@ -73,12 +79,6 @@ declare namespace WorkCollaborativeImagesAPI {
     code?: number
     message?: string
     data?: PageSpaceUser
-  }
-
-  type BaseResponsePageSpaceVO = {
-    code?: number
-    message?: string
-    data?: PageSpaceVO
   }
 
   type BaseResponsePageUser = {
@@ -224,20 +224,6 @@ declare namespace WorkCollaborativeImagesAPI {
     orders?: OrderItem[]
     optimizeCountSql?: PageSpaceUser
     searchCount?: PageSpaceUser
-    optimizeJoinOfCountSql?: boolean
-    maxLimit?: number
-    countId?: string
-    pages?: number
-  }
-
-  type PageSpaceVO = {
-    records?: SpaceVO[]
-    total?: number
-    size?: number
-    current?: number
-    orders?: OrderItem[]
-    optimizeCountSql?: PageSpaceVO
-    searchCount?: PageSpaceVO
     optimizeJoinOfCountSql?: boolean
     maxLimit?: number
     countId?: string
@@ -601,10 +587,10 @@ declare namespace WorkCollaborativeImagesAPI {
     spaceId?: number
     userId?: number
     spaceRole?: number
-    createTime?: string
-    updateTime?: string
     userVO?: UserVO
     spaceVO?: SpaceVO
+    createTime?: string
+    updateTime?: string
   }
 
   type SpaceVO = {

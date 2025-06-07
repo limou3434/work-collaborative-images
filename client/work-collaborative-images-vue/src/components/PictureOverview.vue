@@ -1,65 +1,47 @@
 <script lang="ts" setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+/**
+ * 图片概览组件
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
+import { reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { pictureCategorys } from '@/api/work-collaborative-images/pictureController.ts'
 import { message } from 'ant-design-vue'
 
+// NOTE: 变量
+
 const props = defineProps<{
+  dataList: WorkCollaborativeImagesAPI.PictureVO[]
+  loading: boolean
   pagination: {
     pageCurrent: number
     pageSize: number
     total: number
   }
-  dataList: WorkCollaborativeImagesAPI.PictureVO[]
-  loading: boolean
 }>()
-
 const emit = defineEmits<{
   (e: 'search', params: any): void
 }>()
-
 const router = useRouter()
-
-// 内部维护搜索参数
 const selectedCategory = ref('all')
 const searchKeyword = ref('')
 const localPagination = reactive({
   pageCurrent: props.pagination.pageCurrent || 1,
-  pageSize: props.pagination.pageSize || 10,
+  pageSize: props.pagination.pageSize || 10
 })
 
-// 监听分页变化，触发搜索
-watch(
-  () => [localPagination.pageCurrent, localPagination.pageSize],
-  () => {
-    doSearch()
-  },
-)
+// NOTE: 调用
 
 const doSearch = () => {
   const params = {
     introduction: searchKeyword.value,
     category: selectedCategory.value === 'all' ? undefined : selectedCategory.value,
     pageCurrent: localPagination.pageCurrent,
-    pageSize: localPagination.pageSize,
+    pageSize: localPagination.pageSize
   }
   emit('search', params)
 }
-
-// 监听父组件分页变化，保持同步
-watch(
-  () => props.pagination.pageCurrent,
-  (val) => {
-    if (val && val !== localPagination.pageCurrent) localPagination.pageCurrent = val
-  },
-)
-
-watch(
-  () => props.pagination.pageSize,
-  (val) => {
-    if (val && val !== localPagination.pageSize) localPagination.pageSize = val
-  },
-)
 
 const onCategoryChange = (key: string) => {
   selectedCategory.value = key
@@ -76,7 +58,7 @@ const doClickPicture = (picture: WorkCollaborativeImagesAPI.PictureVO) => {
   router.push({ path: `/picture/${picture.id}` })
 }
 
-// 标签数据
+// 获取标签数据的回调
 const categoryList = ref<string[]>([])
 const getTagCategoryOptions = async () => {
   const res = await pictureCategorys()
@@ -86,9 +68,37 @@ const getTagCategoryOptions = async () => {
     message.error(res.data.message)
   }
 }
-onMounted(async () => {
-  await getTagCategoryOptions()
-})
+
+// NOTE: 监听
+
+watch(
+  () => [localPagination.pageCurrent, localPagination.pageSize], // 监听数据
+  () => { // 对应回调
+    doSearch()
+  }
+)
+
+watch(
+  () => props.pagination.pageCurrent,
+  (val) => {
+    if (val && val !== localPagination.pageCurrent) localPagination.pageCurrent = val
+  }
+)
+
+watch(
+  () => props.pagination.pageSize,
+  (val) => {
+    if (val && val !== localPagination.pageSize) localPagination.pageSize = val
+  }
+)
+
+watch(
+  () => props, // 监听数据
+  async () => { // 对应回调
+    await getTagCategoryOptions()
+  },
+  { immediate: true } // 立即执行
+)
 </script>
 
 <template>
