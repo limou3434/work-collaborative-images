@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * 图片详情页面
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
 import { message } from 'ant-design-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { pictureDestroy, pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'

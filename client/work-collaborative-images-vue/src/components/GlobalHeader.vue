@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * 全局网页页头组件
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   CrownOutlined,

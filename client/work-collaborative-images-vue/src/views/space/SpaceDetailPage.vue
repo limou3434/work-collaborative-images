@@ -9,14 +9,14 @@ import { spaceQueryById } from '@/api/work-collaborative-images/spaceController.
 import { ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
 
-/// 变量 ///
+// NOTE: 变量
 
 const props = defineProps<{
   id?: number
 }>() // 存储外部属性
 const spaceVO = ref<WorkCollaborativeImagesAPI.SpaceVO>()
 
-/// 调用 ///
+// NOTE: 调用
 
 // 获取私有空间的调用
 const handGetSpace = async () => {
@@ -32,7 +32,7 @@ const handGetSpace = async () => {
   }
 }
 
-/// 监控 ///
+// NOTE: 监控
 
 watch(
   () => props.id, // 监听变量
@@ -44,7 +44,7 @@ watch(
 </script>
 
 <template>
-  <div id="SelfSpace">
+  <div id="SpaceDetailPage">
     <SpaceDetails :spaceVO="spaceVO"></SpaceDetails>
   </div>
 </template>

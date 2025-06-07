@@ -167,7 +167,7 @@ onMounted(async () => {
         current: localPagination.pageCurrent,
         pageSize: localPagination.pageSize,
         total: total,
-        showTotal: (total: number) => `共 ${total} 条`,
+        showTotal: () => `共 ${total} 条`,
         showSizeChanger: true,
         showQuickJumper: true,
         pageSizeOptions: ['8', '16', '32', '64', '128'], // 8的倍数选项

@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * 空间使用情况面板组件
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
 import { computed } from 'vue'
 
 interface Props {

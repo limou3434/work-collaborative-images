@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 /**
+ * 主页页面
  * 生命周期:
  * onBeforeMount() 组件挂载前执行
  * onMounted() 组件挂载后执行
@@ -66,7 +67,6 @@ onMounted(async () => {
       <h2>公共空间</h2>
     </a-flex>
     <!-- 图片概述 -->
-    <PictureOverview
-    />
+    <PictureOverview />
   </div>
 </template>

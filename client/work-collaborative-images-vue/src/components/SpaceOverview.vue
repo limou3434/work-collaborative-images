@@ -4,7 +4,7 @@
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
-import { reactive, ref, watch } from 'vue'
+import { h, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { SPACE_TYPE_ENUM } from '@/constants/space.ts'
@@ -12,6 +12,7 @@ import PictureOverview from '@/components/PictureOverview.vue'
 import SpaceDashboard from '@/components/SpaceDashboard.vue'
 import { pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
 import { spaceDestroy } from '@/api/work-collaborative-images/spaceController.ts'
+import { ExclamationCircleOutlined, PlusOutlined, TeamOutlined } from '@ant-design/icons-vue'
 
 // NOTE: 变量
 
@@ -32,6 +33,10 @@ const router = useRouter() // 路由对象
 // 跳转到添加图片的页面
 const handleAddPicture = () => {
   router.push({ path: '/operate/picture/add/', query: { from: 'self' } })
+}
+
+const handSpaceUserMangerPage = () => {
+  router.push({ path: `/space/manger/${props.spaceVO?.id}` })
 }
 
 // 调用时获取指定空间中的所有图片
@@ -85,10 +90,33 @@ watch(
         {{ spaceVO?.name }}
       </h4>
       <a-space>
-        <a-button type="primary" @click="handleAddPicture">添加图片</a-button>
-        <a-popconfirm cancel-text="取消" ok-text="确认" title="确认销毁?"
-                      @confirm="handleDeleteSpace">
-          <a-button danger type="default">
+        <a-button
+          :icon="h(PlusOutlined)"
+          type="primary"
+          @click="handleAddPicture"
+        >
+          添加图片
+        </a-button>
+        <a-button
+          :icon="h(TeamOutlined)"
+          ghost
+          type="primary"
+          @click="handSpaceUserMangerPage"
+        >
+          成员管理
+        </a-button>
+        <a-popconfirm
+          cancel-text="取消"
+          ok-text="确认"
+          title="确认销毁?"
+          @confirm="handleDeleteSpace"
+        >
+          <a-button
+            :icon="h(ExclamationCircleOutlined)"
+            danger
+            ghost
+            type="default"
+          >
             销毁{{ spaceVO?.type == SPACE_TYPE_ENUM.SELF ? '私有空间' : '协作空间' }}
           </a-button>
         </a-popconfirm>
@@ -97,12 +125,7 @@ watch(
     <!-- 空间仪表 -->
     <SpaceDashboard :space="spaceVO" style="margin-bottom: 24px" />
     <!-- 图片概览 -->
-    <PictureOverview
-      :data-list="dataList"
-      :loading="loading"
-      :pagination="pagination"
-      @search="handlerGetTableData"
-    />
+    <PictureOverview :space-id="spaceVO?.id" />
   </div>
 </template>
 

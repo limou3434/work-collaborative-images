@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /**
- * 全局侧边栏组件, 用来切换多个空间或其他的已参加团队的空间
+ * 全局侧边栏组件
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */

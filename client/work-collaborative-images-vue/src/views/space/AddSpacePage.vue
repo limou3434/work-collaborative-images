@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /**
- * 添加空间组件, 可以根据路由传递的参数来决定创建哪一种类型的专属空间
+ * 添加空间/修改空间页面
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */

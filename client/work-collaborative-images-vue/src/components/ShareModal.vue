@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * 图片分享弹窗组件
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
 import { ref } from 'vue'
 
 // 外部传递的属性

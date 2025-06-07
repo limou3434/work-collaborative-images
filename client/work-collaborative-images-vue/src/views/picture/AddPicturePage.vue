@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /**
- * 上传图片/修改图片页面
+ * 添加图片/修改图片页面
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */

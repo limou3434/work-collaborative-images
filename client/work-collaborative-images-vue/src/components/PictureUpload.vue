@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * 图片上传组件
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
 import { message, type UploadProps } from 'ant-design-vue'
 import { ref } from 'vue'
 import { pictureUpload } from '@/api/work-collaborative-images/pictureController.ts'

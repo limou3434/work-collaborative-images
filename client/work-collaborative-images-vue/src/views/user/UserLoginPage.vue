@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * 用户登录页面
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
 import { reactive } from 'vue'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
 import { useRouter } from 'vue-router'

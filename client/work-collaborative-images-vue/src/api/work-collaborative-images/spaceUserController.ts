@@ -118,10 +118,17 @@ export async function spaceUserPageMyCollaborativeSpace(options?: { [key: string
   )
 }
 
-/** 获取当前登录用户的协作空间中所有的成员信息网络接口 GET /space_user/page/user */
-export async function spaceUserPageUser(options?: { [key: string]: any }) {
+/** 对指定的协作空间查询成员网络接口 POST /space_user/page/user */
+export async function spaceUserPageUser(
+  body: WorkCollaborativeImagesAPI.SpaceUserPageUserRequest,
+  options?: { [key: string]: any }
+) {
   return request<WorkCollaborativeImagesAPI.BaseResponsePageUserVO>('/space_user/page/user', {
-    method: 'GET',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
     ...(options || {}),
   })
 }

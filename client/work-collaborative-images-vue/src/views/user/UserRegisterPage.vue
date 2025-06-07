@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * 用户注册页面
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
+ */
 import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'

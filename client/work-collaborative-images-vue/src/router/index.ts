@@ -67,6 +67,12 @@ const router = createRouter({
           component: () => import('../views/space/SpaceDetailPage.vue'), // 懒加载页面
           props: true,
         },
+        {
+          path: 'manger/:id',
+          name: '空间成员管理',
+          component: () => import('../views/space/SpaceUserMangerPage.vue'), // 懒加载页面
+          props: true,
+        },
       ],
     },
     {

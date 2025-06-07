@@ -565,6 +565,10 @@ declare namespace WorkCollaborativeImagesAPI {
     spaceId?: number
   }
 
+  type SpaceUserPageUserRequest = {
+    spaceId?: number
+  }
+
   type SpaceUserSearchRequest = {
     pageCurrent?: number
     pageSize?: number
