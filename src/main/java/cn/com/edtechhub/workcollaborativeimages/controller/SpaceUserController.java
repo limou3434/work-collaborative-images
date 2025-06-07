@@ -5,7 +5,6 @@ import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.*;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.SpaceUserVO;
@@ -246,45 +245,27 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         return TheResult.success(CodeBindMessageEnums.SUCCESS, voPage);
     }
 
-    @Operation(summary = "获取当前登录用户已经加入的所有协作空间")
+    @Operation(summary = "获取当前登录用户已经加入的所有协作空间的相关记录")
     @SaCheckLogin
     @GetMapping("/page/my_collaborative_space")
-    public BaseResponse<Page<SpaceVO>> spaceUserPageMyCollaborativeSpace() {
+    public BaseResponse<List<SpaceUserVO>> spaceUserPageMyCollaborativeSpace() {
         // 查询当前登录用户的用户空间关联记录
         List<SpaceUser> spaceUserList = Optional
                 .ofNullable(spaceUserService.spaceUserSearch(new SpaceUserSearchRequest().setUserId(userService.userGetCurrentLonginUserId())).getRecords())
                 .orElse(Collections.emptyList());
 
+        List<SpaceUserVO> spaceUserVOList = SpaceUserVO.removeSensitiveData(spaceUserList)
+                .stream()
+                .peek(spaceUserVO -> {
+                    spaceUserVO.setSpaceVO(SpaceVO.removeSensitiveData(spaceService.spaceSearchById(spaceUserVO.getSpaceId())));
+                    spaceUserVO.setUserVO(UserVO.removeSensitiveData(userService.userSearchById(spaceUserVO.getUserId())));
+                })
+                .toList();
+
+        // TODO: 如果用户的协作空间较多导致查询次数较多则可以考虑优化这里
+
         // 获取这些关联记录中记载的空间标识
-        Set<Long> joinedSpaceIdSet = spaceUserList
-                .stream()
-                .map(SpaceUser::getSpaceId)
-                .collect(Collectors.toSet());
-
-        // 如果提前获取空则直接放回空页面
-        if (joinedSpaceIdSet.isEmpty()) {
-            return TheResult.success(CodeBindMessageEnums.SUCCESS, new Page<>());
-        }
-
-        // 查询所有空间分页数据
-        Page<Space> spacePage = spaceService.spaceSearch(new SpaceSearchRequest());
-        List<Space> spaceList = Optional.ofNullable(spacePage.getRecords()).orElse(Collections.emptyList());
-
-        // 过滤符合条件的空间
-        List<SpaceVO> matchedList = spaceList
-                .stream()
-                .filter(space -> joinedSpaceIdSet.contains(space.getId()))
-                .filter(space -> Objects.equals(space.getType(), SpaceTypeEnums.COLLABORATIVE.getCode()))
-                .map(SpaceVO::removeSensitiveData)
-                .collect(Collectors.toList());
-
-        // 构造新的分页结果
-        Page<SpaceVO> resultPage = new Page<>();
-        resultPage.setRecords(matchedList);
-        resultPage.setTotal(matchedList.size());
-        resultPage.setCurrent(spacePage.getCurrent());
-        resultPage.setSize(spacePage.getSize());
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, resultPage);
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceUserVOList);
     }
 
 }

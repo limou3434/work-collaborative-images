@@ -46,16 +46,6 @@ public class SpaceUserVO implements Serializable {
     private Integer spaceRole;
 
     /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
-
-    /**
      * 用户信息
      */
     private UserVO userVO;
@@ -64,6 +54,16 @@ public class SpaceUserVO implements Serializable {
      * 空间信息
      */
     private SpaceVO spaceVO;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
 
     /// 序列化字段 ///
     private static final long serialVersionUID = 1L;
