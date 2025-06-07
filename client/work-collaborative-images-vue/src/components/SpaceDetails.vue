@@ -7,7 +7,7 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { SPACE_TYPE_MAP } from '@/constants/space.ts'
+import { SPACE_TYPE_ENUM, SPACE_TYPE_MAP } from '@/constants/space.ts'
 import PictureOverview from '@/components/PictureOverview.vue'
 import SpaceDashboard from '@/components/SpaceDashboard.vue'
 import { pictureQuery } from '@/api/work-collaborative-images/pictureController.ts'
@@ -89,10 +89,10 @@ watch(
         {{ titleName }} - {{ spaceVO?.name }}
       </h2>
       <a-space>
-        <a-button type="primary" @click="handleAddPicture">添加图片到图库</a-button>
+        <a-button type="primary" @click="handleAddPicture">添加图片</a-button>
         <a-popconfirm cancel-text="取消" ok-text="确认" title="确认销毁?"
                       @confirm="handleDeleteSpace">
-          <a-button danger type="default">销毁本图库内容</a-button>
+          <a-button danger type="default">销毁{{ spaceVO?.type == SPACE_TYPE_ENUM.SELF ? "私有空间" : "协作空间"}}</a-button>
         </a-popconfirm>
       </a-space>
     </a-flex>

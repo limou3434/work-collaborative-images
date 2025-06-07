@@ -20,7 +20,7 @@ const countPercent = computed(() => {
 <template>
   <div class="SpaceDashboard">
     <a-collapse>
-      <a-collapse-panel key="1" header="空间仪表盘(点击展开/点击收起)">
+      <a-collapse-panel key="1" header="空间仪表盘">
         <a-row :gutter="[16, 16]" style="margin-bottom: 24px">
           <a-col :md="6" :sm="12" :xs="24">
             <a-card>

@@ -17,61 +17,59 @@ import { userLogout } from '@/api/work-collaborative-images/userController.ts'
 // 设置页面菜单并且做页面权限校验
 const originItems = [
   {
-    key: '/',
-    title: '主页',
     label: '主页',
+    title: '主页',
+    key: '/',
     icon: () => h(HomeOutlined)
   },
   {
-    key: '/operate',
-    title: '添加',
     label: '添加',
+    title: '添加',
+    key: '/operate',
     icon: () => h(PictureOutlined),
     children: [
       {
-        key: '/operate/picture/add',
         title: '添加图片',
-        label: '添加图片'
+        label: '添加图片',
+        key: '/operate/picture/add'
       },
       {
-        key: '/operate/space/add',
         title: '添加空间',
-        label: '添加空间'
+        label: '添加空间',
+        key: '/operate/space/add'
       }
     ]
   },
   {
-    key: '/admin',
-    title: '管理',
     label: '管理',
+    title: '管理',
+    key: '/admin',
     icon: () => h(CrownOutlined),
     children: [
       {
-        key: '/admin/user',
+        label: '用户管理',
         title: '用户管理',
-        label: '用户管理'
+        key: '/admin/user'
       },
       {
-        key: '/admin/picture',
+        label: '图片管理',
         title: '图片管理',
-        label: '图片管理'
+        key: '/admin/picture'
       },
       {
-        key: '/admin/space',
+        label: '空间管理',
         title: '空间管理',
-        label: '空间管理'
+        key: '/admin/space'
       }
     ]
   },
   {
-    key: '/about',
-    title: '关于',
     label: '关于',
+    title: '关于',
+    key: '/about',
     icon: () => h(QuestionCircleOutlined)
   },
   {
-    key: 'others',
-    title: '博客',
     label: h(
       'a',
       {
@@ -80,6 +78,8 @@ const originItems = [
       },
       '博客'
     ),
+    title: '博客',
+    key: 'others',
     icon: () => h(SnippetsOutlined)
   }
 ] // 在不考虑权限的情况下设置跳转菜单选项
@@ -145,12 +145,12 @@ onMounted(() => {
           h('img', {
             src: new URL('../assets/logo.svg', import.meta.url).href,
             alt: 'logo',
-            style: 'width: 24px; margin-right: 8px;',
+            style: 'width: 24px; margin-right: 8px;'
           }),
-          h('span', '专属于您的支持智能编辑的团队协作图库'),
+          h('span', '专属于您的支持智能编辑的团队协作图库')
         ]),
       placement: 'bottomLeft',
-      duration: 3,
+      duration: 3
     })
   }
 })

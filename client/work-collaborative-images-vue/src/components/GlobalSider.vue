@@ -10,8 +10,8 @@ import { useLoginUserStore } from '@/stores/loginUser.ts'
 // 菜单配置
 const menuItems = [
   {
-    key: '/',
     label: '公共图库',
+    key: '/',
     icon: () => h(PictureOutlined)
   },
   {
