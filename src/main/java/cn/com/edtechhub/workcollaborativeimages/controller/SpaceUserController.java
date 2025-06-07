@@ -1,13 +1,10 @@
 package cn.com.edtechhub.workcollaborativeimages.controller;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnums;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDestroyRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureQueryRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.*;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.SpaceUserVO;
@@ -101,18 +98,22 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/move/in")
     public BaseResponse<SpaceUser> spaceUserMoveIn(@RequestBody SpaceUserMoveInRequest spaceUserMoveInRequest) {
-        Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
-        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做添加成员操作");
-
-        Long spaceId = spaceUserMoveInRequest.getSpaceId(); // TODO: 这么做的主要目的是方便后续拓展多个协作空间
+        Long spaceId = spaceUserMoveInRequest.getSpaceId();
         ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
-        ThrowUtils.throwIf(!Objects.equals(spaceId, space.getId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户无法操作该协作空间, 因为该协作空间不属于您");
+
+        Space space = spaceService.spaceSearchById(spaceId);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "改协作空间不存在无法操作");
 
         Long userId = spaceUserMoveInRequest.getUserId();
-        ThrowUtils.throwIf(userService.userSearchById(userId) == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的用户不存在无法操作");
+        ThrowUtils.throwIf(userId == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "用户标识不能为空");
         ThrowUtils.throwIf(Objects.equals(userId, space.getUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不允许对协作空间的拥有者进行操作");
 
+        User user = userService.userSearchById(userId);
+        ThrowUtils.throwIf(user == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的用户不存在无法操作");
+
         Integer spaceRole = spaceUserMoveInRequest.getSpaceRole();
+        ThrowUtils.throwIf(spaceRole == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "权限不能为空");
+        ThrowUtils.throwIf(SpaceUserRoleEnums.getEnums(spaceRole) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户权限不存在");
 
         return TheResult.success(
                 CodeBindMessageEnums.SUCCESS,
@@ -130,16 +131,19 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/move/out")
     public BaseResponse<Boolean> spaceUserMoveOut(@RequestBody SpaceUserMoveOutRequest spaceUserMoveOutRequest) {
-        Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
-        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做移除成员操作");
-
-        Long spaceId = spaceUserMoveOutRequest.getSpaceId(); // TODO: 这么做的主要目的是方便后续拓展多个协作空间
+        Long spaceId = spaceUserMoveOutRequest.getSpaceId();
         ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
-        ThrowUtils.throwIf(!Objects.equals(spaceId, space.getId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户无法操作该协作空间, 因为该协作空间不属于您");
+
+        Space space = spaceService.spaceSearchById(spaceId);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "改协作空间不存在无法操作");
 
         Long userId = spaceUserMoveOutRequest.getUserId();
-        ThrowUtils.throwIf(userService.userSearchById(userId) == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的用户不存在无法操作");
+        ThrowUtils.throwIf(userId == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "用户标识不能为空");
         ThrowUtils.throwIf(Objects.equals(userId, space.getUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不允许对协作空间的拥有者进行操作");
+        ThrowUtils.throwIf(Objects.equals(userId, userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不允许您对自己进行操作");
+
+        User user = userService.userSearchById(userId);
+        ThrowUtils.throwIf(user == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的用户不存在无法操作");
 
         List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
                 new SpaceUserSearchRequest()
@@ -147,6 +151,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
                         .setUserId(userId)
         ).getRecords();
         ThrowUtils.throwIf(spaceUserList.isEmpty(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户不存在于您的协作空间中, 无需移除");
+
         return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceUserService.spaceUserDelete(new SpaceUserDeleteRequest().setId(spaceUserList.get(0).getId())));
     }
 
@@ -155,18 +160,23 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     @SaCheckPermission({"spaceUser:manager"})
     @PostMapping("/edit")
     public BaseResponse<SpaceUserVO> spaceUserEdit(@RequestBody SpaceUserEditRequest spaceUserEditRequest) {
-        Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
-        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前用户没有协作空间无法做编辑成员操作");
-
-        Long spaceId = spaceUserEditRequest.getSpaceId(); // TODO: 这么做的主要目的是方便后续拓展多个协作空间
+        Long spaceId = spaceUserEditRequest.getSpaceId();
         ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
-        ThrowUtils.throwIf(!Objects.equals(spaceId, space.getId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户无法操作该协作空间, 因为该协作空间不属于您");
+
+        Space space = spaceService.spaceSearchById(spaceId);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "改协作空间不存在无法操作");
 
         Long userId = spaceUserEditRequest.getUserId();
+        ThrowUtils.throwIf(userId == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "用户标识不能为空");
+        ThrowUtils.throwIf(Objects.equals(userId, space.getUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不允许对协作空间的拥有者进行操作");
+        ThrowUtils.throwIf(Objects.equals(userId, userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不允许您对自己进行操作");
+
         User user = userService.userSearchById(userId);
-        ThrowUtils.throwIf(user == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该用户不存在");
+        ThrowUtils.throwIf(user == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "指定的用户不存在无法操作");
 
         Integer spaceRole = spaceUserEditRequest.getSpaceRole();
+        ThrowUtils.throwIf(spaceRole == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "权限不能为空");
+        ThrowUtils.throwIf(SpaceUserRoleEnums.getEnums(spaceRole) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户权限不存在");
 
         List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
                 new SpaceUserSearchRequest()
@@ -174,6 +184,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
                         .setUserId(userId)
         ).getRecords();
         ThrowUtils.throwIf(spaceUserList.isEmpty(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户不存在于您的协作空间中, 无需编辑");
+
         Long spaceUserId = spaceUserList.get(0).getId();
 
         return TheResult.success(
@@ -190,13 +201,16 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         );
     }
 
-    @Operation(summary = "获取当前登录用户的协作空间中所有的成员信息网络接口")
+    @Operation(summary = "对指定的协作空间查询成员网络接口")
     @SaCheckLogin
-    @GetMapping("/page/user")
-    public BaseResponse<Page<UserVO>> spaceUserPageUser() {
-        // 获取协作空间
-        Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
-        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做查询成员操作");
+    @PostMapping("/page/user")
+    @SaCheckPermission({"picture:view"})
+    public BaseResponse<Page<UserVO>> spaceUserPageUser(@RequestBody SpaceUserPageUserRequest SpaceUserPageUserRequest) {
+        Long spaceId = SpaceUserPageUserRequest.getSpaceId();
+        ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
+
+        Space space = spaceService.spaceSearchById(spaceId);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "改协作空间不存在无法操作");
 
         // 查询协作空间下所有成员记录
         List<SpaceUser> spaceUserList = Optional.ofNullable(
@@ -208,7 +222,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
             return TheResult.success(CodeBindMessageEnums.SUCCESS, new Page<>());
         }
 
-        // 构造用户ID到空间角色的映射
+        // 构造用户 ID 到空间角色的映射
         Map<Long, Integer> userRoleMap = spaceUserList.stream()
                 .collect(Collectors.toMap(SpaceUser::getUserId, SpaceUser::getSpaceRole));
 
@@ -220,8 +234,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
                 .filter(user -> userIdSet.contains(user.getId()))
                 .map(user -> {
                     UserVO vo = UserVO.removeSensitiveData(user);
-                    // 把空间角色设置进去，假设UserVO有setSpaceRole方法
-                    vo.setSpaceRole(userRoleMap.get(user.getId()));
+                    vo.setSpaceRole(userRoleMap.get(user.getId())); // 把空间角色设置进去
                     return vo;
                 })
                 .toList();
@@ -236,45 +249,28 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         return TheResult.success(CodeBindMessageEnums.SUCCESS, voPage);
     }
 
-    @Operation(summary = "获取当前登录用户已经加入的所有协作空间")
+    @Operation(summary = "获取当前登录用户已经加入的所有协作空间的相关记录")
     @SaCheckLogin
     @GetMapping("/page/my_collaborative_space")
-    public BaseResponse<Page<SpaceVO>> spaceUserPageMyCollaborativeSpace() {
+    public BaseResponse<List<SpaceUserVO>> spaceUserPageMyCollaborativeSpace() {
         // 查询当前登录用户的用户空间关联记录
         List<SpaceUser> spaceUserList = Optional
                 .ofNullable(spaceUserService.spaceUserSearch(new SpaceUserSearchRequest().setUserId(userService.userGetCurrentLonginUserId())).getRecords())
                 .orElse(Collections.emptyList());
 
+        List<SpaceUserVO> spaceUserVOList = SpaceUserVO.removeSensitiveData(spaceUserList)
+                .stream()
+                .peek(spaceUserVO -> {
+                    Space space = spaceService.spaceSearchById(spaceUserVO.getSpaceId());
+                    spaceUserVO.setSpaceVO(SpaceVO.removeSensitiveData(space));
+                    spaceUserVO.setUserVO(UserVO.removeSensitiveData(userService.userSearchById(space.getUserId())));
+                })
+                .toList();
+
+        // TODO: 如果用户的协作空间较多导致查询次数较多则可以考虑优化这里
+
         // 获取这些关联记录中记载的空间标识
-        Set<Long> joinedSpaceIdSet = spaceUserList
-                .stream()
-                .map(SpaceUser::getSpaceId)
-                .collect(Collectors.toSet());
-
-        // 如果提前获取空则直接放回空页面
-        if (joinedSpaceIdSet.isEmpty()) {
-            return TheResult.success(CodeBindMessageEnums.SUCCESS, new Page<>());
-        }
-
-        // 查询所有空间分页数据
-        Page<Space> spacePage = spaceService.spaceSearch(new SpaceSearchRequest());
-        List<Space> spaceList = Optional.ofNullable(spacePage.getRecords()).orElse(Collections.emptyList());
-
-        // 过滤符合条件的空间
-        List<SpaceVO> matchedList = spaceList
-                .stream()
-                .filter(space -> joinedSpaceIdSet.contains(space.getId()))
-                .filter(space -> Objects.equals(space.getType(), SpaceTypeEnums.COLLABORATIVE.getCode()))
-                .map(SpaceVO::removeSensitiveData)
-                .collect(Collectors.toList());
-
-        // 构造新的分页结果
-        Page<SpaceVO> resultPage = new Page<>();
-        resultPage.setRecords(matchedList);
-        resultPage.setTotal(matchedList.size());
-        resultPage.setCurrent(spacePage.getCurrent());
-        resultPage.setSize(spacePage.getSize());
-        return TheResult.success(CodeBindMessageEnums.SUCCESS, resultPage);
+        return TheResult.success(CodeBindMessageEnums.SUCCESS, spaceUserVOList);
     }
 
 }
