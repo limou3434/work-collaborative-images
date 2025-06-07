@@ -5,8 +5,6 @@ import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDestroyRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureQueryRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceService.SpaceSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService.*;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserSearchRequest;
@@ -104,6 +102,10 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
         ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做添加成员操作");
 
+        Integer type = space.getType();
+        SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(type);
+        ThrowUtils.throwIf(spaceTypeEnums != SpaceTypeEnums.COLLABORATIVE, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不能对除了协作空间以外的空间进行操作");
+
         Long spaceId = spaceUserMoveInRequest.getSpaceId(); // TODO: 这么做的主要目的是方便后续拓展多个协作空间
         ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
         ThrowUtils.throwIf(!Objects.equals(spaceId, space.getId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户无法操作该协作空间, 因为该协作空间不属于您");
@@ -133,6 +135,10 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
         ThrowUtils.throwIf(space == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户没有协作空间无法做移除成员操作");
 
+        Integer type = space.getType();
+        SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(type);
+        ThrowUtils.throwIf(spaceTypeEnums != SpaceTypeEnums.COLLABORATIVE, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不能对除了协作空间以外的空间进行操作");
+
         Long spaceId = spaceUserMoveOutRequest.getSpaceId(); // TODO: 这么做的主要目的是方便后续拓展多个协作空间
         ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
         ThrowUtils.throwIf(!Objects.equals(spaceId, space.getId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户无法操作该协作空间, 因为该协作空间不属于您");
@@ -157,6 +163,10 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
     public BaseResponse<SpaceUserVO> spaceUserEdit(@RequestBody SpaceUserEditRequest spaceUserEditRequest) {
         Space space = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.COLLABORATIVE);
         ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前用户没有协作空间无法做编辑成员操作");
+
+        Integer type = space.getType();
+        SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(type);
+        ThrowUtils.throwIf(spaceTypeEnums != SpaceTypeEnums.COLLABORATIVE, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "不能对除了协作空间以外的空间进行操作");
 
         Long spaceId = spaceUserEditRequest.getSpaceId(); // TODO: 这么做的主要目的是方便后续拓展多个协作空间
         ThrowUtils.throwIf(spaceId == null, CodeBindMessageEnums.PARAMS_ERROR, "空间标识不能为空");
