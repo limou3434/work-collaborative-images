@@ -203,25 +203,32 @@ export async function pictureSearchPicture(
 export async function pictureUpload(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: WorkCollaborativeImagesAPI.pictureUploadParams,
-  body: {},
+  body?: {file: File},
   options?: { [key: string]: any }
 ) {
+  const formData = new FormData();
+
+  // 将参数添加到 FormData
+  if (params != null) {
+    for (const key in params) {
+      if (params.hasOwnProperty(key)) {
+        formData.append(key, (params as { [key: string]: any })[key]); // 类型断言
+      }
+    }
+  }
+
+  // 将文件添加到 FormData
+  if (body != null) {
+    formData.append('pictureFile', body.file);
+  }
+
   return request<WorkCollaborativeImagesAPI.BaseResponsePictureVO>('/picture/upload', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      // 不需要手动设置 Content-Type 为 multipart/form-data
+      // 浏览器会自动为我们处理 boundary。
     },
-    params: {
-      // pictureCategory has a default value: 默认分类
-      pictureCategory: '默认分类',
-      // pictureName has a default value: 默认图片
-      pictureName: '默认图片',
-      // pictureIntroduction has a default value: 默认简介
-      pictureIntroduction: '默认简介',
-
-      ...params,
-    },
-    data: body,
+    data: formData, // 使用 FormData 作为请求体
     ...(options || {}),
   })
 }
