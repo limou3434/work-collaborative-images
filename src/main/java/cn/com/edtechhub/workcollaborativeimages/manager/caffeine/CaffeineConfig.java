@@ -2,8 +2,9 @@ package cn.com.edtechhub.workcollaborativeimages.manager.caffeine;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Caffeine 配置类
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 @Slf4j
-@ConfigurationProperties(prefix = "caffeine")
 public class CaffeineConfig {
 
     /**
@@ -30,5 +30,15 @@ public class CaffeineConfig {
      * 过期时间
      */
     private Integer expireAfterWrite = 30;
+
+    /**
+     * 打印配置
+     */
+    @PostConstruct
+    public void printConfig() {
+        log.debug("[CaffeineConfig] 当前项目 Caffeine 初始大小为 {}", this.initialCapacity);
+        log.debug("[CaffeineConfig] 当前项目 Caffeine 最大缓存为 {}", this.maximumSize);
+        log.debug("[CaffeineConfig] 当前项目 Caffeine 过期时间为 {}", this.expireAfterWrite);
+    }
 
 }

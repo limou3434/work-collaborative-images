@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -24,15 +25,20 @@ public class CaffeineManager {
     @Resource
     private CaffeineConfig caffeineConfig;
 
+    private Cache<String, String> cache;
+
     /**
      * 构造 Caffeine 缓存器实例
      */
-    private final Cache<String, String> cache = Caffeine
-            .newBuilder()
-            .initialCapacity(caffeineConfig.getInitialCapacity())
-            .maximumSize(caffeineConfig.getMaximumSize())
-            .expireAfterWrite(caffeineConfig.getExpireAfterWrite(), TimeUnit.SECONDS)
-            .build();
+    @PostConstruct
+    public void init() {
+        this.cache = Caffeine
+                .newBuilder()
+                .initialCapacity(caffeineConfig.getInitialCapacity())
+                .maximumSize(caffeineConfig.getMaximumSize())
+                .expireAfterWrite(caffeineConfig.getExpireAfterWrite(), TimeUnit.SECONDS)
+                .build();
+    }
 
     /**
      * 插入键值对
