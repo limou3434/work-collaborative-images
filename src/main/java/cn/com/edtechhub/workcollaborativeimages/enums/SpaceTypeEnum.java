@@ -4,7 +4,7 @@ import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
 @Getter
-public enum SpaceTypeEnums {
+public enum SpaceTypeEnum {
 
     /**
      * 公有图库枚举实例
@@ -34,7 +34,7 @@ public enum SpaceTypeEnums {
     /**
      * 内部等级构造方法
      */
-    SpaceTypeEnums(String description, int code) {
+    SpaceTypeEnum(String description, int code) {
         this.description = description;
         this.code = code;
     }
@@ -42,11 +42,11 @@ public enum SpaceTypeEnums {
     /**
      * 根据类型码值获取类型枚举
      */
-    public static SpaceTypeEnums getEnums(Integer code) {
+    public static SpaceTypeEnum getEnums(Integer code) {
         if (ObjUtil.isEmpty(code)) {
             return null;
         }
-        for (SpaceTypeEnums type : SpaceTypeEnums.values()) {
+        for (SpaceTypeEnum type : SpaceTypeEnum.values()) {
             if (type.code == code) {
                 return type;
             }

@@ -2,8 +2,8 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
-import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnum;
 import cn.com.edtechhub.workcollaborativeimages.exception.BusinessException;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.manager.AIManager;
@@ -223,7 +223,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     @LogParams
     public Boolean pictureReview(Long id, Integer reviewStatus, String reviewMessage) {
         // 检查参数
-        PictureReviewStatusEnums reviewStatusEnum = PictureReviewStatusEnums.getEnums(reviewStatus);
+        PictureReviewStatusEnum reviewStatusEnum = PictureReviewStatusEnum.getEnums(reviewStatus);
         ThrowUtils.throwIf(id == null, CodeBindMessageEnums.PARAMS_ERROR, "图片 id 不能为空");
         ThrowUtils.throwIf(reviewStatusEnum == null, CodeBindMessageEnums.PARAMS_ERROR, "需要指定最终的有效审核状态");
 
@@ -383,8 +383,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
     @Override
     @LogParams
-    public PictureReviewStatusEnums pictureGetReviewStatus(Picture picture) {
-        return PictureReviewStatusEnums.getEnums(picture.getReviewStatus());
+    public PictureReviewStatusEnum pictureGetReviewStatus(Picture picture) {
+        return PictureReviewStatusEnum.getEnums(picture.getReviewStatus());
     }
 
     @Override
@@ -416,13 +416,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
         // 尝试获取目标图的所属空间, 若为私有空间图片则需要校验权限, 否则只查询公有图库中的图片
         Long spaceId = targetPicture.getSpaceId();
-        Long mySpaceId = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnums.SELF).getId();
+        Long mySpaceId = spaceService.spaceGetCurrentLoginUserSpace(SpaceTypeEnum.SELF).getId();
         PictureSearchRequest searchRequest = new PictureSearchRequest();
         if (spaceId != null) {
             log.debug("该图片具有私有空间为 {}", spaceId);
             ThrowUtils.throwIf(!spaceId.equals(mySpaceId), CodeBindMessageEnums.NO_AUTH_ERROR, "无权限访问该空间");
         } else {
-            searchRequest.setReviewStatus(PictureReviewStatusEnums.PASS.getCode());
+            searchRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getCode());
         }
         searchRequest.setSpaceId(spaceId);
 

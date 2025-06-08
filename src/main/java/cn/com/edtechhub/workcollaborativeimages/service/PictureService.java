@@ -1,6 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.CreateOutPaintingTaskRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.CreateOutPaintingTaskResponse;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.GetOutPaintingTaskResponse;
@@ -11,7 +11,6 @@ import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.Pic
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureDeleteRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureSearchRequest;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureUpdateRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;
@@ -82,7 +81,7 @@ public interface PictureService extends IService<Picture> {
     /**
      * 获取图片的审核状态服务
      */
-    PictureReviewStatusEnums pictureGetReviewStatus(Picture picture);
+    PictureReviewStatusEnum pictureGetReviewStatus(Picture picture);
 
     /**
      * 获取图片种类服务

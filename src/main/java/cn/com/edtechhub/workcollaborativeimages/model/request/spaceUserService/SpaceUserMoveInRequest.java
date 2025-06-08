@@ -1,6 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.spaceUserService;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnum;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
@@ -25,6 +25,6 @@ public class SpaceUserMoveInRequest  implements Serializable {
     /**
      * 用户空间权限
      */
-    private Integer spaceRole = SpaceUserRoleEnums.VIEWER_ROLE.getCode();
+    private Integer spaceRole = SpaceUserRoleEnum.VIEWER_ROLE.getCode();
 
 }

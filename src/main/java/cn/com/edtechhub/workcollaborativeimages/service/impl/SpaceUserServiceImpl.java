@@ -1,7 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnum;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.mapper.SpaceUserMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
@@ -92,7 +92,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
                 "空间权限不能为空"
         );
         ThrowUtils.throwIf(
-                SpaceUserRoleEnums.getEnums(spaceUserRole) == null,
+                SpaceUserRoleEnum.getEnums(spaceUserRole) == null,
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "该角色不存在"
         );
@@ -162,7 +162,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
 
         Integer spaceUserRole = spaceUserUpdateRequest.getSpaceRole();
         ThrowUtils.throwIf(
-                spaceUserRole != null && SpaceUserRoleEnums.getEnums(spaceUserRole) == null,
+                spaceUserRole != null && SpaceUserRoleEnum.getEnums(spaceUserRole) == null,
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "不存在该空间角色"
         );

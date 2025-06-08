@@ -1,7 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.controller;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnum;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnum;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
@@ -114,11 +114,11 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @PostMapping("/create")
     public BaseResponse<SpaceVO> spaceCreate(@RequestBody SpaceCreateRequest spaceCreateRequest) {
         Integer spaceType = spaceCreateRequest.getSpaceType();
-        SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(spaceType);
-        ThrowUtils.throwIf(spaceTypeEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "不存在该空间类型");
-        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums) != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个当前登录用户仅能为自己创建一个" + spaceTypeEnums.getDescription());
+        SpaceTypeEnum spaceTypeEnum = SpaceTypeEnum.getEnums(spaceType);
+        ThrowUtils.throwIf(spaceTypeEnum == null, CodeBindMessageEnums.PARAMS_ERROR, "不存在该空间类型");
+        ThrowUtils.throwIf(spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnum) != null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "每个当前登录用户仅能为自己创建一个" + spaceTypeEnum.getDescription());
 
-        Space space = spaceService.spaceSetCurrentLoginUserSpace(spaceTypeEnums, SpaceLevelEnums.COMMON, spaceCreateRequest.getSpaceName());
+        Space space = spaceService.spaceSetCurrentLoginUserSpace(spaceTypeEnum, SpaceLevelEnum.COMMON, spaceCreateRequest.getSpaceName());
         return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(space));
     }
 
@@ -127,10 +127,10 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @PostMapping("/destroy")
     public BaseResponse<Boolean> spaceDestroy(@RequestBody SpaceDestroyRequest spaceDestroyRequest) {
         Integer spaceType = spaceDestroyRequest.getSpaceType();
-        SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(spaceType);
-        Space space = spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums);
-        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前登录用户空间不存在" + spaceTypeEnums.getDescription() + "无法进行销毁");
-        ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.SELF && !Objects.equals(space.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该空间的所属者无法修改该空间");
+        SpaceTypeEnum spaceTypeEnum = SpaceTypeEnum.getEnums(spaceType);
+        Space space = spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnum);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前登录用户空间不存在" + spaceTypeEnum.getDescription() + "无法进行销毁");
+        ThrowUtils.throwIf(SpaceTypeEnum.getEnums(space.getType()) == SpaceTypeEnum.SELF && !Objects.equals(space.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该空间的所属者无法修改该空间");
 
         boolean result = spaceService.spaceDelete(new SpaceDeleteRequest().setId(space.getId()));
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
@@ -141,10 +141,10 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @PostMapping("/edit")
     public BaseResponse<SpaceVO> spaceEdit(@RequestBody SpaceEditRequest spaceEditRequest) {
         Integer spaceType = spaceEditRequest.getSpaceType();
-        SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(spaceType);
-        Space space = spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums);
-        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前登录用户空间不存在" + spaceTypeEnums.getDescription() + "无法进行编辑");
-        ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.SELF && !Objects.equals(space.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该空间的所属者无法修改该空间");
+        SpaceTypeEnum spaceTypeEnum = SpaceTypeEnum.getEnums(spaceType);
+        Space space = spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnum);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前登录用户空间不存在" + spaceTypeEnum.getDescription() + "无法进行编辑");
+        ThrowUtils.throwIf(SpaceTypeEnum.getEnums(space.getType()) == SpaceTypeEnum.SELF && !Objects.equals(space.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该空间的所属者无法修改该空间");
 
         // TODO: 目前最多就修改个名字, 后续可以添加修改空间类型或是修改空间等级, 或者是提供捐赠公共空间模式
         Space myspace = spaceService.spaceUpdate(
@@ -160,10 +160,10 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
     @PostMapping("/query")
     public BaseResponse<SpaceVO> spaceQuery(@RequestBody SpaceQueryRequest spaceEditRequest) {
         Integer spaceType = spaceEditRequest.getSpaceType();
-        SpaceTypeEnums spaceTypeEnums = SpaceTypeEnums.getEnums(spaceType);
-        Space space = spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnums);
-        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前登录用户空间不存在" + spaceTypeEnums.getDescription() + "无法进行查找");
-        ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.SELF && !Objects.equals(space.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该空间的所属者无法修改该空间");
+        SpaceTypeEnum spaceTypeEnum = SpaceTypeEnum.getEnums(spaceType);
+        Space space = spaceService.spaceGetCurrentLoginUserSpace(spaceTypeEnum);
+        ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "当前登录用户空间不存在" + spaceTypeEnum.getDescription() + "无法进行查找");
+        ThrowUtils.throwIf(SpaceTypeEnum.getEnums(space.getType()) == SpaceTypeEnum.SELF && !Objects.equals(space.getUserId(), userService.userGetCurrentLonginUserId()), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该空间的所属者无法修改该空间");
 
         return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(space));
     }
@@ -176,7 +176,7 @@ public class SpaceController { // 通常控制层有服务层中的所有方法,
         Long spaceId = spaceQueryByIdRequest.getSpaceId();
         Space space = spaceService.spaceSearchById(spaceId);
         ThrowUtils.throwIf(space == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该空间不存在");
-        ThrowUtils.throwIf(SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.SELF && space.getUserId() != userService.userGetCurrentLonginUserId(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户无法查看该私有空间");
+        ThrowUtils.throwIf(SpaceTypeEnum.getEnums(space.getType()) == SpaceTypeEnum.SELF && space.getUserId() != userService.userGetCurrentLonginUserId(), CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "当前用户无法查看该私有空间");
         return TheResult.success(CodeBindMessageEnums.SUCCESS, SpaceVO.removeSensitiveData(space));
     }
 

@@ -1,7 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnum;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnum;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
@@ -68,11 +68,11 @@ public interface SpaceService extends IService<Space> {
     /**
      * 获取当前登陆用户的专属空间(私有空间/专属空间)服务
      */
-    Space spaceGetCurrentLoginUserSpace(SpaceTypeEnums spaceType);
+    Space spaceGetCurrentLoginUserSpace(SpaceTypeEnum spaceType);
 
     /**
      * 创建当前登陆用户的专属空间(私有空间/专属空间)服务
      */
-    Space spaceSetCurrentLoginUserSpace(SpaceTypeEnums spaceType, SpaceLevelEnums spaceLevel, String spaceName);
+    Space spaceSetCurrentLoginUserSpace(SpaceTypeEnum spaceType, SpaceLevelEnum spaceLevel, String spaceName);
 
 }

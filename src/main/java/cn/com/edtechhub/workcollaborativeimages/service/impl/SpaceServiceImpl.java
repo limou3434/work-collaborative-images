@@ -2,9 +2,9 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.SpaceConstant;
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnum;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnum;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnum;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.mapper.SpaceMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.SpaceLevelInfo;
@@ -100,7 +100,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 "必须设置空间等级"
         );
         ThrowUtils.throwIf(
-                SpaceLevelEnums.getEnums(level) == null,
+                SpaceLevelEnum.getEnums(level) == null,
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "空间等级不合法"
         );
@@ -166,7 +166,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
             }
 
             // 如果是协作空间还需要把所有的成员记录都删除
-            if (SpaceTypeEnums.getEnums(space.getType()) == SpaceTypeEnums.COLLABORATIVE) {
+            if (SpaceTypeEnum.getEnums(space.getType()) == SpaceTypeEnum.COLLABORATIVE) {
                 List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
                         new SpaceUserSearchRequest()
                                 .setSpaceId(id)
@@ -212,7 +212,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 "名字不得大于" + SpaceConstant.MAX_NAME_LENGTH + "位字符"
         );
         ThrowUtils.throwIf(
-                level != null && SpaceLevelEnums.getEnums(level) == null,
+                level != null && SpaceLevelEnum.getEnums(level) == null,
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "等级不合法"
         );
@@ -247,7 +247,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 "名字不能大于" + SpaceConstant.MAX_NAME_LENGTH + "位字符"
         );
         ThrowUtils.throwIf(
-                level != null && SpaceLevelEnums.getEnums(level) == null,
+                level != null && SpaceLevelEnum.getEnums(level) == null,
                 CodeBindMessageEnums.PARAMS_ERROR,
                 "等级不合法"
         );
@@ -332,7 +332,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @LogParams
     public List<SpaceLevelInfo> spaceGetLevelInfo() {
         return Arrays
-                .stream(SpaceLevelEnums.values()) // 获取所有枚举
+                .stream(SpaceLevelEnum.values()) // 获取所有枚举
                 .map(
                         spaceLevelEnum -> new SpaceLevelInfo(
                                 spaceLevelEnum.getCode(),
@@ -346,16 +346,16 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
     @Override
     @LogParams
-    public Space spaceGetCurrentLoginUserSpace(SpaceTypeEnums spaceType) {
+    public Space spaceGetCurrentLoginUserSpace(SpaceTypeEnum spaceType) {
         // 检查参数
         ThrowUtils.throwIf(spaceType == null, CodeBindMessageEnums.PARAMS_ERROR, "查询空间的类型不能为空");
 
         // 设置查询请求体
         var spaceSearchRequest = new SpaceSearchRequest().setUserId(userService.userGetCurrentLonginUserId());
-        if (spaceType == SpaceTypeEnums.SELF) { // 如果是查询私有空间
+        if (spaceType == SpaceTypeEnum.SELF) { // 如果是查询私有空间
             log.debug("查询当前登录用户的私有空间");
             spaceSearchRequest.setType(spaceType.getCode());
-        } else if (spaceType == SpaceTypeEnums.COLLABORATIVE) { // 如果是查询协作空间
+        } else if (spaceType == SpaceTypeEnum.COLLABORATIVE) { // 如果是查询协作空间
             log.debug("查询当前登录用户的协作空间");
             spaceSearchRequest.setType(spaceType.getCode());
         } else { // 如果是其他类型
@@ -375,7 +375,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
     @Override
     @LogParams
-    public Space spaceSetCurrentLoginUserSpace(SpaceTypeEnums spaceType, SpaceLevelEnums spaceLevel, String spaceName) {
+    public Space spaceSetCurrentLoginUserSpace(SpaceTypeEnum spaceType, SpaceLevelEnum spaceLevel, String spaceName) {
         // 检查参数
         log.debug("用户需要查看 {}", spaceType);
         ThrowUtils.throwIf(spaceType == null, CodeBindMessageEnums.PARAMS_ERROR, "添加空间的类型不能为空");
@@ -393,12 +393,12 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         Space space = this.spaceAdd(spaceAddRequest);
 
         // 特殊情况下协作空间需要添加当前登录用户为管理员
-        if (SpaceTypeEnums.getEnums(spaceType.getCode()) == SpaceTypeEnums.COLLABORATIVE) {
+        if (SpaceTypeEnum.getEnums(spaceType.getCode()) == SpaceTypeEnum.COLLABORATIVE) {
             spaceUserService.spaceUserAdd(
                     new SpaceUserAddRequest()
                             .setSpaceId(space.getId())
                             .setUserId(userId)
-                            .setSpaceRole(SpaceUserRoleEnums.MANGER_ROLE.getCode())
+                            .setSpaceRole(SpaceUserRoleEnum.MANGER_ROLE.getCode())
             );
         }
 
@@ -445,10 +445,10 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
      * 根据空间的等级填充空间图片的最大总大小和最大图片数量
      */
     private Space fillSpaceBySpaceLevel(Space space) {
-        SpaceLevelEnums spaceLevelEnums = SpaceLevelEnums.getEnums(space.getLevel());
-        ThrowUtils.throwIf(spaceLevelEnums == null, CodeBindMessageEnums.PARAMS_ERROR, "空间等级非法, 必须设置一个合法的等级, 否则无法设置额度");
-        space.setMaxSize(spaceLevelEnums.getMaxSize());
-        space.setMaxCount(spaceLevelEnums.getMaxCount());
+        SpaceLevelEnum spaceLevelEnum = SpaceLevelEnum.getEnums(space.getLevel());
+        ThrowUtils.throwIf(spaceLevelEnum == null, CodeBindMessageEnums.PARAMS_ERROR, "空间等级非法, 必须设置一个合法的等级, 否则无法设置额度");
+        space.setMaxSize(spaceLevelEnum.getMaxSize());
+        space.setMaxCount(spaceLevelEnum.getMaxCount());
         return space;
     }
 

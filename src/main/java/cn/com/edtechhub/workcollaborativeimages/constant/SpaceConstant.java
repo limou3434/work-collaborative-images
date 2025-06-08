@@ -1,10 +1,7 @@
 package cn.com.edtechhub.workcollaborativeimages.constant;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnums;
-
-import java.util.Arrays;
-import java.util.List;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceLevelEnum;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnum;
 
 /**
  * 空间常量
@@ -26,12 +23,12 @@ public interface SpaceConstant {
     /**
      * 默认类型
      */
-    Integer DEFAULT_TYPE = SpaceTypeEnums.SELF.getCode();
+    Integer DEFAULT_TYPE = SpaceTypeEnum.SELF.getCode();
 
     /**
      * 默认等级
      */
-    Integer DEFAULT_LEVEL = SpaceLevelEnums.COMMON.getCode();
+    Integer DEFAULT_LEVEL = SpaceLevelEnum.COMMON.getCode();
 
 
 }

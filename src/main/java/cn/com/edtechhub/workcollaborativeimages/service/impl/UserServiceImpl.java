@@ -2,7 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.service.impl;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
-import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnum;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.mapper.UserMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
@@ -202,7 +202,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @LogParams
-    public Boolean userDisable(Long userId, Long disableTime, UserRoleEnums userRoleEnums) {
+    public Boolean userDisable(Long userId, Long disableTime, UserRoleEnum userRoleEnum) {
         // 参数检查
         ThrowUtils.throwIf(userId == null, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不得为空");
         ThrowUtils.throwIf(userId <= 0, CodeBindMessageEnums.PARAMS_ERROR, "用户标识不得非法");
@@ -215,11 +215,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         UserUpdateRequest userUpdateRequest = UserUpdateRequest.copyProperties2Request(user);
         if (disableTime == 0) { // 如果封禁时间为 0 则表示取消封禁, 默认解封后设置为普通用户权限, 否则封禁用户
             StpUtil.untieDisable(userId); // 解除封禁
-            userUpdateRequest.setRole(userRoleEnums.getCode()); // 持久到数据库中方便调试
+            userUpdateRequest.setRole(userRoleEnum.getCode()); // 持久到数据库中方便调试
         } else {
             StpUtil.kickout(userId); // 先踢下线
             StpUtil.disable(userId, disableTime); // 然后再进行封禁
-            userUpdateRequest.setRole(UserRoleEnums.BAN_ROLE.getCode()); // 持久到数据库中方便调试
+            userUpdateRequest.setRole(UserRoleEnum.BAN_ROLE.getCode()); // 持久到数据库中方便调试
         }
         this.userUpdate(userUpdateRequest);
         return true;
@@ -308,7 +308,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     @LogParams
     public Boolean userIsAdmin(Long id) {
-        return UserRoleEnums.getEnums(this.userGetSessionById(id).getRole()) == UserRoleEnums.ADMIN_ROLE;
+        return UserRoleEnum.getEnums(this.userGetSessionById(id).getRole()) == UserRoleEnum.ADMIN_ROLE;
     }
 
     /// 私有方法 ///

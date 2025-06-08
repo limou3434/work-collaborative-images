@@ -4,7 +4,7 @@ import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
 @Getter
-public enum PictureReviewStatusEnums {
+public enum PictureReviewStatusEnum {
 
     REVIEWING("待审", 0),
     PASS("通过", 1),
@@ -25,7 +25,7 @@ public enum PictureReviewStatusEnums {
     /**
      * 内部枚举构造方法, 可以自定义其他的状态及其含义
      */
-    PictureReviewStatusEnums(String description, int code) {
+    PictureReviewStatusEnum(String description, int code) {
         this.description = description;
         this.code = code;
     }
@@ -33,13 +33,13 @@ public enum PictureReviewStatusEnums {
     /**
      * 根据 value 获取枚举
      */
-    public static PictureReviewStatusEnums getEnums(Integer value) {
+    public static PictureReviewStatusEnum getEnums(Integer value) {
         if (ObjUtil.isEmpty(value)) {
             return null;
         }
-        for (PictureReviewStatusEnums pictureReviewStatusEnums : PictureReviewStatusEnums.values()) {
-            if (pictureReviewStatusEnums.code == value) {
-                return pictureReviewStatusEnums;
+        for (PictureReviewStatusEnum pictureReviewStatusEnum : PictureReviewStatusEnum.values()) {
+            if (pictureReviewStatusEnum.code == value) {
+                return pictureReviewStatusEnum;
             }
         }
         return null;
