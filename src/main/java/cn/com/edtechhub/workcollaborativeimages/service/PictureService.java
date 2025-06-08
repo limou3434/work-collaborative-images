@@ -1,9 +1,9 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureReviewStatusEnum;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.CreateOutPaintingTaskRequest;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.CreateOutPaintingTaskResponse;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.GetOutPaintingTaskResponse;
+import cn.com.edtechhub.workcollaborativeimages.manager.ai.CreateOutPaintingTaskRequest;
+import cn.com.edtechhub.workcollaborativeimages.manager.ai.CreateOutPaintingTaskResponse;
+import cn.com.edtechhub.workcollaborativeimages.manager.ai.GetOutPaintingTaskResponse;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;

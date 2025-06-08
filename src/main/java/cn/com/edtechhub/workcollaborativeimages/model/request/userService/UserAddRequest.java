@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.beans.BeanUtils;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -108,6 +109,7 @@ public class UserAddRequest implements Serializable {
     private Integer gender;
 
     /// 序列化字段 ///
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**

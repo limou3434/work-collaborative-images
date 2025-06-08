@@ -1,14 +1,16 @@
-package cn.com.edtechhub.workcollaborativeimages.model.dto;
+package cn.com.edtechhub.workcollaborativeimages.manager.ai;
 
+import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.hutool.core.annotation.Alias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * 创建绘画任务请求类
- * 注意, 某些字段打上了 Hutool 工具类的 @Alias 注解, 这个注解仅对 Hutool 的 JSON 转换生效, 对 SpringMVC 的 JSON 转换没有任何影响
+ * 注意某些字段打上了 Hutool 工具类的 @Alias 注解, 这个注解仅对 Hutool 的 JSON 转换生效, 对 SpringMVC 的 JSON 转换没有任何影响, 我们需要处理一些
  * 并且这里有一个巨坑的地方, 经过测试发现, 如果前端传递参数名 xScale, 是无法赋值给 xScale 字段的
  * 但是传递参数名 xscale 就可以赋值, 这是因为 SpringMVC 对于第二个字母是大写的参数无法映射(和参数类别无关), 参考 https://blog.csdn.net/JokerHH/article/details/88729590
  * 解决方案是给这些字段增加 @JsonProperty 注解
@@ -21,7 +23,7 @@ public class CreateOutPaintingTaskRequest implements Serializable {
     /**
      * 指定模型
      */
-    private String model = "image-out-painting";
+    private String model = PictureConstant.DEFAULT_MODEL;
 
     /**
      * 图像信息
@@ -33,17 +35,28 @@ public class CreateOutPaintingTaskRequest implements Serializable {
      */
     private Parameters parameters;
 
+    /// 序列化字段 ///
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Data
     public static class Input implements Serializable {
+
         /**
          * (必选)图像 URL
          */
         @Alias("image_url")
         private String imageUrl;
+
+        /// 序列化字段 ///
+        @Serial
+        private static final long serialVersionUID = 1L;
+
     }
 
     @Data
     public static class Parameters implements Serializable {
+
         /**
          * (可选)逆时针旋转角度, 默认值 0, 取值范围 [0, 359]
          */
@@ -71,28 +84,28 @@ public class CreateOutPaintingTaskRequest implements Serializable {
         private Float yScale = 1.0f;
 
         /**
-         * (可选)在图像上方添加像素, 默认值 100
+         * (可选)在图像上方添加像素, 默认值 200
          */
         @Alias("top_offset")
-        private Integer topOffset = 100;
+        private Integer topOffset = 200;
 
         /**
-         * (可选)在图像下方添加像素, 默认值 100
+         * (可选)在图像下方添加像素, 默认值 200
          */
         @Alias("bottom_offset")
-        private Integer bottomOffset = 100;
+        private Integer bottomOffset = 200;
 
         /**
-         * (可选)在图像左侧添加像素, 默认值 100
+         * (可选)在图像左侧添加像素, 默认值 200
          */
         @Alias("left_offset")
-        private Integer leftOffset = 100;
+        private Integer leftOffset = 200;
 
         /**
-         * (可选)在图像右侧添加像素, 默认值 100
+         * (可选)在图像右侧添加像素, 默认值 200
          */
         @Alias("right_offset")
-        private Integer rightOffset = 100;
+        private Integer rightOffset = 200;
 
         /**
          * (可选)开启图像最佳质量模式, 默认值 false, 若为 true, 耗时会成倍增加
@@ -113,6 +126,11 @@ public class CreateOutPaintingTaskRequest implements Serializable {
          */
         @Alias("add_watermark")
         private Boolean addWatermark = false;
+
+        /// 序列化字段 ///
+        @Serial
+        private static final long serialVersionUID = 1L;
+
     }
 
 }

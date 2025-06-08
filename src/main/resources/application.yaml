@@ -132,6 +132,10 @@ knife4j: # knife4j 的增强配置(不需要增强可以不配)
   setting:
     language: zh_cn
 
+# 配置 Caffeine
+caffeine:
+  initialCapacity: 1024
+
 # 配置 MyBatisPlus
 mybatis-plus:
   ## 配置加密盐值
@@ -167,7 +171,7 @@ cos:
     region: ${COS_CLIENT_REGION} # 地域简称(COS 地域的简称请参见 https://cloud.tencent.com/document/product/436/6224)
     bucket: ${COS_CLIENT_BUCKET} # 存储桶名
 
-# 配置 ai
+# 配置 AI
 aliyunai:
   apiKey: ${ALY_AI_API_KEY} # 调用阿里百炼的接口密钥值
 

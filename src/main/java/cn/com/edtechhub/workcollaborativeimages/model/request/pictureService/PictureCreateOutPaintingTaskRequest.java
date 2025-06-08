@@ -1,6 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.model.request.pictureService;
 
-import cn.com.edtechhub.workcollaborativeimages.model.dto.CreateOutPaintingTaskRequest;
+import cn.com.edtechhub.workcollaborativeimages.manager.ai.CreateOutPaintingTaskRequest;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

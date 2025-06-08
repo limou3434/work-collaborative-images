@@ -1,6 +1,5 @@
-package cn.com.edtechhub.workcollaborativeimages.manager;
+package cn.com.edtechhub.workcollaborativeimages.manager.cos;
 
-import cn.com.edtechhub.workcollaborativeimages.config.CosClientConfig;
 import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.constant.ServerConstant;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
@@ -50,7 +49,7 @@ public class CosManager {
      * 注入客户端监听配置依赖
      */
     @Resource
-    private CosClientConfig cosClientConfig;
+    private CosConfig cosConfig;
 
     /**
      * 注入客户端依赖
@@ -102,9 +101,9 @@ public class CosManager {
             int picWidth = res ? compressedCiObject.getWidth() : imageInfo.getWidth(); // TODO: 如果下次改动了这段代码, 就提取进行重构
             int picHeight = res ? compressedCiObject.getHeight() : imageInfo.getHeight();
             String ave = imageInfo.getAve();
-            String url = cosClientConfig.getHost() + "/" + compressedCiObject.getKey();
-            String thumbnailUrl = cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey();
-            String originalUrl = cosClientConfig.getHost() + "/" + uploadPath;
+            String url = cosConfig.getHost() + "/" + compressedCiObject.getKey();
+            String thumbnailUrl = cosConfig.getHost() + "/" + thumbnailCiObject.getKey();
+            String originalUrl = cosConfig.getHost() + "/" + uploadPath;
             uploadPictureResult.setPicWidth(picWidth);
             uploadPictureResult.setPicHeight(picHeight);
             uploadPictureResult.setPicFormat(res ? compressedCiObject.getFormat() : imageInfo.getFormat());
@@ -164,9 +163,9 @@ public class CosManager {
             int picWidth = res ? compressedCiObject.getWidth() : imageInfo.getWidth();
             int picHeight = res ? compressedCiObject.getHeight() : imageInfo.getHeight();
             String ave = imageInfo.getAve();
-            String url = cosClientConfig.getHost() + "/" + compressedCiObject.getKey();
-            String thumbnailUrl = cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey();
-            String originalUrl = cosClientConfig.getHost() + "/" + uploadPath;
+            String url = cosConfig.getHost() + "/" + compressedCiObject.getKey();
+            String thumbnailUrl = cosConfig.getHost() + "/" + thumbnailCiObject.getKey();
+            String originalUrl = cosConfig.getHost() + "/" + uploadPath;
             uploadPictureResult.setPicWidth(picWidth);
             uploadPictureResult.setPicHeight(picHeight);
             uploadPictureResult.setPicFormat(res ? compressedCiObject.getFormat() : imageInfo.getFormat());
@@ -261,14 +260,14 @@ public class CosManager {
         PicOperations.Rule compressRule = new PicOperations.Rule();
         String webpKey = FileUtil.mainName(key) + ".webp";
         compressRule.setRule("imageMogr2/format/webp");
-        compressRule.setBucket(cosClientConfig.getBucket());
+        compressRule.setBucket(cosConfig.getBucket());
         compressRule.setFileId(webpKey);
         rules.add(compressRule);
 
         // 设置缩略图的规则
         if (file.length() > 2 * PictureConstant.ONE_K) { // 只有在图片超过一定大小才做缩略图, 否则小图片反而在缩略后体积变大了
             PicOperations.Rule thumbnailRule = new PicOperations.Rule();
-            thumbnailRule.setBucket(cosClientConfig.getBucket());
+            thumbnailRule.setBucket(cosConfig.getBucket());
             String thumbnailKey = FileUtil.mainName(key) + "_thumbnail." + FileUtil.getSuffix(key);
             thumbnailRule.setFileId(thumbnailKey);
             thumbnailRule.setRule(String.format("imageMogr2/thumbnail/%sx%s>", 128, 128));
@@ -285,7 +284,7 @@ public class CosManager {
      */
     private PutObjectResult putPicture(String key, File file) {
         // 构造上传对象资源请求
-        PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key, file);
+        PutObjectRequest putObjectRequest = new PutObjectRequest(cosConfig.getBucket(), key, file);
 
         // 上传的同时要求 COS 对图片进行处理, 同时遵循响应的规则(注意需要开通数据万象并且绑定存储桶才能操作 COS 图片)
         PicOperations picOperations = new PicOperations(); // 该对象通常用于设置上传对象时的图片处理操作

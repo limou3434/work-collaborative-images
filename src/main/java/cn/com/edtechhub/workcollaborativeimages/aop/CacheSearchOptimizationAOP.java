@@ -3,7 +3,7 @@ package cn.com.edtechhub.workcollaborativeimages.aop;
 import cn.com.edtechhub.workcollaborativeimages.annotation.CacheSearchOptimization;
 import cn.com.edtechhub.workcollaborativeimages.constant.RedisConstant;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
-import cn.com.edtechhub.workcollaborativeimages.manager.CaffeineManager;
+import cn.com.edtechhub.workcollaborativeimages.manager.caffeine.CaffeineManager;
 import cn.com.edtechhub.workcollaborativeimages.model.vo.PictureVO;
 import cn.com.edtechhub.workcollaborativeimages.response.BaseResponse;
 import cn.com.edtechhub.workcollaborativeimages.response.TheResult;

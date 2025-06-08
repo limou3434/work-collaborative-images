@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.config;
+package cn.com.edtechhub.workcollaborativeimages.manager.cos;
 
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
@@ -23,7 +23,7 @@ import javax.annotation.PostConstruct;
 @ConfigurationProperties(prefix = "cos.client")
 @Data
 @Slf4j
-public class CosClientConfig {
+public class CosConfig {
 
     /**
      * 访问域名

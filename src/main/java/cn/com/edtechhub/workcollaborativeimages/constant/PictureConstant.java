@@ -55,4 +55,9 @@ public interface PictureConstant {
      */
     String DEFAULT_REVIEW_MESSAGE = "待管理员审核";
 
+    /**
+     * 默认模型
+     */
+    String DEFAULT_MODEL = "image-out-painting";
+
 }

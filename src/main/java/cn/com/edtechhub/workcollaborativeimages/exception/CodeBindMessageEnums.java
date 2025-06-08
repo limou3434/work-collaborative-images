@@ -31,12 +31,12 @@ public enum CodeBindMessageEnums {
     TIMEOUT_ERROR(40800, "请求超时"),
 
     // 5xxxx 服务端错误类型
-    SYSTEM_ERROR(50000, "内部错误"),
+    SYSTEM_ERROR(50000, "系统内部错误"),
     OPERATION_ERROR(50001, "操作失败"),
-    FLOW_RULES(50003, "触发流量控制规则"),
-    DEGRADE_RULES(50004, "触发熔断降级规则"),
-    PARAM_RULES(50005, "触发热点参数规则"),
-    SYSTEM_RULES(50002, "触发系统保护规则"),
+    FLOW_RULES(50002, "触发流量控制规则"),
+    DEGRADE_RULES(50003, "触发熔断降级规则"),
+    PARAM_RULES(50004, "触发热点参数规则"),
+    SYSTEM_RULES(50005, "触发系统保护规则"),
     ;
 
     /**

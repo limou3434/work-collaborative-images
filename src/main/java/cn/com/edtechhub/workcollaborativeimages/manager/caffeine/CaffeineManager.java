@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.manager;
+package cn.com.edtechhub.workcollaborativeimages.manager.caffeine;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;

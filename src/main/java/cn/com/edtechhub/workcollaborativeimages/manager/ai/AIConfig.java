@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.config;
+package cn.com.edtechhub.workcollaborativeimages.manager.ai;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ public class AIConfig {
      */
     @PostConstruct
     public void printConfig() {
-        log.debug("当前项目 Aliyun AI 密钥已加载为 {}", apiKey);
+        log.debug("[AIConfig] 当前项目 aliyun AI 密钥已加载为 {}", apiKey);
     }
 
 }
