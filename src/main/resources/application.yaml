@@ -132,10 +132,6 @@ knife4j: # knife4j 的增强配置(不需要增强可以不配)
   setting:
     language: zh_cn
 
-# 配置 Caffeine
-caffeine:
-  initialCapacity: 1024
-
 # 配置 MyBatisPlus
 mybatis-plus:
   ## 配置加密盐值

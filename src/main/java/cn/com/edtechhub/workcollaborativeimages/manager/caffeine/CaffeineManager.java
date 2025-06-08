@@ -5,11 +5,12 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 线程缓存管理器
+ * Caffeine 管理器
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
@@ -18,12 +19,19 @@ import java.util.concurrent.TimeUnit;
 public class CaffeineManager {
 
     /**
-     * 构造一个 Caffeine 缓存器
+     * 注入 CaffeineConfig 配置依赖
      */
-    private final Cache<String, String> cache = Caffeine.newBuilder()
-            .initialCapacity(1024)
-            .maximumSize(10000L)
-            .expireAfterWrite(30, TimeUnit.SECONDS)
+    @Resource
+    private CaffeineConfig caffeineConfig;
+
+    /**
+     * 构造 Caffeine 缓存器实例
+     */
+    private final Cache<String, String> cache = Caffeine
+            .newBuilder()
+            .initialCapacity(caffeineConfig.getInitialCapacity())
+            .maximumSize(caffeineConfig.getMaximumSize())
+            .expireAfterWrite(caffeineConfig.getExpireAfterWrite(), TimeUnit.SECONDS)
             .build();
 
     /**
@@ -48,14 +56,14 @@ public class CaffeineManager {
     }
 
     /**
-     * 清理键值对
+     * 清理所有键值对
      */
     public void clearAll() {
         this.cache.invalidateAll();
     }
 
     /**
-     * 查看键值对
+     * 查看所有键值对
      */
     public Map<String, String> dumpCache() {
         return this.cache.asMap();

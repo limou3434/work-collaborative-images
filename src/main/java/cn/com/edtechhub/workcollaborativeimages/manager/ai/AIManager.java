@@ -14,8 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
- * AI 相关接口管理器
- * 该类中的 AI 功能依赖于阿里云的模型服务
+ * AI 管理器
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */

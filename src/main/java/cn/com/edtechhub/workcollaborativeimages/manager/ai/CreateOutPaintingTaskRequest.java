@@ -1,6 +1,5 @@
 package cn.com.edtechhub.workcollaborativeimages.manager.ai;
 
-import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.hutool.core.annotation.Alias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -23,7 +22,7 @@ public class CreateOutPaintingTaskRequest implements Serializable {
     /**
      * 指定模型
      */
-    private String model = PictureConstant.DEFAULT_MODEL;
+    private String model = "image-out-painting";
 
     /**
      * 图像信息
