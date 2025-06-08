@@ -4,7 +4,7 @@
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
   spaceUserEdit,
@@ -12,7 +12,7 @@ import {
   spaceUserMoveOut,
   spaceUserPageUser
 } from '@/api/work-collaborative-images/spaceUserController.ts'
-import { SPACE_ROLE_OPTIONS } from '@/constants/space.ts'
+import { SPACE_ROLE_ENUM, SPACE_ROLE_OPTIONS } from '@/constants/space.ts'
 import dayjs from 'dayjs'
 
 // NOTE: 变量
@@ -20,9 +20,14 @@ import dayjs from 'dayjs'
 interface Props {
   id: string
 }
-const props = defineProps<Props>()
 
+const props = defineProps<Props>()
+const dataList = ref<WorkCollaborativeImagesAPI.UserVO[]>()
 const columns = [
+  {
+    title: '标识',
+    dataIndex: 'userId'
+  },
   {
     title: '用户',
     dataIndex: 'userInfo'
@@ -41,10 +46,7 @@ const columns = [
   }
 ]
 
-
-
-// 数据
-const dataList = ref<WorkCollaborativeImagesAPI.UserVO[]>()
+// NOTE: 调用
 
 // 获取数据
 const fetchData = async () => {
@@ -62,19 +64,14 @@ const fetchData = async () => {
   }
 }
 
-// 页面加载时请求一次
-onMounted(() => {
-  fetchData()
-})
-
-const editSpaceRole = async (value, record) => {
+const editSpaceRole = async (value: number, record: WorkCollaborativeImagesAPI.UserVO) => {
   const res = await spaceUserEdit({
     spaceId: Number(props.id),
     userId: record.id,
     spaceRole: value
   })
   if (res.data.code === 20000) {
-    message.success('修改成功')
+    message.success('修改成功') // TODO: 前端提前获取当前登录用户的空间角色, 然后直接封禁用户的修改按钮
   } else {
     message.error(res.data.message)
   }
@@ -92,34 +89,52 @@ const handleSubmit = async () => {
     spaceId: Number(spaceId),
     ...formData
   })
-  if (res.data.code === 0) {
+  if (res.data.code === 20000) {
     message.success('添加成功')
     // 刷新数据
-    fetchData()
+    await fetchData()
   } else {
     message.error(res.data.message)
   }
 }
 
-const doDelete = async (id: string) => {
+const doDelete = async (id: number) => {
   if (!id) {
     return
   }
   const res = await spaceUserMoveOut({ spaceId: Number(props.id), userId: id })
-  if (res.data.code === 0) {
+  if (res.data.code === 20000) {
     message.success('删除成功')
     // 刷新数据
-    fetchData()
+    await fetchData()
   } else {
-    message.error('删除失败')
+    message.error(res.data.message)
   }
 }
+
+// // 通用权限检查函数
+// function createPermissionChecker(permission: number) {
+//   return computed(() => {
+//     return (picture.value.permissionList ?? []).includes(permission)
+//   })
+// }
+
+// // 定义权限检查
+// const canManageSpaceUser = createPermissionChecker(SPACE_ROLE_ENUM.MANGER)
+// const canUploadPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_UPLOAD)
+// const canEditPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
+// const canDeletePicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
+
+// NOTE: 监听
+onMounted(() => {
+  fetchData()
+})
 
 </script>
 
 <template>
   <a-form :model="formData" layout="inline" @finish="handleSubmit">
-    <a-form-item label="用户 id" name="userId">
+    <a-form-item label="用户标识" name="userId">
       <a-input v-model:value="formData.userId" allow-clear placeholder="请输入用户 id" />
     </a-form-item>
     <a-form-item>
@@ -127,9 +142,11 @@ const doDelete = async (id: string) => {
     </a-form-item>
   </a-form>
 
-
   <a-table :columns="columns" :data-source="dataList">
     <template #bodyCell="{ column, record }">
+      <template v-if="column.dataIndex === 'userId'">
+        {{ record.id }}
+      </template>
       <template v-if="column.dataIndex === 'userInfo'">
         <a-space>
           <a-avatar :src="record?.avatar" />
@@ -140,7 +157,7 @@ const doDelete = async (id: string) => {
         <a-select
           v-model:value="record.spaceRole"
           :options="SPACE_ROLE_OPTIONS"
-          @change="(value) => editSpaceRole(value, record)"
+          @change="(value: number) => editSpaceRole(value, record)"
         />
       </template>
       <template v-else-if="column.dataIndex === 'createTime'">

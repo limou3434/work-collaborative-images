@@ -21,10 +21,10 @@ const router = useRouter()
 const selectedCategory = ref('all') // 当前选中的分类标签
 const searchKeyword = ref('') // 搜索关键词
 
-// 本地分页状态（响应式对象）
+// 本地分页状态(响应式对象)
 const localPagination = reactive({
   pageCurrent: 1,
-  pageSize: 16 // 初始值设为16（8的2倍）
+  pageSize: 16 // 初始值设为 16(8 的倍数)
 })
 
 const dataList = ref<WorkCollaborativeImagesAPI.PictureVO[]>([]) // 图片数据列表

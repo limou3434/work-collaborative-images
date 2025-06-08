@@ -98,6 +98,7 @@ watch(
           添加图片
         </a-button>
         <a-button
+          v-if="spaceVO?.type == SPACE_TYPE_ENUM.COLLABORATIVE"
           :icon="h(TeamOutlined)"
           ghost
           type="primary"
