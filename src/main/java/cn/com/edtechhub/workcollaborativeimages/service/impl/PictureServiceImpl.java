@@ -11,7 +11,7 @@ import cn.com.edtechhub.workcollaborativeimages.manager.ai.CreateOutPaintingTask
 import cn.com.edtechhub.workcollaborativeimages.manager.ai.CreateOutPaintingTaskResponse;
 import cn.com.edtechhub.workcollaborativeimages.manager.ai.GetOutPaintingTaskResponse;
 import cn.com.edtechhub.workcollaborativeimages.manager.cos.CosManager;
-import cn.com.edtechhub.workcollaborativeimages.manager.SearchManager;
+import cn.com.edtechhub.workcollaborativeimages.manager.search.SearchManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.*;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;

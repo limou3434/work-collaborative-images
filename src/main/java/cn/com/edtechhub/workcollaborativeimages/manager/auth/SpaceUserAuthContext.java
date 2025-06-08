@@ -1,10 +1,10 @@
-package cn.com.edtechhub.workcollaborativeimages.auth;
+package cn.com.edtechhub.workcollaborativeimages.manager.auth;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 用于表示用户在特定空间内的授权上下文信息
+ * 描述用户在特定空间内的授权上下文信息, 用于后续进行权限判断
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
@@ -41,6 +41,5 @@ public class SpaceUserAuthContext {
      * 当前请求的控制器所属模块
      */
     private String controlModule;
-
 
 }

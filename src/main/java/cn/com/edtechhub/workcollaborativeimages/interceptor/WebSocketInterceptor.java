@@ -1,6 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.interceptor;
 
-import cn.com.edtechhub.workcollaborativeimages.manager.SpaceUserAuthManager;
+import cn.com.edtechhub.workcollaborativeimages.manager.auth.SpaceUserAuthManager;
 import cn.com.edtechhub.workcollaborativeimages.service.PictureService;
 import cn.com.edtechhub.workcollaborativeimages.service.SpaceService;
 import cn.com.edtechhub.workcollaborativeimages.service.UserService;

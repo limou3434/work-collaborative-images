@@ -1,8 +1,5 @@
-package cn.com.edtechhub.workcollaborativeimages.manager;
+package cn.com.edtechhub.workcollaborativeimages.manager.auth;
 
-import cn.com.edtechhub.workcollaborativeimages.auth.SpaceUserAuthContext;
-import cn.com.edtechhub.workcollaborativeimages.auth.SpaceUserRole;
-import cn.com.edtechhub.workcollaborativeimages.config.SpaceUserAuthConfig;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnum;
 import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnum;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;

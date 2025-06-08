@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.annotation.PostConstruct;
 
 /**
- * 对象存储配置
+ * COS 配置类
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */

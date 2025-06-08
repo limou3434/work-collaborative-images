@@ -1,8 +1,9 @@
-package cn.com.edtechhub.workcollaborativeimages.manager;
+package cn.com.edtechhub.workcollaborativeimages.manager.satoken;
 
-import cn.com.edtechhub.workcollaborativeimages.auth.SpaceUserAuthContext;
 import cn.com.edtechhub.workcollaborativeimages.constant.UserConstant;
 import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnum;
+import cn.com.edtechhub.workcollaborativeimages.manager.auth.SpaceUserAuthContext;
+import cn.com.edtechhub.workcollaborativeimages.manager.auth.SpaceUserAuthManager;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpUtil;
@@ -15,7 +16,6 @@ import java.util.List;
 
 /**
  * Sa-token 管理器
- * 需要保证此类被 SpringBoot 扫描, 完成 Sa-Token 的自定义权限验证扩展
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
@@ -37,9 +37,11 @@ public class SaTokenManager implements StpInterface {
         // 制作空的角色标识集合
         List<String> list = new ArrayList<>();
 
-        // 返回角色标识集合
+        // 获取当前登录用户信息
         User user = (User) StpUtil.getSessionByLoginId(loginId).get(UserConstant.USER_LOGIN_STATE); // 直接从会话缓存中获取用户的所有信息
         UserRoleEnum userRole = UserRoleEnum.getEnums(user.getRole()); // 由于在本数据库中为了拓展性使用数字来标识身份, 因此需要做一层转化
+
+        // 返回角色标识集合
         if (userRole != null) {
             list.add(userRole.getDescription());
         }
@@ -55,10 +57,14 @@ public class SaTokenManager implements StpInterface {
         // 制作空的权限码值集合
         List<String> list = new ArrayList<>();
 
-        // 返回权限码值集合
+        // 获取当前登录用户信息
         User user = (User) StpUtil.getSessionByLoginId(loginId).get(UserConstant.USER_LOGIN_STATE); // 直接从会话缓存中获取用户的所有信息
         SpaceUserAuthContext authContext = spaceUserAuthManager.getSpaceUserAuthContextByRequest(); // 利用上下文来获取重要的 id 值以支持某些接口可以在某些情况下绕过权限码值集合的判断
-        list = spaceUserAuthManager.getPermissionListById(authContext, user.getId());
+
+        // 返回权限码值集合
+        if (authContext != null) {
+            list = spaceUserAuthManager.getPermissionListById(authContext, user.getId());
+        }
         log.debug("本次调用用户携带的的权限码值集合为 {}", list);
         return list;
     }

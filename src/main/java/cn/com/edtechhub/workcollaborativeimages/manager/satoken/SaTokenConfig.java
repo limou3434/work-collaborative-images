@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.config;
+package cn.com.edtechhub.workcollaborativeimages.manager.satoken;
 
 import cn.dev33.satoken.SaManager;
 import cn.dev33.satoken.interceptor.SaInterceptor;
@@ -10,7 +10,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import javax.annotation.PostConstruct;
 
 /**
- * Sa-token 配置
+ * Sa-token 配置类
+ *
+ * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Configuration
 @Slf4j
@@ -29,8 +31,8 @@ public class SaTokenConfig implements WebMvcConfigurer {
      */
     @PostConstruct
     public void printConfig() {
-        log.debug("当前项目 Sa-token 配置查验为: {}", SaManager.getConfig());
-        log.debug("当前项目 Sa-token 切面类被替换为: {}", SaManager.getStpInterface());
+        log.debug("[SaTokenConfig] 当前项目 Sa-token 配置查验为: {}", SaManager.getConfig());
+        log.debug("[SaTokenConfig] 当前项目 Sa-token 切面类被替换为: {}", SaManager.getStpInterface());
     }
 
 }
