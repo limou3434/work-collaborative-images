@@ -25,6 +25,9 @@ public class CaffeineManager {
     @Resource
     private CaffeineConfig caffeineConfig;
 
+    /**
+     * 需要后续初始化的缓存对象
+     */
     private Cache<String, String> cache;
 
     /**
@@ -42,6 +45,9 @@ public class CaffeineManager {
 
     /**
      * 插入键值对
+     *
+     * @param key   键
+     * @param value 值
      */
     public void put(String key, String value) {
         this.cache.put(key, value);
@@ -49,6 +55,8 @@ public class CaffeineManager {
 
     /**
      * 获得键值堆
+     *
+     * @param key 键
      */
     public String get(String key) {
         return this.cache.getIfPresent(key);
@@ -56,6 +64,8 @@ public class CaffeineManager {
 
     /**
      * 删除键值对
+     *
+     * @param key 键
      */
     public void remove(String key) {
         this.cache.invalidate(key);
