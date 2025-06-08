@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.model.dto;
+package cn.com.edtechhub.workcollaborativeimages.manager.websocket;
 
 import cn.com.edtechhub.workcollaborativeimages.model.vo.UserVO;
 import lombok.AllArgsConstructor;

@@ -13,8 +13,8 @@ import cn.com.edtechhub.workcollaborativeimages.manager.ai.GetOutPaintingTaskRes
 import cn.com.edtechhub.workcollaborativeimages.manager.cos.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.manager.search.SearchManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
+import cn.com.edtechhub.workcollaborativeimages.manager.search.ImageSearchResult;
+import cn.com.edtechhub.workcollaborativeimages.manager.cos.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;

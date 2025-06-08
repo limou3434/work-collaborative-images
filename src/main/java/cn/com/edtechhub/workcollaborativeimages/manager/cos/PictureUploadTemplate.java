@@ -3,7 +3,6 @@ package cn.com.edtechhub.workcollaborativeimages.manager.cos;
 import cn.com.edtechhub.workcollaborativeimages.constant.PictureConstant;
 import cn.com.edtechhub.workcollaborativeimages.constant.ServerConstant;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;

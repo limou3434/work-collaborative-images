@@ -2,7 +2,6 @@ package cn.com.edtechhub.workcollaborativeimages.manager.search;
 
 
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
 import cn.com.edtechhub.workcollaborativeimages.utils.ThrowUtils;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.URLUtil;

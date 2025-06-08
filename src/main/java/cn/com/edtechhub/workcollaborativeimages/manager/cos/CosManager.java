@@ -1,6 +1,5 @@
 package cn.com.edtechhub.workcollaborativeimages.manager.cos;
 
-import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

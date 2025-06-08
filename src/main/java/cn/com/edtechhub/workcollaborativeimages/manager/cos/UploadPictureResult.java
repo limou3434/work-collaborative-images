@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.model.dto;
+package cn.com.edtechhub.workcollaborativeimages.manager.cos;
 
 import lombok.Data;
 

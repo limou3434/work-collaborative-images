@@ -6,7 +6,7 @@ import cn.com.edtechhub.workcollaborativeimages.enums.SpaceTypeEnum;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.manager.ai.CreateOutPaintingTaskResponse;
 import cn.com.edtechhub.workcollaborativeimages.manager.ai.GetOutPaintingTaskResponse;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
+import cn.com.edtechhub.workcollaborativeimages.manager.search.ImageSearchResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.*;

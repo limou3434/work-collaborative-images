@@ -1,7 +1,6 @@
-package cn.com.edtechhub.workcollaborativeimages.config;
+package cn.com.edtechhub.workcollaborativeimages.manager.websocket;
 
 import cn.com.edtechhub.workcollaborativeimages.interceptor.WebSocketInterceptor;
-import cn.com.edtechhub.workcollaborativeimages.manager.WebSocketManager;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;

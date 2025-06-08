@@ -1,9 +1,7 @@
-package cn.com.edtechhub.workcollaborativeimages.manager;
+package cn.com.edtechhub.workcollaborativeimages.manager.websocket;
 
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureEditActionEnum;
 import cn.com.edtechhub.workcollaborativeimages.enums.PictureEditMessageTypeEnum;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.PictureEditRequestMessage;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.PictureEditResponseMessage;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;

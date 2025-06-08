@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.config;
+package cn.com.edtechhub.workcollaborativeimages.manager.auth;
 
 import cn.hutool.http.ContentType;
 import cn.hutool.http.Header;
@@ -10,13 +10,13 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 /**
- * 请求包装过滤器配置
+ * 请求包装过滤器配置(使 InputStream 可以重复读取)
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Order(1)
 @Component
-public class HttpRequestWrapperFilterConfig implements Filter {
+public class HttpRequestWrapperFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws ServletException, IOException {

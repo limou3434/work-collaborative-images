@@ -76,7 +76,7 @@ public class SpaceUserAuthManager {
      * 从本次请求中获取上下文对象(主要存储某些 id 值用于后续权限码值集合校验)
      */
     public SpaceUserAuthContext getSpaceUserAuthContextByRequest() {
-        // 获取当前线程绑定的请求上下文(HttpServletRequest 的 body 值是个流只支持读取一次, 为了重复读取还需要在 config 包下自定义 RequestWrapperConfig 和 HttpRequestWrapperFilterConfig )
+        // 获取当前线程绑定的请求上下文(HttpServletRequest 的 body 值是个流只支持读取一次, 为了重复读取还需要在 config 包下自定义 RequestWrapperConfig 和 HttpRequestWrapperFilter )
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
 
         // 获取请求报头中的 Content-Type 参数值

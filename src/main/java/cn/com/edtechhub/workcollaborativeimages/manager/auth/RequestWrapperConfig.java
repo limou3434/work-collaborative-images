@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.config;
+package cn.com.edtechhub.workcollaborativeimages.manager.auth;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.*;
 
 /**
- * 请求包装类配置
+ * 请求包装类配置(使 InputStream 可以重复读取)
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
