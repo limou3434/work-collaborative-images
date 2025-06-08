@@ -211,4 +211,10 @@ const doDelete = async (id: string) => {
   </div>
 </template>
 
+<!-- TODO: 添加管理员可以直接跳转到管理空间的页面 -->
+<!-- TODO: 删除空间的时候需要弹出提示 -->
+<!-- TODO: 管理元无法修改其他用户的空间名称... -->
+<!-- TODO: 支持对空间等级的修改... -->
+<!-- TODO: 支持对标签的修改... -->
+
 <style scoped></style>
