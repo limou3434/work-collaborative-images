@@ -2,7 +2,7 @@ package cn.com.edtechhub.workcollaborativeimages.controller;
 
 import cn.com.edtechhub.workcollaborativeimages.annotation.LogParams;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
-import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnum;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.*;
@@ -81,7 +81,7 @@ public class UserController { // 通常控制层有服务层中的所有方法, 
     @SaCheckRole("admin")
     @PostMapping("/admin/disable")
     public BaseResponse<Boolean> adminUserDisable(@RequestBody UserDisableRequest userDisableRequest) {
-        Boolean result = userService.userDisable(userDisableRequest.getId(), userDisableRequest.getDisableTime(), UserRoleEnums.USER_ROLE);
+        Boolean result = userService.userDisable(userDisableRequest.getId(), userDisableRequest.getDisableTime(), UserRoleEnum.USER_ROLE);
         return TheResult.success(CodeBindMessageEnums.SUCCESS, result);
     }
 

@@ -1,6 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.service;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.UserRoleEnum;
 import cn.com.edtechhub.workcollaborativeimages.model.dto.UserTokenStatus;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.User;
 import cn.com.edtechhub.workcollaborativeimages.model.request.userService.UserAddRequest;
@@ -49,7 +49,7 @@ public interface UserService extends IService<User> {
     /**
      * 对指定进行封禁/解禁服务
      */
-    Boolean userDisable(Long userId, Long disableTime, UserRoleEnums userRoleEnums);
+    Boolean userDisable(Long userId, Long disableTime, UserRoleEnum userRoleEnum);
 
     /**
      * 验证账户服务

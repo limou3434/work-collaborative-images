@@ -10,7 +10,7 @@ import lombok.Getter;
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Getter
-public enum SpaceLevelEnums {
+public enum SpaceLevelEnum {
 
     /**
      * 普通版等级枚举实例
@@ -50,7 +50,7 @@ public enum SpaceLevelEnums {
     /**
      * 内部等级构造方法
      */
-    SpaceLevelEnums(String description, int code, long maxCount, long maxSize) {
+    SpaceLevelEnum(String description, int code, long maxCount, long maxSize) {
         this.code = code;
         this.description = description;
         this.maxCount = maxCount;
@@ -60,11 +60,11 @@ public enum SpaceLevelEnums {
     /**
      * 根据等级码值获取等级枚举
      */
-    public static SpaceLevelEnums getEnums(Integer value) {
+    public static SpaceLevelEnum getEnums(Integer value) {
         if (ObjUtil.isEmpty(value)) {
             return null;
         }
-        for (SpaceLevelEnums level : SpaceLevelEnums.values()) {
+        for (SpaceLevelEnum level : SpaceLevelEnum.values()) {
             if (level.code == value) {
                 return level;
             }

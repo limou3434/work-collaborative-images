@@ -9,7 +9,7 @@ import lombok.Getter;
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
 @Getter
-public enum UserRoleEnums { // 由于效率问题, 这里手动缓存了数据库中的用户权限, 数据库中的用户等级只是用来限制插入和前端查询的
+public enum UserRoleEnum { // 由于效率问题, 这里手动缓存了数据库中的用户权限, 数据库中的用户等级只是用来限制插入和前端查询的
 
     /**
      * 封号角色枚举实例
@@ -39,7 +39,7 @@ public enum UserRoleEnums { // 由于效率问题, 这里手动缓存了数据�
     /**
      * 内部角色构造方法
      */
-    UserRoleEnums(int code, String description) {
+    UserRoleEnum(int code, String description) {
         this.code = code;
         this.description = description;
     }
@@ -47,11 +47,11 @@ public enum UserRoleEnums { // 由于效率问题, 这里手动缓存了数据�
     /**
      * 根据角色码值获取角色枚举
      */
-    public static UserRoleEnums getEnums(int code) { // TODO: 等待改正放回值为枚举
+    public static UserRoleEnum getEnums(int code) { // TODO: 等待改正放回值为枚举
         if (ObjUtil.isEmpty(code)) {
             return null;
         }
-        for (UserRoleEnums role : UserRoleEnums.values()) {
+        for (UserRoleEnum role : UserRoleEnum.values()) {
             if (role.getCode() == code) {
                 return role;
             }

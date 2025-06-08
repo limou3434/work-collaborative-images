@@ -1,6 +1,6 @@
 package cn.com.edtechhub.workcollaborativeimages.controller;
 
-import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnums;
+import cn.com.edtechhub.workcollaborativeimages.enums.SpaceUserRoleEnum;
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.SpaceUser;
@@ -113,7 +113,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
 
         Integer spaceRole = spaceUserMoveInRequest.getSpaceRole();
         ThrowUtils.throwIf(spaceRole == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "权限不能为空");
-        ThrowUtils.throwIf(SpaceUserRoleEnums.getEnums(spaceRole) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户权限不存在");
+        ThrowUtils.throwIf(SpaceUserRoleEnum.getEnums(spaceRole) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户权限不存在");
 
         return TheResult.success(
                 CodeBindMessageEnums.SUCCESS,
@@ -176,7 +176,7 @@ public class SpaceUserController { // 通常控制层有服务层中的所有方
 
         Integer spaceRole = spaceUserEditRequest.getSpaceRole();
         ThrowUtils.throwIf(spaceRole == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "权限不能为空");
-        ThrowUtils.throwIf(SpaceUserRoleEnums.getEnums(spaceRole) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户权限不存在");
+        ThrowUtils.throwIf(SpaceUserRoleEnum.getEnums(spaceRole) == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "该用户权限不存在");
 
         List<SpaceUser> spaceUserList = spaceUserService.spaceUserSearch(
                 new SpaceUserSearchRequest()
