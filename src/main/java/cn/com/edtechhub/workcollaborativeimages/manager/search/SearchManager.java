@@ -1,4 +1,4 @@
-package cn.com.edtechhub.workcollaborativeimages.manager;
+package cn.com.edtechhub.workcollaborativeimages.manager.search;
 
 
 import cn.com.edtechhub.workcollaborativeimages.exception.CodeBindMessageEnums;
@@ -21,6 +21,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -29,8 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 以图搜图管理器
- * 使用的是百度的 API, 不过保证长期有效
+ * Search 管理器
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
@@ -39,12 +39,18 @@ import java.util.regex.Pattern;
 public class SearchManager {
 
     /**
+     * 引入 Search 配置类依赖
+     */
+    @Resource
+    SearchConfig searchConfig;
+
+    /**
      * 获取和给定图片地址类似的图片列表
      */
-    public static List<ImageSearchResult> getSimilarPictureList(String pictureUrl) {
-        String pageUrl = SearchManager.getImagePageUrl(pictureUrl);
+    public List<ImageSearchResult> getSimilarPictureList(String pictureUrl) {
+        String pageUrl = this.getImagePageUrl(pictureUrl);
         log.debug("获取到的搜索页面地址为 {}", pageUrl);
-        String imageFirstUrlOfImagePageUrl = SearchManager.getImageFirstUrlOfImagePageUrl(pageUrl);
+        String imageFirstUrlOfImagePageUrl = this.getImageFirstUrlOfImagePageUrl(pageUrl);
         log.debug("获取到的脚本搜索结果为 {}", imageFirstUrlOfImagePageUrl);
         List<ImageSearchResult> responseImageList = getResponseImageList(imageFirstUrlOfImagePageUrl);
         log.debug("获取到的相似图片列表为 {}", responseImageList);
@@ -54,7 +60,7 @@ public class SearchManager {
     /**
      * 获取以图搜图后对应页面的地址
      */
-    private static String getImagePageUrl(String imageUrl) {
+    private String getImagePageUrl(String imageUrl) {
         // 检查参数
         ThrowUtils.throwIf(StringUtils.isBlank(imageUrl), CodeBindMessageEnums.PARAMS_ERROR, "需要搜索的图片不能为空");
 
@@ -66,7 +72,7 @@ public class SearchManager {
         formData.put("image_source", "PC_UPLOAD_URL");
 
         // 构造请求地址
-        String url = "https://graph.baidu.com/upload?uptime=" + System.currentTimeMillis();
+        String url = searchConfig.getUrl() + +System.currentTimeMillis();
 
         // 发送请求获取页面
         try {
@@ -100,7 +106,7 @@ public class SearchManager {
     /**
      * 获取搜图结果页面中的相似图片地址列表的 JSON 数组结果所对应的地址
      */
-    private static String getImageFirstUrlOfImagePageUrl(String url) {
+    private String getImageFirstUrlOfImagePageUrl(String url) {
         // 检查参数
         ThrowUtils.throwIf(StringUtils.isBlank(url), CodeBindMessageEnums.PARAMS_ERROR, "需要解析的搜图页面结果地址不能为空");
 
@@ -137,7 +143,7 @@ public class SearchManager {
     /**
      * 把响应 JSON 结果地址中结果转化为图片列表
      */
-    private static List<ImageSearchResult> getResponseImageList(String url) {
+    private List<ImageSearchResult> getResponseImageList(String url) {
         try {
             // 发起 GET 请求
             HttpResponse response = HttpUtil
@@ -150,7 +156,7 @@ public class SearchManager {
             ThrowUtils.throwIf(statusCode != 200, CodeBindMessageEnums.OPERATION_ERROR, "接口调用失败");
 
             // 处理响应
-            return SearchManager.processResponse(body);
+            return this.processResponse(body);
         } catch (Exception e) {
             ThrowUtils.throwIf(true, CodeBindMessageEnums.OPERATION_ERROR, "获取图片列表失败");
         }
@@ -160,7 +166,7 @@ public class SearchManager {
     /**
      * 处理接口响应内容
      */
-    private static List<ImageSearchResult> processResponse(String responseBody) {
+    private List<ImageSearchResult> processResponse(String responseBody) {
         // 解析响应对象
         JSONObject jsonObject = new JSONObject(responseBody);
 

@@ -13,7 +13,8 @@ import cn.com.edtechhub.workcollaborativeimages.manager.ai.GetOutPaintingTaskRes
 import cn.com.edtechhub.workcollaborativeimages.manager.cos.CosManager;
 import cn.com.edtechhub.workcollaborativeimages.manager.search.SearchManager;
 import cn.com.edtechhub.workcollaborativeimages.mapper.PictureMapper;
-import cn.com.edtechhub.workcollaborativeimages.model.dto.*;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.ImageSearchResult;
+import cn.com.edtechhub.workcollaborativeimages.model.dto.UploadPictureResult;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Picture;
 import cn.com.edtechhub.workcollaborativeimages.model.entity.Space;
 import cn.com.edtechhub.workcollaborativeimages.model.request.pictureService.PictureAddRequest;
@@ -78,6 +79,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
      */
     @Resource
     AIManager aiManager;
+
+    /**
+     * 注入 Search 管理器依赖
+     */
+    @Resource
+    SearchManager searchManager;
 
     /**
      * 注入用户服务依赖
@@ -403,7 +410,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         ThrowUtils.throwIf(pictureId <= 0, CodeBindMessageEnums.PARAMS_ERROR, "图片标识参数不合法, 必须为正整数");
         Picture oldPicture = this.pictureSearchById(pictureId);
         ThrowUtils.throwIf(oldPicture == null, CodeBindMessageEnums.NOT_FOUND_ERROR, "该图片不存在无法寻找相似的图片");
-        return SearchManager.getSimilarPictureList(oldPicture.getOriginalUrl());
+        return searchManager.getSimilarPictureList(oldPicture.getOriginalUrl());
     }
 
     @Override
