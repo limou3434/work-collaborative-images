@@ -19,9 +19,19 @@ import javax.annotation.PostConstruct;
 public class AIConfig {
 
     /**
-     * 密钥的值
+     * 密钥
      */
     private String apiKey;
+
+    /**
+     * 创建扩图任务地址
+     */
+    private String createOutPaintingTaskUrl = "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/out-painting";
+
+    /**
+     * 查询扩图任务地址
+     */
+    private String getOutPaintingTaskUrl = "https://dashscope.aliyuncs.com/api/v1/tasks/%s";
 
     /**
      * 打印配置

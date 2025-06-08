@@ -29,16 +29,6 @@ public class AIManager {
     AIConfig aiConfig;
 
     /**
-     * 创建扩图任务地址
-     */
-    public static final String CREATE_OUT_PAINTING_TASK_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/out-painting";
-
-    /**
-     * 查询扩图任务地址
-     */
-    public static final String GET_OUT_PAINTING_TASK_URL = "https://dashscope.aliyuncs.com/api/v1/tasks/%s";
-
-    /**
      * 创建扩图任务
      *
      * @param createOutPaintingTaskRequest 创建扩图任务请求
@@ -55,7 +45,7 @@ public class AIManager {
         String apiKey = aiConfig.getApiKey(); // 获取 API 密钥
         try (
                 HttpResponse httpResponse = HttpRequest
-                        .post(CREATE_OUT_PAINTING_TASK_URL)
+                        .post(aiConfig.getCreateOutPaintingTaskUrl())
                         .header(Header.AUTHORIZATION, "Bearer " + apiKey)
                         .header("X-DashScope-Async", "enable") // 必须设置为 enable 以开启异步处理
                         .header(Header.CONTENT_TYPE, ContentType.JSON.getValue())
@@ -88,7 +78,7 @@ public class AIManager {
         String apiKey = aiConfig.getApiKey(); // 获取 API 密钥
         try (
                 HttpResponse httpResponse = HttpRequest
-                        .get(String.format(GET_OUT_PAINTING_TASK_URL, taskId))
+                        .get(String.format(aiConfig.getGetOutPaintingTaskUrl(), taskId))
                         .header(Header.AUTHORIZATION, "Bearer " + apiKey)
                         .execute()
         ) {
