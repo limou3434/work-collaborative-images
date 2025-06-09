@@ -12,28 +12,17 @@ import lombok.Getter;
 @Getter
 public enum SpaceLevelEnum {
 
-    /**
-     * 普通版等级枚举实例
-     */
     COMMON("普通版", 0, 100, 100L * PictureConstant.ONE_M),
-
-    /**
-     * 专业版等级枚举实例
-     */
     PROFESSIONAL("专业版", 1, 1000, 1000L * PictureConstant.ONE_M),
-
-    /**
-     * 旗舰版等级枚举实例
-     */
     FLAGSHIP("旗舰版", 2, 10000, 10000L * PictureConstant.ONE_M);
 
     /**
-     * 等级描述
+     * 描述
      */
     private final String description;
 
     /**
-     * 等级码值
+     * 码值
      */
     private final int code;
 
@@ -58,15 +47,15 @@ public enum SpaceLevelEnum {
     }
 
     /**
-     * 根据等级码值获取等级枚举
+     * 根据码值获取枚举
      */
     public static SpaceLevelEnum getEnums(Integer value) {
         if (ObjUtil.isEmpty(value)) {
             return null;
         }
-        for (SpaceLevelEnum level : SpaceLevelEnum.values()) {
-            if (level.code == value) {
-                return level;
+        for (SpaceLevelEnum theEnum : SpaceLevelEnum.values()) {
+            if (theEnum.code == value) {
+                return theEnum;
             }
         }
         return null;

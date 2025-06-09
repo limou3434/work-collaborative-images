@@ -63,7 +63,7 @@ public class SaTokenManager implements StpInterface {
 
         // 返回权限码值集合
         if (authContext != null) {
-            list = spaceUserAuthManager.getPermissionListById(authContext, user.getId());
+            list = spaceUserAuthManager.getPermissionListByLoginUserId(authContext, user.getId());
         }
         log.debug("本次调用用户携带的的权限码值集合为 {}", list);
         return list;

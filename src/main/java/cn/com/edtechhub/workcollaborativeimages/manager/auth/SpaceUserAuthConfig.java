@@ -39,7 +39,7 @@ public class SpaceUserAuthConfig {
      */
     @PostConstruct
     public void printConfig() {
-        log.debug("[SpaceUserAuth] 当前项目 SpaceUserAuth 读取到的配置文件内容为: {}", SpaceUserAuthConfig.SPACE_USER_AUTH_CONFIG);
+        log.debug("[SpaceUserAuthConfig] 当前项目 SpaceUserAuth 读取到的配置文件内容为: {}", SpaceUserAuthConfig.SPACE_USER_AUTH_CONFIG);
     }
 
 }

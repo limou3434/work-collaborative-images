@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.beans.BeanUtils;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -118,12 +119,13 @@ public class UserVO implements Serializable {
     private Integer gender;
 
     /// 序列化字段 ///
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
      * 脱敏方法
      */
-    static public UserVO removeSensitiveData(User user) {
+    public static UserVO removeSensitiveData(User user) {
         if (user == null) {
             return null;
         }

@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 图片编辑请求
+ * 图片协作编辑请求消息
  *
  * @author <a href="https://github.com/limou3434">limou3434</a>
  */
@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class PictureEditRequestMessage {
 
     /**
-     * 消息类型，例如 "ENTER_EDIT", "EXIT_EDIT", "EDIT_ACTION"
+     * 消息类型, 例如 "INFO" - 发送通知, "ENTER_EDIT" - 进入编辑状态, "EXIT_EDIT" - 退出编辑状态, "EDIT_ACTION" - 执行编辑操作, "ERROR" - 发送错误
      */
     private String type;
 

@@ -126,12 +126,12 @@ public class SpaceUserAuthManager {
     /**
      * 从本次请求获取的上下文对象中提取权限码值集合
      */
-    public List<String> getPermissionListById(SpaceUserAuthContext authContext, Long currentLonginUserId) {
+    public List<String> getPermissionListByLoginUserId(SpaceUserAuthContext authContext, Long currentLonginUserId) {
         Long spaceId = authContext.getSpaceId();
         Long pictureId = authContext.getPictureId();
         Long userId = authContext.getUserId();
         String controlModule = authContext.getControlModule();
-        List<String> pass = this.getPermissionsByRole(SpaceUserRoleEnum.MANGER_ROLE);
+        List<String> pass = this.getPermissionsByRoleEnum(SpaceUserRoleEnum.MANGER_ROLE);
 
         // 如果上下文什么字段都没有则直接放开所有权限
         if (this.isAllFieldsNull(authContext)) {
@@ -147,7 +147,7 @@ public class SpaceUserAuthManager {
             ThrowUtils.throwIf(SpaceTypeEnum.getEnums(space.getType()) != SpaceTypeEnum.COLLABORATIVE, CodeBindMessageEnums.PARAMS_ERROR, "该空间不是协作空间无法操作");
             SpaceUser spaceUser = spaceUserService.spaceUserSearchById(spaceId, currentLonginUserId);
             ThrowUtils.throwIf(spaceUser == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该协作空间的相关成员无法进行相关操作");
-            return this.getPermissionsByRole(SpaceUserRoleEnum.getEnums(spaceUser.getSpaceRole()));
+            return this.getPermissionsByRoleEnum(SpaceUserRoleEnum.getEnums(spaceUser.getSpaceRole()));
         }
 
         // 如果是和图片相关的请求(例如 上传图片、删除图片、查看图片 接口)
@@ -161,7 +161,7 @@ public class SpaceUserAuthManager {
                 }
                 SpaceUser spaceUser = spaceUserService.spaceUserSearchById(spaceId, currentLonginUserId);
                 ThrowUtils.throwIf(spaceUser == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该协作空间的相关成员无法进行相关操作");
-                return this.getPermissionsByRole(SpaceUserRoleEnum.getEnums(spaceUser.getSpaceRole()));
+                return this.getPermissionsByRoleEnum(SpaceUserRoleEnum.getEnums(spaceUser.getSpaceRole()));
             }
 
             // 销毁图片只需要携带 pictureId, 查验这张图片有没有所属空间
@@ -178,7 +178,7 @@ public class SpaceUserAuthManager {
                 }
                 SpaceUser spaceUser = spaceUserService.spaceUserSearchById(space.getId(), currentLonginUserId);
                 ThrowUtils.throwIf(spaceUser == null, CodeBindMessageEnums.ILLEGAL_OPERATION_ERROR, "您不是该协作空间的相关成员无法进行相关操作");
-                return this.getPermissionsByRole(SpaceUserRoleEnum.getEnums(spaceUser.getSpaceRole()));
+                return this.getPermissionsByRoleEnum(SpaceUserRoleEnum.getEnums(spaceUser.getSpaceRole()));
             }
 
             // 查看图片需要获取图片记录
@@ -194,7 +194,7 @@ public class SpaceUserAuthManager {
     /**
      * 根据角色获取对应的权限列表(必须要求记录不为 null, 提高权限的安全性)
      */
-    private List<String> getPermissionsByRole(SpaceUserRoleEnum spaceUserRoleEnum) {
+    public List<String> getPermissionsByRoleEnum(SpaceUserRoleEnum spaceUserRoleEnum) {
         ThrowUtils.throwIf(spaceUserRoleEnum == null, CodeBindMessageEnums.PARAMS_ERROR, "空间角色枚举参数不能为空");
         String spaceUserRole = spaceUserRoleEnum.getDescription();
         ThrowUtils.throwIf(StrUtil.isBlank(spaceUserRole), CodeBindMessageEnums.SYSTEM_ERROR, "空间角色非法");
