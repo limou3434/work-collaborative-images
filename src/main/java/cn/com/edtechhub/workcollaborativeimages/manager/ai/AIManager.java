@@ -26,7 +26,7 @@ public class AIManager {
      * 引入配置文件依赖
      */
     @Resource
-    AIConfig aiConfig;
+    AiConfig aiConfig;
 
     /**
      * 创建扩图任务

@@ -16,7 +16,7 @@ import javax.annotation.PostConstruct;
 @ConfigurationProperties(prefix = "aliyunai")
 @Data
 @Slf4j
-public class AIConfig {
+public class AiConfig {
 
     /**
      * 密钥
@@ -38,7 +38,7 @@ public class AIConfig {
      */
     @PostConstruct
     public void printConfig() {
-        log.debug("[AIConfig] 当前项目 AI 密钥已加载为 {}", apiKey);
+        log.debug("[AiConfig] 当前项目 AI 密钥已加载为 {}", apiKey);
     }
 
 }
